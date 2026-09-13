@@ -1,0 +1,297 @@
+version: "3.8"
+
+networks:
+  data-net:
+    driver: bridge
+
+volumes:
+  clickhouse-data:
+  kafka-data:
+  prometheus-data:
+  grafana-data:
+
+configs:
+  clickhouse-prometheus-xml:
+    content: |
+      <clickhouse>
+          <prometheus>
+              <endpoint>/metrics</endpoint>
+              <port>9363</port>
+              <metrics>true</metrics>
+              <events>true</events>
+              <asynchronous_metrics>true</asynchronous_metrics>
+          </prometheus>
+      </clickhouse>
+
+  spark-metrics-properties:
+    content: |
+      *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
+      *.sink.prometheusServlet.path=/metrics/prometheus
+      master.sink.prometheusServlet.path=/metrics/master/prometheus
+
+  prometheus-yml:
+    content: |
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets: ["localhost:9090"]
+
+        - job_name: clickhouse
+          static_configs:
+            - targets: ["clickhouse:9363"]
+
+        - job_name: flink-jobmanager
+          static_configs:
+            - targets: ["flink-jobmanager:9249"]
+
+        - job_name: flink-taskmanager
+          static_configs:
+            - targets: ["flink-taskmanager:9249"]
+
+        - job_name: spark-master
+          metrics_path: /metrics/master/prometheus/
+          static_configs:
+            - targets: ["spark-master:8080"]
+
+        - job_name: spark-worker
+          metrics_path: /metrics/prometheus/
+          static_configs:
+            - targets: ["spark-worker:8081"]
+
+  grafana-datasource-yml:
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+          editable: true
+
+services:
+
+  # ------------------------------------------------------------------
+  # ClickHouse
+  # ------------------------------------------------------------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # native TCP interface
+      - "9363:9363"   # Prometheus metrics endpoint
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: clickhouse
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    configs:
+      - source: clickhouse-prometheus-xml
+        target: /etc/clickhouse-server/config.d/prometheus.xml
+    networks:
+      - data-net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Kafka (KRaft mode, no Zookeeper needed)
+  # ------------------------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    ports:
+      - "9092:9092"       # host access
+      - "29092:29092"     # inter-container access
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - data-net
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Kafka UI for browsing topics/messages
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - data-net
+
+  # ------------------------------------------------------------------
+  # Google Cloud Pub/Sub emulator
+  # ------------------------------------------------------------------
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: pubsub-emulator
+    command: >
+      gcloud beta emulators pubsub start
+      --host-port=0.0.0.0:8085
+      --project=local-project
+    ports:
+      - "8085:8085"
+    networks:
+      - data-net
+
+  # ------------------------------------------------------------------
+  # Flink (JobManager + TaskManager)
+  # ------------------------------------------------------------------
+  flink-jobmanager:
+    image: flink:1.19-scala_2.12-java11
+    container_name: flink-jobmanager
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["cp /opt/flink/opt/flink-metrics-prometheus-*.jar /opt/flink/lib/ && /docker-entrypoint.sh jobmanager"]
+    ports:
+      - "8081:8081"   # Flink Web UI
+      - "9249:9249"   # Prometheus metrics endpoint
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        metrics.reporters: prom
+        metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+        metrics.reporter.prom.port: 9249
+    networks:
+      - data-net
+
+  flink-taskmanager:
+    image: flink:1.19-scala_2.12-java11
+    container_name: flink-taskmanager
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["cp /opt/flink/opt/flink-metrics-prometheus-*.jar /opt/flink/lib/ && /docker-entrypoint.sh taskmanager"]
+    depends_on:
+      - flink-jobmanager
+    ports:
+      - "9250:9249"   # Prometheus metrics endpoint
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        metrics.reporters: prom
+        metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+        metrics.reporter.prom.port: 9249
+    networks:
+      - data-net
+
+  # ------------------------------------------------------------------
+  # PySpark (Spark master + worker, with PySpark available in the image)
+  # ------------------------------------------------------------------
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    configs:
+      - source: spark-metrics-properties
+        target: /opt/bitnami/spark/conf/metrics.properties
+    ports:
+      - "7077:7077"   # Spark master port
+      - "8082:8080"   # Spark master Web UI (mapped to avoid clashing with Flink's 8081 / kafka-ui's 8080)
+      # Prometheus-format metrics: http://localhost:8082/metrics/master/prometheus/
+    networks:
+      - data-net
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    configs:
+      - source: spark-metrics-properties
+        target: /opt/bitnami/spark/conf/metrics.properties
+    ports:
+      - "8083:8081"   # Spark worker Web UI / metrics: /metrics/prometheus/
+    networks:
+      - data-net
+
+  # PySpark driver/dev container — exec into this to run pyspark shells or spark-submit
+  pyspark:
+    image: bitnami/spark:3.5
+    container_name: pyspark
+    depends_on:
+      - spark-master
+    entrypoint: ["tail", "-f", "/dev/null"]
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    volumes:
+      - ./jobs:/opt/jobs
+    networks:
+      - data-net
+
+  # ------------------------------------------------------------------
+  # Prometheus
+  # ------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    configs:
+      - source: prometheus-yml
+        target: /etc/prometheus/prometheus.yml
+    volumes:
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - data-net
+
+  # ------------------------------------------------------------------
+  # Grafana
+  # ------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    configs:
+      - source: grafana-datasource-yml
+        target: /etc/grafana/provisioning/datasources/prometheus.yml
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - data-net
+
