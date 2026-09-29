@@ -21,6 +21,12 @@ configs:
           </prometheus>
       </clickhouse>
 
+  clickhouse-mysql-xml:
+    content: |
+      <clickhouse>
+          <mysql_port>9004</mysql_port>
+      </clickhouse>
+
   spark-metrics-properties:
     content: |
       *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
@@ -92,7 +98,6 @@ configs:
             path: /var/lib/grafana/dashboards
 
 services:
-
   # ------------------------------------------------------------------
   # ClickHouse
   # ------------------------------------------------------------------
@@ -106,18 +111,22 @@ services:
         soft: 262144
         hard: 262144
     ports:
-      - "8123:8123"   # HTTP interface
-      - "9000:9000"   # native TCP interface
-      - "9363:9363"   # Prometheus metrics endpoint
+      - "8123:8123" # HTTP interface
+      - "9000:9000" # native TCP interface
+      - "9363:9363" # Prometheus metrics endpoint
+      - "9004:9004" # MySQL protocol (Looker Studio via tunnel)
     environment:
       CLICKHOUSE_DB: default
       CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1" # lets default create the read-only looker user
     volumes:
       - clickhouse-data:/var/lib/clickhouse
     configs:
       - source: clickhouse-prometheus-xml
         target: /etc/clickhouse-server/config.d/prometheus.xml
+      - source: clickhouse-mysql-xml
+        target: /etc/clickhouse-server/config.d/mysql.xml
     networks:
       - data-net
     healthcheck:
@@ -125,6 +134,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ------------------------------------------------------------------
+  # Public TCP tunnel: Looker Studio -> ClickHouse MySQL port (on demand only)
+  #   docker compose --profile tunnel up -d tunnel ; public address: docker logs tunnel
+  # ------------------------------------------------------------------
+  tunnel:
+    image: ekzhang/bore:latest
+    container_name: tunnel
+    profiles: ["tunnel"]
+    init: true
+    command: ["local", "9004", "--local-host", "clickhouse", "--to", "bore.pub"]
+    depends_on:
+      - clickhouse
+    networks:
+      - data-net
 
   # ------------------------------------------------------------------
   # Kafka (KRaft mode, no Zookeeper needed)
@@ -135,8 +159,8 @@ services:
     mem_limit: 1g
     cpus: 1.0
     ports:
-      - "9092:9092"       # host access
-      - "29092:29092"     # inter-container access
+      - "9092:9092" # host access
+      - "29092:29092" # inter-container access
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -155,7 +179,14 @@ services:
     networks:
       - data-net
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "kafka-topics",
+          "--bootstrap-server",
+          "localhost:9092",
+          "--list",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -180,8 +211,8 @@ services:
       - source: spark-metrics-properties
         target: /opt/bitnami/spark/conf/metrics.properties
     ports:
-      - "7077:7077"   # Spark master port
-      - "8082:8080"   # Spark master Web UI
+      - "7077:7077" # Spark master port
+      - "8082:8080" # Spark master Web UI
       # Prometheus-format metrics: http://localhost:8082/metrics/master/prometheus/
     networks:
       - data-net
@@ -213,7 +244,9 @@ services:
       - ./data:/opt/data
       - ./logs:/opt/logs
     ports:
-      - "8083:8081"   # Spark worker Web UI / metrics: /metrics/prometheus/
+      - "8083:8081" # Spark worker Web UI / metrics: /metrics/prometheus/
+    volumes:
+      - ./data:/opt/data
     networks:
       - data-net
 
