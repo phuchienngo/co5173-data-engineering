@@ -1,0 +1,108 @@
+{
+  "uid": "dp-br10",
+  "title": "BR10 · Returning guests (Inside Airbnb)",
+  "tags": ["BR10", "data-pipeline"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-6h", "to": "now" },
+  "description": "All rates use guests who wrote reviews. The dashboard reads reporting marts and does not depend on the time picker.",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "All six destinations",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT guests AS `Guests`, repeat_rate_pct AS `% returning (at least two trips)`,\n       multi_city_pct AS `% visiting at least two destinations`, median_days_to_return AS `Median days to second trip`\nFROM tourism.mart_br10_city_overview WHERE city_id = 'ALL'"
+        }
+      ],
+      "options": { "colorMode": "none", "graphMode": "none", "textMode": "value_and_name",
+                   "reduceOptions": { "calcs": ["lastNotNull"], "values": false } }
+    },
+    {
+      "id": 2,
+      "type": "barchart",
+      "title": "% of guests returning to the same destination",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 5 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT city_name, repeat_rate_pct AS `% returning`, multi_city_pct AS `% visiting another destination`\nFROM tourism.mart_br10_city_overview WHERE city_id != 'ALL' ORDER BY repeat_rate_pct DESC"
+        }
+      ],
+      "options": { "orientation": "horizontal", "xField": "city_name" },
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "RFM segments",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 5 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT rfm_segment, guests FROM tourism.mart_br10_rfm_segment ORDER BY guests DESC"
+        }
+      ],
+      "options": { "reduceOptions": { "values": true, "calcs": [] }, "pieType": "donut",
+                   "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] } }
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Cohort matrix — cumulative % returned after N months",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 14 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT formatDateTime(cohort_month, '%Y-%m') AS cohort, any(cohort_size) AS size,\n  maxIf(cumulative_return_pct, month_offset = 1)  AS m1,\n  maxIf(cumulative_return_pct, month_offset = 3)  AS m3,\n  maxIf(cumulative_return_pct, month_offset = 6)  AS m6,\n  maxIf(cumulative_return_pct, month_offset = 9)  AS m9,\n  maxIf(cumulative_return_pct, month_offset = 12) AS m12,\n  maxIf(cumulative_return_pct, month_offset = 18) AS m18,\n  maxIf(cumulative_return_pct, month_offset = 24) AS m24\nFROM tourism.mart_br10_cohort GROUP BY cohort_month ORDER BY cohort_month"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "cellOptions": { "type": "color-background", "mode": "gradient" } },
+                      "color": { "mode": "continuous-BlPu" }, "min": 0, "max": 15, "decimals": 1 },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "cohort" }, "properties": [ { "id": "custom.cellOptions", "value": { "type": "auto" } } ] },
+          { "matcher": { "id": "byName", "options": "size" }, "properties": [ { "id": "custom.cellOptions", "value": { "type": "auto" } } ] }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "% of yearly guests who stayed in an earlier year",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 26 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT toDateTime(makeDate(year, 1, 1)) AS time, city_id, returning_pct\nFROM tourism.mart_br10_yearly WHERE year BETWEEN 2015 AND 2025 ORDER BY time"
+        }
+      ],
+      "transformations": [ { "id": "prepareTimeSeries", "options": { "format": "multi" } } ],
+      "timeFrom": "12y",
+      "fieldConfig": { "defaults": { "unit": "percent", "custom": { "drawStyle": "line", "showPoints": "always" } } }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Where guests go next (previous trip → next trip)",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 26 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT from_city AS `From`, to_city AS `To`, guests AS `Guests`, transitions AS `Transitions`\nFROM tourism.mart_br10_city_flow ORDER BY guests DESC LIMIT 36"
+        }
+      ]
+    }
+  ]
+}

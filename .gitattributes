@@ -1,2 +1,30 @@
-data filter=lfs diff=lfs merge=lfs -text
-data/** filter=lfs diff=lfs merge=lfs -text
+# Keep Linux scripts and configuration files in LF format across platforms.
+# ════════════════════════════════════════════════════════════════════════
+#
+#        ./scripts/up.sh: /usr/bin/env: 'bash\r': No such file or directory
+#
+# ════════════════════════════════════════════════════════════════════════
+
+*               text=auto
+
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.Dockerfile    text eol=lf
+docker-compose.yml  text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.py            text eol=lf
+*.sql           text eol=lf
+*.xml           text eol=lf
+*.json          text eol=lf
+*.md            text eol=lf
+.gitignore      text eol=lf
+.gitattributes  text eol=lf
+
+*.ps1           text eol=crlf
+
+*.png           binary
+*.jpg           binary
+*.parquet       binary
+*.zip           binary
+*.gz            binary

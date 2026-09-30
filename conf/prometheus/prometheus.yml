@@ -1,0 +1,34 @@
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    stack: tourism-data-pipeline
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: clickhouse
+    static_configs:
+      - targets: ["clickhouse:9363"]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "ClickHouse(Metrics|AsyncMetrics|ProfileEvents)_(Query|Merge|Insert|Memory|Parts|Read|Write|TCP|HTTP|Background).*"
+        action: keep
+
+  - job_name: spark-master
+    metrics_path: /metrics/master/prometheus/
+    static_configs:
+      - targets: ["spark-master:8080"]
+
+  - job_name: spark-worker
+    metrics_path: /metrics/prometheus/
+    static_configs:
+      - targets: ["spark-worker:8081"]
+
+  - job_name: spark-app
+    metrics_path: /metrics/prometheus/
+    static_configs:
+      - targets: ["spark-client:4040"]

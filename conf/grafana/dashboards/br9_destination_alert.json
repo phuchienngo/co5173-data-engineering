@@ -1,0 +1,158 @@
+{
+  "uid": "dp-br9",
+  "title": "BR9 · Destination overload alerts (BTS + Airbnb)",
+  "tags": ["BR9", "data-pipeline"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "30s",
+  "time": { "from": "2026-06-01T00:00:00Z", "to": "2026-07-01T00:00:00Z" },
+  "description": "The data replays BTS June 2026, not the current time. Set the time picker to the replayed month. The latest status panel always uses the newest window.",
+  "templating": {
+    "list": [
+      {
+        "name": "city",
+        "label": "Destination",
+        "type": "query",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+        "query": "SELECT city_id FROM tourism.dim_destination FINAL ORDER BY city_id",
+        "refresh": 1,
+        "current": { "text": "las-vegas", "value": "las-vegas" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Latest status of six destinations",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT city_name AS `Destination`, combined_level AS `Combined level`, window_local AS `Local time`,\n       arrivals AS `Arrivals`, round(flow_capacity) AS `p95`, city_load_pct AS `% flight load`,\n       occupancy_pct AS `% occupied`, hottest_airport AS `Busiest airport`, source AS `Source`\nFROM tourism.v_destination_live ORDER BY combined_severity DESC, city_load_pct DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Combined level" },
+            "properties": [
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": {
+                  "NORMAL": { "color": "green" }, "WATCH": { "color": "yellow" }, "WARNING": { "color": "orange" },
+                  "CRITICAL": { "color": "red" }, "EMERGENCY": { "color": "dark-red" } } } ] }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "$city · 15-minute arrivals versus p95 baseline",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 16, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "timeseries", "format": 0,
+          "rawSql": "SELECT window_ts AS time, arrivals AS `Arrivals`, capacity AS `Typical high level (p95)`\nFROM tourism.v_city_flow_15min\nWHERE city_id = '${city}' AND $__timeFilter(window_ts)\nORDER BY time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Typical high level (p95)" },
+            "properties": [ { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [6, 4] } },
+                            { "id": "color", "value": { "mode": "fixed", "fixedColor": "gray" } } ] }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "$city · CRITICAL+ transitions in selected period",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT count() AS `Alerts` FROM tourism.v_destination_alerts\nWHERE city_id = '${city}' AND $__timeFilter(window_ts)"
+        }
+      ],
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [
+        { "color": "green", "value": null }, { "color": "orange", "value": 1 }, { "color": "red", "value": 10 } ] } } }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "$city · % Airbnb guest capacity unavailable by night (layer 2)",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "timeseries", "format": 0,
+          "rawSql": "SELECT toDateTime(night_date) AS time, occupancy_pct AS `% occupied`\nFROM tourism.v_occupancy_city_night\nWHERE city_id = '${city}' AND $__timeFilter(toDateTime(night_date))\nORDER BY time"
+        }
+      ],
+      "fieldConfig": { "defaults": { "min": 0, "max": 100, "unit": "percent",
+        "custom": { "drawStyle": "bars", "fillOpacity": 60 },
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null }, { "color": "yellow", "value": 70 },
+          { "color": "orange", "value": 85 }, { "color": "red", "value": 95 } ] },
+        "color": { "mode": "thresholds" } } }
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Combined alert levels by destination (selected period)",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT city_id,\n  countIf(combined_level = 'WATCH') AS WATCH,\n  countIf(combined_level = 'WARNING') AS WARNING,\n  countIf(combined_level = 'CRITICAL') AS CRITICAL,\n  countIf(combined_level = 'EMERGENCY') AS EMERGENCY\nFROM tourism.v_destination_15min WHERE $__timeFilter(window_ts)\nGROUP BY city_id ORDER BY city_id"
+        }
+      ],
+      "options": { "stacking": "normal", "orientation": "horizontal", "xField": "city_id" },
+      "fieldConfig": { "defaults": {}, "overrides": [
+        { "matcher": { "id": "byName", "options": "WATCH" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } } ] },
+        { "matcher": { "id": "byName", "options": "WARNING" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } } ] },
+        { "matcher": { "id": "byName", "options": "CRITICAL" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } } ] },
+        { "matcher": { "id": "byName", "options": "EMERGENCY" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-red" } } ] } ] }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Alert history (newest first)",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 16, "x": 0, "y": 25 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "table", "format": 1,
+          "rawSql": "SELECT window_local AS `Local time`, city_name AS `Destination`, combined_level AS `Level`,\n       hottest_airport AS `Airport`, arrivals AS `Flights`, round(flow_capacity) AS `p95`,\n       city_load_pct AS `% load`, occupancy_pct AS `% occupied`, source AS `Source`\nFROM tourism.v_destination_alerts WHERE $__timeFilter(window_ts)\nORDER BY window_ts DESC LIMIT 200"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Streaming · Kafka events ingested per minute",
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-tourism" },
+      "gridPos": { "h": 9, "w": 8, "x": 16, "y": 25 },
+      "targets": [
+        {
+          "refId": "A", "editorType": "sql", "queryType": "timeseries", "format": 0,
+          "rawSql": "SELECT toStartOfMinute(ingested_at) AS time, count() AS `events`\nFROM tourism.raw_flight_events\nWHERE ingested_at > now() - INTERVAL 3 HOUR\nGROUP BY time ORDER BY time"
+        }
+      ],
+      "timeFrom": "3h",
+      "description": "This panel uses ingestion time in ClickHouse, not the replayed event time."
+    }
+  ]
+}

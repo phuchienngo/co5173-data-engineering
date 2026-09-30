@@ -1,0 +1,23 @@
+<clickhouse>
+    <logger>
+        <level>information</level>
+    </logger>
+
+    <!-- Enable query logging with compact local retention. -->
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 14 DAY DELETE</ttl>
+    </query_log>
+
+    <!-- Enable query logging with compact local retention. -->
+    <trace_log remove="1"/>
+    <metric_log>
+        <database>system</database>
+        <table>metric_log</table>
+        <flush_interval_milliseconds>30000</flush_interval_milliseconds>
+        <collect_interval_milliseconds>30000</collect_interval_milliseconds>
+        <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+    </metric_log>
+</clickhouse>

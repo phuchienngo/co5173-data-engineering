@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 860" font-family="Segoe UI, Arial, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
+    <style>
+      .lane{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1}
+      .lt{font-weight:700;fill:#334155;font-size:15px}
+      .box{stroke-width:1.5;rx:8}
+      .src{fill:#e0f2fe;stroke:#0284c7}
+      .py{fill:#f1f5f9;stroke:#64748b}
+      .lake{fill:#ecfccb;stroke:#65a30d}
+      .sp{fill:#ffedd5;stroke:#ea580c}
+      .kf{fill:#fef3c7;stroke:#b45309}
+      .ch{fill:#ede9fe;stroke:#7c3aed}
+      .ui{fill:#dcfce7;stroke:#16a34a}
+      .t{font-weight:700;fill:#0f172a}
+      .s{fill:#475569;font-size:12px}
+      .n{fill:#fff;font-weight:700;font-size:12px}
+      .e{stroke:#475569;stroke-width:1.6;fill:none;marker-end:url(#a)}
+      .ek{stroke:#b45309;stroke-width:2.2;fill:none;marker-end:url(#ak)}
+      .el{fill:#475569;font-size:11px}
+    </style>
+  </defs>
+
+  <text x="700" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">Data Pipeline · BTS + Inside Airbnb</text>
+  <text x="700" y="56" text-anchor="middle" class="s">Circled numbers = runbook steps · Orange arrows = streaming path</text>
+
+  <!-- lanes -->
+  <rect class="lane" x="20"  y="75" width="210" height="765"/><text class="lt" x="125" y="98" text-anchor="middle">① Sources</text>
+  <rect class="lane" x="245" y="75" width="230" height="765"/><text class="lt" x="360" y="98" text-anchor="middle">② Data lake · Parquet</text>
+  <rect class="lane" x="490" y="75" width="330" height="765"/><text class="lt" x="655" y="98" text-anchor="middle">③ Spark · batch + streaming</text>
+  <rect class="lane" x="835" y="75" width="310" height="765"/><text class="lt" x="990" y="98" text-anchor="middle">④ ClickHouse</text>
+  <rect class="lane" x="1160" y="75" width="220" height="765"/><text class="lt" x="1270" y="98" text-anchor="middle">⑤ Serving</text>
+
+  <!-- sources -->
+  <rect class="box src" x="35" y="120" width="180" height="70"/>
+  <text class="t" x="125" y="145" text-anchor="middle">OpenFlights</text>
+  <text class="s" x="125" y="163" text-anchor="middle">airports.dat</text>
+  <text class="s" x="125" y="179" text-anchor="middle">coordinates + time zones</text>
+
+  <rect class="box src" x="35" y="240" width="180" height="90"/>
+  <text class="t" x="125" y="265" text-anchor="middle">BTS On-Time</text>
+  <text class="s" x="125" y="283" text-anchor="middle">12 monthly ZIPs → CSV</text>
+  <text class="s" x="125" y="299" text-anchor="middle">~600,000 flights/month</text>
+  <text class="s" x="125" y="315" text-anchor="middle">local hhmm times</text>
+
+  <rect class="box src" x="35" y="520" width="180" height="110"/>
+  <text class="t" x="125" y="545" text-anchor="middle">Inside Airbnb</text>
+  <text class="s" x="125" y="563" text-anchor="middle">6 destinations × 2 snapshots</text>
+  <text class="s" x="125" y="579" text-anchor="middle">listings · calendar</text>
+  <text class="s" x="125" y="595" text-anchor="middle">reviews (latest snapshot)</text>
+  <text class="s" x="125" y="611" text-anchor="middle">~12 million calendar rows</text>
+
+  <rect class="box py" x="35" y="700" width="180" height="60"/>
+  <text class="t" x="125" y="724" text-anchor="middle">jobs/ingest</text>
+  <text class="s" x="125" y="742" text-anchor="middle">Standard Python · Steps 3–5</text>
+
+  <!-- lake -->
+  <rect class="box lake" x="260" y="240" width="200" height="70"/>
+  <text class="t" x="360" y="265" text-anchor="middle">flights/</text>
+  <text class="s" x="360" y="283" text-anchor="middle">all flights · 4 UTC timestamps</text>
+  <text class="s" x="360" y="299" text-anchor="middle">year_month=…</text>
+
+  <rect class="box lake" x="260" y="350" width="200" height="70"/>
+  <text class="t" x="360" y="375" text-anchor="middle">flight_events/</text>
+  <text class="s" x="360" y="393" text-anchor="middle">12 monitored airports</text>
+  <text class="s" x="360" y="409" text-anchor="middle">arrival · departure · …</text>
+
+  <rect class="box lake" x="260" y="520" width="200" height="55"/>
+  <text class="t" x="360" y="543" text-anchor="middle">airbnb_listings/</text>
+  <text class="s" x="360" y="561" text-anchor="middle">active listing flag</text>
+
+  <rect class="box lake" x="260" y="640" width="200" height="55"/>
+  <text class="t" x="360" y="663" text-anchor="middle">stays/</text>
+  <text class="s" x="360" y="681" text-anchor="middle">1 review = 1 stay</text>
+
+  <!-- spark -->
+  <rect class="box sp" x="505" y="120" width="300" height="55"/>
+  <circle cx="525" cy="147" r="12" fill="#ea580c"/><text class="n" x="525" y="151" text-anchor="middle">7</text>
+  <text class="t" x="545" y="143">br9_01 · dimensions</text>
+  <text class="s" x="545" y="161">12 airports, 6 destinations</text>
+
+  <rect class="box sp" x="505" y="240" width="300" height="55"/>
+  <circle cx="525" cy="267" r="12" fill="#ea580c"/><text class="n" x="525" y="271" text-anchor="middle">8</text>
+  <text class="t" x="545" y="263">br9_02 · normalize flights</text>
+  <text class="s" x="545" y="281">CSV → Parquet, UTC conversion, events</text>
+
+  <rect class="box sp" x="505" y="330" width="300" height="55"/>
+  <circle cx="525" cy="357" r="12" fill="#ea580c"/><text class="n" x="525" y="361" text-anchor="middle">9</text>
+  <text class="t" x="545" y="353">br9_03 · p95 baseline + history</text>
+  <text class="s" x="545" y="371">fill time slots · score · alert</text>
+
+  <rect class="box py" x="505" y="410" width="140" height="50"/>
+  <circle cx="523" cy="435" r="11" fill="#b45309"/><text class="n" x="523" y="439" text-anchor="middle">12</text>
+  <text class="t" x="540" y="431" font-size="13">producer</text>
+  <text class="s" x="540" y="448">replay a new month</text>
+
+  <rect class="box kf" x="660" y="410" width="145" height="50"/>
+  <text class="t" x="732" y="431" text-anchor="middle">Kafka</text>
+  <text class="s" x="732" y="448" text-anchor="middle">flight_events · 3 part.</text>
+
+  <rect class="box sp" x="505" y="480" width="300" height="55" style="stroke:#b45309;stroke-width:2.5"/>
+  <circle cx="525" cy="507" r="12" fill="#b45309"/><text class="n" x="525" y="511" text-anchor="middle">11</text>
+  <text class="t" x="545" y="503">br9_05 · Structured Streaming</text>
+  <text class="s" x="545" y="521">watermark 30' · 15-min windows · shared scoring</text>
+
+  <rect class="box sp" x="505" y="560" width="300" height="55"/>
+  <circle cx="525" cy="587" r="12" fill="#ea580c"/><text class="n" x="525" y="591" text-anchor="middle">10</text>
+  <text class="t" x="545" y="583">br9_04 · occupancy</text>
+  <text class="s" x="545" y="601">calendar × active listings, by guest capacity</text>
+
+  <rect class="box sp" x="505" y="640" width="300" height="55"/>
+  <circle cx="525" cy="667" r="12" fill="#ea580c"/><text class="n" x="525" y="671" text-anchor="middle">14</text>
+  <text class="t" x="545" y="663">br10_01 · stays → trips</text>
+  <text class="s" x="545" y="681">drop names and comments · lag + cumulative sum</text>
+
+  <rect class="box sp" x="505" y="720" width="300" height="100"/>
+  <circle cx="525" cy="747" r="12" fill="#ea580c"/><text class="n" x="525" y="751" text-anchor="middle">15</text>
+  <text class="t" x="545" y="743">br10_02 · dim_guest + RFM</text>
+  <circle cx="525" cy="787" r="12" fill="#ea580c"/><text class="n" x="525" y="791" text-anchor="middle">16</text>
+  <text class="t" x="545" y="783">br10_03 · 5 mart</text>
+  <text class="s" x="545" y="801">cohort · KPI · A→B flows · RFM · year</text>
+
+  <!-- clickhouse -->
+  <rect class="box ch" x="850" y="120" width="280" height="55"/>
+  <text class="t" x="990" y="143" text-anchor="middle">dim_airport · dim_destination</text>
+  <text class="s" x="990" y="161" text-anchor="middle">+ dim_neighbourhood</text>
+
+  <rect class="box ch" x="850" y="300" width="280" height="55"/>
+  <text class="t" x="990" y="323" text-anchor="middle">baseline_airport_slot</text>
+  <text class="s" x="990" y="341" text-anchor="middle">12 × 7 days × 96 slots = 8,064 cells</text>
+
+  <rect class="box ch" x="850" y="380" width="280" height="75" style="stroke-width:2.5"/>
+  <text class="t" x="990" y="405" text-anchor="middle">fact_airport_flow_15min</text>
+  <text class="s" x="990" y="423" text-anchor="middle">source = batch (history)</text>
+  <text class="s" x="990" y="439" text-anchor="middle">source = stream (replayed month)</text>
+
+  <rect class="box ch" x="850" y="470" width="280" height="45"/>
+  <text class="t" x="990" y="490" text-anchor="middle">raw_flight_events</text>
+  <text class="s" x="990" y="506" text-anchor="middle">Kafka Engine + MV · raw events</text>
+
+  <rect class="box ch" x="850" y="560" width="280" height="55"/>
+  <text class="t" x="990" y="583" text-anchor="middle">fact_occupancy_night</text>
+  <text class="s" x="990" y="601" text-anchor="middle">destination × neighborhood × snapshot × night</text>
+
+  <rect class="box ch" x="850" y="640" width="280" height="55"/>
+  <text class="t" x="990" y="663" text-anchor="middle">fact_stay · dim_guest</text>
+  <text class="s" x="990" y="681" text-anchor="middle">~5 million stays</text>
+
+  <rect class="box ch" x="850" y="740" width="280" height="55"/>
+  <text class="t" x="990" y="763" text-anchor="middle">mart_br10_* (5 tables)</text>
+  <text class="s" x="990" y="781" text-anchor="middle">cohort · city_overview · city_flow · …</text>
+
+  <rect class="box ch" x="850" y="200" width="280" height="75" style="fill:#ddd6fe;stroke-width:2.5"/>
+  <text class="t" x="990" y="222" text-anchor="middle">v_destination_15min</text>
+  <text class="s" x="990" y="240" text-anchor="middle">join layer 1 (flights) × layer 2 (lodging)</text>
+  <text class="s" x="990" y="256" text-anchor="middle">→ _live · _alerts</text>
+
+  <!-- serving -->
+  <rect class="box ui" x="1175" y="200" width="190" height="80"/>
+  <circle cx="1195" cy="222" r="12" fill="#16a34a"/><text class="n" x="1195" y="226" text-anchor="middle">18</text>
+  <text class="t" x="1215" y="227">Streamlit</text>
+  <text class="s" x="1190" y="248">status cards · map</text>
+  <text class="s" x="1190" y="264">cohort · CSV export</text>
+
+  <rect class="box ui" x="1175" y="320" width="190" height="70"/>
+  <circle cx="1195" cy="342" r="12" fill="#16a34a"/><text class="n" x="1195" y="346" text-anchor="middle">19</text>
+  <text class="t" x="1215" y="347">Grafana</text>
+  <text class="s" x="1190" y="368">2 dashboards · 30 seconds</text>
+
+  <rect class="box ui" x="1175" y="430" width="190" height="70"/>
+  <circle cx="1195" cy="452" r="12" fill="#16a34a"/><text class="n" x="1195" y="456" text-anchor="middle">17</text>
+  <text class="t" x="1215" y="457">smoke_test</text>
+  <text class="s" x="1190" y="478">20 checks</text>
+
+  <!-- edges -->
+  <path class="e" d="M215,155 L505,147"/>
+  <path class="e" d="M805,147 L850,147"/>
+  <path class="e" d="M215,262 C300,215 420,215 505,255"/>
+  <path class="e" d="M505,275 L460,275"/>
+  <path class="e" d="M360,310 L360,350"/>
+  <path class="e" d="M460,370 L505,357"/>
+  <path class="e" d="M805,350 L850,330"/>
+  <path class="e" d="M805,365 L850,400"/>
+  <path class="ek" d="M460,400 L505,432"/>
+  <path class="ek" d="M645,435 L660,435"/>
+  <path class="ek" d="M732,460 L732,480"/>
+  <path class="ek" d="M805,507 L850,440"/>
+  <path class="ek" d="M805,425 Q830,470 850,492"/>
+  <path class="e" d="M215,575 L505,587"/>
+  <path class="e" d="M505,570 L460,555"/>
+  <path class="e" d="M805,587 L850,587"/>
+  <path class="e" d="M215,605 Q390,640 505,667"/>
+  <path class="e" d="M505,675 L460,670"/>
+  <path class="e" d="M360,695 Q400,760 505,760"/>
+  <path class="e" d="M805,667 L850,667"/>
+  <path class="e" d="M805,770 L850,767"/>
+  <path class="e" d="M990,300 L990,275"/>
+  <path class="e" d="M990,560 Q1150,420 1130,260"/>
+  <path class="e" d="M1130,237 L1175,237"/>
+  <path class="e" d="M1130,250 Q1150,340 1175,355"/>
+  <path class="e" d="M1130,767 Q1160,500 1175,270"/>
+</svg>

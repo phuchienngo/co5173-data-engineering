@@ -1,292 +1,215 @@
-networks:
-  data-net:
-    driver: bridge
+  # ════════════════════════════════════════════════════════════════════════
+  #  Kafka → Spark (Batch & Structured Streaming) → ClickHouse → Grafana/Streamlit
+  #
+  #
+  # ════════════════════════════════════════════════════════════════════════
 
-volumes:
-  clickhouse-data:
-  kafka-data:
-  prometheus-data:
-  grafana-data:
+  name: tourism-data-pipeline
 
-configs:
-  clickhouse-prometheus-xml:
-    content: |
-      <clickhouse>
-          <prometheus>
-              <endpoint>/metrics</endpoint>
-              <port>9363</port>
-              <metrics>true</metrics>
-              <events>true</events>
-              <asynchronous_metrics>true</asynchronous_metrics>
-          </prometheus>
-      </clickhouse>
+  networks:
+    data-net:
+      driver: bridge
 
-  spark-metrics-properties:
-    content: |
-      *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
-      *.sink.prometheusServlet.path=/metrics/prometheus
-      master.sink.prometheusServlet.path=/metrics/master/prometheus
+  volumes:
+    clickhouse-data:
+    clickhouse-logs:
+    kafka-data:
+    prometheus-data:
+    grafana-data:
 
-  prometheus-yml:
-    content: |
-      global:
-        scrape_interval: 15s
-        evaluation_interval: 15s
-
-      scrape_configs:
-        - job_name: prometheus
-          static_configs:
-            - targets: ["localhost:9090"]
-
-        - job_name: clickhouse
-          static_configs:
-            - targets: ["clickhouse:9363"]
-
-        - job_name: spark-master
-          metrics_path: /metrics/master/prometheus/
-          static_configs:
-            - targets: ["spark-master:8080"]
-
-        - job_name: spark-worker
-          metrics_path: /metrics/prometheus/
-          static_configs:
-            - targets: ["spark-worker:8081"]
-
-  grafana-datasource-yml:
-    content: |
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          uid: prometheus
-          type: prometheus
-          access: proxy
-          url: http://prometheus:9090
-          isDefault: true
-          editable: true
-        - name: ClickHouse
-          uid: clickhouse
-          type: grafana-clickhouse-datasource
-          access: proxy
-          jsonData:
-            host: clickhouse
-            port: 8123
-            protocol: http
-            defaultDatabase: default
-            username: default
-          secureJsonData:
-            password: clickhouse
-          editable: true
-
-  grafana-dashboard-provider-yml:
-    content: |
-      apiVersion: 1
-      providers:
-        - name: CO5173
-          orgId: 1
-          folder: CO5173
-          type: file
-          disableDeletion: false
-          allowUiUpdates: true
-          updateIntervalSeconds: 30
-          options:
-            path: /var/lib/grafana/dashboards
-
-services:
-
-  # ------------------------------------------------------------------
-  # ClickHouse
-  # ------------------------------------------------------------------
-  clickhouse:
-    image: clickhouse/clickhouse-server:26.8
-    container_name: clickhouse
-    mem_limit: 1g
-    cpus: 1.0
-    ulimits:
-      nofile:
-        soft: 262144
-        hard: 262144
-    ports:
-      - "8123:8123"   # HTTP interface
-      - "9000:9000"   # native TCP interface
-      - "9363:9363"   # Prometheus metrics endpoint
-    environment:
-      CLICKHOUSE_DB: default
+  x-spark-common: &spark-common
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: data-pipeline/spark:3.5.1
+    networks: [data-net]
+    volumes:
+      - ./jobs:/opt/jobs
+      - ./data:/opt/data
+      - ./sql:/opt/sql
+    environment: &spark-env
+      PYTHONPATH: /opt/jobs
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BOOTSTRAP: kafka:29092
+      KAFKA_TOPIC_FLIGHTS: flight_events
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_HTTP_PORT: "8123"
+      CLICKHOUSE_NATIVE_PORT: "9000"
+      CLICKHOUSE_DB: tourism
       CLICKHOUSE_USER: default
       CLICKHOUSE_PASSWORD: clickhouse
-    volumes:
-      - clickhouse-data:/var/lib/clickhouse
-    configs:
-      - source: clickhouse-prometheus-xml
-        target: /etc/clickhouse-server/config.d/prometheus.xml
-    networks:
-      - data-net
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      DATA_ROOT: /opt/data
+      SPARK_MASTER_URL: spark://spark-master:7077
 
-  # ------------------------------------------------------------------
-  # Kafka (KRaft mode, no Zookeeper needed)
-  # ------------------------------------------------------------------
-  kafka:
-    image: confluentinc/cp-kafka:8.3.1
-    container_name: kafka
-    mem_limit: 1g
-    cpus: 1.0
-    ports:
-      - "9092:9092"       # host access
-      - "29092:29092"     # inter-container access
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_HEAP_OPTS: "-Xms256M -Xmx512M"
-      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-    networks:
-      - data-net
-    healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  services:
 
-  # ------------------------------------------------------------------
-  # Spark
-  # ------------------------------------------------------------------
-  spark-master:
-    build:
-      context: .
-      dockerfile: docker/spark/Dockerfile
-    image: co5173-spark-demo:local
-    container_name: spark-master
-    profiles: ["full"]
-    mem_limit: 512m
-    cpus: 0.5
-    user: "0:0"
-    environment:
-      - SPARK_MODE=master
-      - SPARK_DAEMON_MEMORY=256m
-    configs:
-      - source: spark-metrics-properties
-        target: /opt/bitnami/spark/conf/metrics.properties
-    ports:
-      - "7077:7077"   # Spark master port
-      - "8082:8080"   # Spark master Web UI
-      # Prometheus-format metrics: http://localhost:8082/metrics/master/prometheus/
-    networks:
-      - data-net
+    # ══════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════
+    kafka:
+      image: confluentinc/cp-kafka:7.6.1
+      container_name: dp-kafka
+      ports:
+        - "9092:9092"
+        - "29092:29092"
+      environment:
+        KAFKA_NODE_ID: 1
+        KAFKA_PROCESS_ROLES: broker,controller
+        KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+        KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+        KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+        KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+        KAFKA_LOG_RETENTION_HOURS: 168
+        CLUSTER_ID: UGFBQWZsaWdodHMwMDAwMQ
+      volumes:
+        - kafka-data:/var/lib/kafka/data
+      networks: [data-net]
+      healthcheck:
+        test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:29092", "--list"]
+        interval: 10s
+        timeout: 10s
+        retries: 10
+        start_period: 30s
 
-  spark-worker:
-    build:
-      context: .
-      dockerfile: docker/spark/Dockerfile
-    image: co5173-spark-demo:local
-    container_name: spark-worker
-    profiles: ["full"]
-    mem_limit: 2500m
-    cpus: 2.0
-    user: "0:0"
-    depends_on:
-      - spark-master
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
-      - SPARK_DAEMON_MEMORY=256m
-      - PYTHONPATH=/opt/jobs/common
-    configs:
-      - source: spark-metrics-properties
-        target: /opt/bitnami/spark/conf/metrics.properties
-    volumes:
-      - ./jobs:/opt/jobs
-      - ./data:/opt/data
-      - ./logs:/opt/logs
-    ports:
-      - "8083:8081"   # Spark worker Web UI / metrics: /metrics/prometheus/
-    networks:
-      - data-net
+    kafka-ui:
+      image: provectuslabs/kafka-ui:latest
+      container_name: dp-kafka-ui
+      depends_on:
+        kafka: { condition: service_healthy }
+      ports:
+        - "8080:8080"
+      environment:
+        KAFKA_CLUSTERS_0_NAME: local
+        KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+        DYNAMIC_CONFIG_ENABLED: "true"
+      networks: [data-net]
 
-  # Submit and run Spark jobs against the standalone master in the full demo.
-  spark-local:
-    build:
-      context: .
-      dockerfile: docker/spark/Dockerfile
-    image: co5173-spark-demo:local
-    container_name: spark-local
-    mem_limit: 6g
-    cpus: 2.0
-    user: "0:0"
-    entrypoint: ["tail", "-f", "/dev/null"]
-    environment:
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - CLICKHOUSE_HOST=clickhouse
-      - PYTHONPATH=/opt/jobs/common
-      - DEMO_LOG_DIR=/opt/logs/demo
-    volumes:
-      - ./jobs:/opt/jobs
-      - ./ingestion:/opt/ingestion
-      - ./data:/opt/data
-      - ./logs:/opt/logs
-      - ./requirements.txt:/opt/requirements.txt
-    networks:
-      - data-net
+    # ══════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════
+    clickhouse:
+      image: clickhouse/clickhouse-server:24.8
+      container_name: dp-clickhouse
+      ulimits:
+        nofile: { soft: 262144, hard: 262144 }
+      ports:
+        - "8123:8123"   # HTTP  — clickhouse-connect, curl
+        - "9000:9000"   # Native — clickhouse-client, Grafana
+        - "9363:9363"   # Prometheus metrics
+      environment:
+        CLICKHOUSE_DB: tourism
+        CLICKHOUSE_USER: default
+        CLICKHOUSE_PASSWORD: clickhouse
+        CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+      volumes:
+        - clickhouse-data:/var/lib/clickhouse
+        - clickhouse-logs:/var/log/clickhouse-server
+        - ./conf/clickhouse/config.d:/etc/clickhouse-server/config.d
+        - ./conf/clickhouse/users.d:/etc/clickhouse-server/users.d
+        - ./sql:/opt/sql
+      networks: [data-net]
+      healthcheck:
+        test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 20s
 
-  # ------------------------------------------------------------------
-  # Prometheus
-  # ------------------------------------------------------------------
-  prometheus:
-    image: prom/prometheus:v3.14.0
-    container_name: prometheus
-    profiles: ["monitoring"]
-    mem_limit: 256m
-    cpus: 0.5
-    configs:
-      - source: prometheus-yml
-        target: /etc/prometheus/prometheus.yml
-    volumes:
-      - prometheus-data:/prometheus
-    ports:
-      - "9090:9090"
-    networks:
-      - data-net
+    # ══════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════
+    spark-master:
+      <<: *spark-common
+      container_name: dp-spark-master
+      command: ["/opt/spark-entrypoint.sh", "master"]
+      ports:
+        - "7077:7077"   # submit
+        - "8082:8080"   # Master Web UI  → http://localhost:8082
+      healthcheck:
+        test: ["CMD", "curl", "-fsS", "http://localhost:8080"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 20s
 
-  # ------------------------------------------------------------------
-  # Grafana
-  # ------------------------------------------------------------------
-  grafana:
-    image: grafana/grafana:13.2
-    container_name: grafana
-    profiles: ["monitoring"]
-    mem_limit: 512m
-    cpus: 0.5
-    depends_on:
-      - prometheus
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_AUTH_ANONYMOUS_ENABLED: "false"
-      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
-    configs:
-      - source: grafana-datasource-yml
-        target: /etc/grafana/provisioning/datasources/prometheus.yml
-      - source: grafana-dashboard-provider-yml
-        target: /etc/grafana/provisioning/dashboards/co5173.yml
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "3000:3000"
-    networks:
-      - data-net
+    spark-worker:
+      <<: *spark-common
+      container_name: dp-spark-worker
+      depends_on:
+        spark-master: { condition: service_healthy }
+      command: ["/opt/spark-entrypoint.sh", "worker"]
+      environment:
+        <<: *spark-env
+        SPARK_WORKER_CORES: "3"
+        SPARK_WORKER_MEMORY: "3g"
+      ports:
+        - "8083:8081"   # Worker Web UI → http://localhost:8083
+
+    spark-client:
+      <<: *spark-common
+      container_name: dp-spark-client
+      depends_on:
+        spark-master: { condition: service_healthy }
+        clickhouse:   { condition: service_healthy }
+        kafka:        { condition: service_healthy }
+      command: ["tail", "-f", "/dev/null"]
+      ports:
+        - "4040:4040"
+
+    # ══════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════
+    grafana:
+      image: grafana/grafana:11.2.0
+      container_name: dp-grafana
+      depends_on:
+        clickhouse: { condition: service_healthy }
+      ports:
+        - "3000:3000"
+      environment:
+        GF_SECURITY_ADMIN_USER: admin
+        GF_SECURITY_ADMIN_PASSWORD: admin
+        GF_AUTH_ANONYMOUS_ENABLED: "false"
+        GF_USERS_DEFAULT_THEME: light
+        GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+        CH_PASSWORD: clickhouse
+      volumes:
+        - grafana-data:/var/lib/grafana
+        - ./conf/grafana/provisioning:/etc/grafana/provisioning:ro
+        - ./conf/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      networks: [data-net]
+
+    webapp:
+      build:
+        context: .
+        dockerfile: docker/app/Dockerfile
+      image: data-pipeline/webapp:1.0
+      container_name: dp-webapp
+      depends_on:
+        clickhouse: { condition: service_healthy }
+      ports:
+        - "8501:8501"
+      environment:
+        CLICKHOUSE_HOST: clickhouse
+        CLICKHOUSE_HTTP_PORT: "8123"
+        CLICKHOUSE_DB: tourism
+        CLICKHOUSE_USER: default
+        CLICKHOUSE_PASSWORD: clickhouse
+      volumes:
+        - ./app:/app
+      networks: [data-net]
+
+    # ══════════════════════════════════════════════════════════════════
+    # ══════════════════════════════════════════════════════════════════
+    prometheus:
+      image: prom/prometheus:v2.54.1
+      container_name: dp-prometheus
+      volumes:
+        - ./conf/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+        - prometheus-data:/prometheus
+      ports:
+        - "9090:9090"
+      networks: [data-net]
