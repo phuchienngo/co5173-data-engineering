@@ -1,4 +1,5 @@
 import argparse
+import ast
 import os
 import re
 import subprocess
@@ -12,6 +13,7 @@ SPARK_KAFKA_PACKAGE = (
     "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0,"
     "org.apache.kafka:kafka-clients:3.9.0"
 )
+JOB_MODES = ("stream", "batch")
 
 
 def run(cmd):
@@ -173,6 +175,38 @@ def job_path(br):
     return matches[0]
 
 
+def job_mode(br):
+    # A job declares MODE = "batch" at module level to run to completion
+    # without a producer; anything else (or no MODE) is a streaming job.
+    job = job_path(br)
+    tree = ast.parse(job.read_text())
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(isinstance(target, ast.Name) and target.id == "MODE" for target in node.targets):
+            continue
+        if isinstance(node.value, ast.Constant) and node.value.value in JOB_MODES:
+            return node.value.value
+        sys.exit(f"{job}: MODE must be one of {', '.join(JOB_MODES)}")
+    return "stream"
+
+
+def run_batch_job(br, spark_master):
+    log_file = LOG_DIR / f"br{br}-spark.log"
+    name = f"BR{br}"
+    print(f"{name} Spark log: {log_file}")
+    proc = popen(spark_submit_cmd(br, spark_master), log_file)
+    try:
+        proc.wait()
+    except KeyboardInterrupt:
+        print("\nStopping...")
+        proc.terminate()
+        proc.wait()
+        sys.exit(f"{name} batch job interrupted.")
+    if report_exited([(name, proc, log_file)], "batch Spark job", ok_completed=True):
+        sys.exit(f"{name} batch job failed.")
+
+
 def py_files_for(job):
     common = sorted((REPO_ROOT / "jobs" / "common").glob("*.py"))
     siblings = sorted(p for p in job.parent.glob("*.py") if p != job)
@@ -281,10 +315,24 @@ def main():
     for n in selected:
         create_clickhouse_tables(n)
 
-    print(f"\n=== 4. Starting Spark job(s) for {', '.join('BR' + n for n in selected)} ===")
+    batch_brs = [n for n in selected if job_mode(n) == "batch"]
+    stream_brs = [n for n in selected if n not in batch_brs]
     spark_master = "spark://spark-master:7077"
+
+    # Batch jobs run first so they are not starved of cores by streaming
+    # jobs, which hold theirs until stopped.
+    if batch_brs:
+        print(f"\n=== 4a. Running batch Spark job(s) for {', '.join('BR' + n for n in batch_brs)} ===")
+        for n in batch_brs:
+            run_batch_job(n, spark_master)
+
+    if not stream_brs:
+        print("\nBatch job(s) finished; no streaming BR selected.")
+        return
+
+    print(f"\n=== 4b. Starting streaming Spark job(s) for {', '.join('BR' + n for n in stream_brs)} ===")
     spark_procs = []
-    for n in selected:
+    for n in stream_brs:
         log_file = LOG_DIR / f"br{n}-spark.log"
         print(f"BR{n} Spark log: {log_file}")
         name = f"BR{n}"
@@ -299,9 +347,9 @@ def main():
                 running_proc.wait()
             sys.exit(f"{name} Spark startup failed; producers were not started.")
 
-    print(f"\n=== 5. Starting producer(s) for {', '.join('BR' + n for n in selected)} ===")
+    print(f"\n=== 5. Starting producer(s) for {', '.join('BR' + n for n in stream_brs)} ===")
     producer_procs = []
-    for n in selected:
+    for n in stream_brs:
         log_file = LOG_DIR / f"br{n}-producer.log"
         print(f"BR{n} producer log: {log_file}")
         producer_procs.append(
