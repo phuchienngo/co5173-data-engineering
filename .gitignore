@@ -121,3 +121,6 @@ venv/
 
 # Per-BR datasets (everyone prepares their own, see README "Preparing data")
 logs/
+
+# Downloaded BR7 source data; scripts/prepare_br7.py recreates it.
+data/br7/*.csv

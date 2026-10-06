@@ -164,6 +164,12 @@ def create_clickhouse_tables(br):
         clickhouse_query(f"TRUNCATE TABLE IF EXISTS {table}")
 
 
+def prepare_data(br):
+    preparation = REPO_ROOT / "scripts" / f"prepare_br{br}.py"
+    if preparation.exists():
+        run([sys.executable, preparation])
+
+
 def job_path(br):
     matches = sorted((REPO_ROOT / "jobs").glob(f"br{br}_*/job.py"))
     if not matches:
@@ -276,6 +282,10 @@ def main():
     if not selected:
         print("\nNo BR selected — infra is ready, stopping here.")
         return
+
+    print("\n=== Preparing selected BR datasets ===")
+    for n in selected:
+        prepare_data(n)
 
     print(f"\n=== 3. Creating ClickHouse tables for {', '.join('BR' + n for n in selected)} ===")
     for n in selected:

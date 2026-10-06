@@ -8,7 +8,7 @@ PRODUCER_ARGS = --interval $(PRODUCER_INTERVAL)$(if $(PRODUCER_LIMIT), --events 
 help:
 	@echo "Usage:"
 	@echo "  make demo             Run full Spark cluster demo for every BR"
-	@echo "  make demo-br BR=3,4   Run full Spark cluster demo for selected BRs"
+	@echo "  make demo-br BR=7     Run full Spark cluster demo for selected BRs"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"

@@ -1,0 +1,58 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "BR7 Processed site-hours",
+      "type": "stat",
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "targets": [{"datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"}, "editorType": "sql", "format": 1, "queryType": "table", "rawSql": "SELECT count() AS processed_site_hours FROM fact_tourist_arrivals", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "title": "BR7 Warning hours",
+      "type": "stat",
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0},
+      "targets": [{"datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"}, "editorType": "sql", "format": 1, "queryType": "table", "rawSql": "SELECT countIf(alert_level = 'warning') AS warning_hours FROM fact_tourist_arrivals", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "title": "BR7 Monitored sites",
+      "type": "stat",
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
+      "targets": [{"datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"}, "editorType": "sql", "format": 1, "queryType": "table", "rawSql": "SELECT countIf(is_core = 1) AS monitored_sites FROM dim_tourist_site", "refId": "A"}]
+    },
+    {
+      "id": 4,
+      "title": "Latest forecast by site",
+      "type": "table",
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 4},
+      "targets": [{"datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"}, "editorType": "sql", "format": 1, "queryType": "table", "rawSql": "SELECT site_id, max(target_hour) AS target_hour, argMax(observed_entries, observed_hour) AS last_hour_entries, round(argMax(predicted_entries, observed_hour), 2) AS predicted_next_hour, round(argMax(warning_threshold, observed_hour), 2) AS warning_threshold, argMax(alert_level, observed_hour) AS alert_level FROM fact_tourist_arrivals GROUP BY site_id ORDER BY predicted_next_hour DESC", "refId": "A"}]
+    },
+    {
+      "id": 5,
+      "title": "Recent warning hours",
+      "type": "table",
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 14},
+      "targets": [{"datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"}, "editorType": "sql", "format": 1, "queryType": "table", "rawSql": "SELECT site_id, observed_hour, target_hour, observed_entries, round(predicted_entries, 2) AS predicted_entries, round(warning_threshold, 2) AS warning_threshold FROM fact_tourist_arrivals WHERE alert_level = 'warning' ORDER BY target_hour DESC LIMIT 100", "refId": "A"}]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["co5173", "br7", "tourism"],
+  "templating": {"list": []},
+  "time": {"from": "now-30d", "to": "now"},
+  "timezone": "utc",
+  "title": "BR7 Tourist arrival warnings",
+  "uid": "co5173-br7-tourist-arrivals",
+  "version": 1
+}
