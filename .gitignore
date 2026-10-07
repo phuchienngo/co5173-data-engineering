@@ -121,3 +121,6 @@ venv/
 
 # Per-BR datasets (everyone prepares their own, see README "Preparing data")
 logs/
+
+# BR8 source snapshots, prepared visits, and streaming checkpoints
+data/br8/

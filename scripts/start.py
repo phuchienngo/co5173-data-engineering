@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -20,13 +21,11 @@ def run(cmd):
 
 
 def popen(cmd, log_file):
-    log = log_file.open("w")
-    return subprocess.Popen(
-        [str(part) for part in cmd],
-        cwd=REPO_ROOT,
-        stdout=log,
-        stderr=subprocess.STDOUT,
-    )
+    with log_file.open("w") as log:
+        return subprocess.Popen(
+            [str(part) for part in cmd], cwd=REPO_ROOT,
+            stdout=log, stderr=subprocess.STDOUT,
+        )
 
 
 def container_health(name):
@@ -120,8 +119,8 @@ def start_stack():
     run(["docker", "compose", "--profile", "full", "--profile", "monitoring", "up", "-d", *services])
 
 
-def create_topics():
-    run(["python3", "scripts/topics.py", "--reset"])
+def create_topics(selected):
+    run([sys.executable, "scripts/topics.py", "--reset", "--br", *selected])
 
 
 def fact_tables_in(ddl):
@@ -153,15 +152,18 @@ def create_clickhouse_tables(br):
     ddl = REPO_ROOT / "sql" / "clickhouse" / f"ddl_br{br}.sql"
     if not ddl.exists():
         sys.exit(f"Missing DDL file: {ddl}")
-    cmd = (
-        "docker exec -i clickhouse clickhouse-client "
-        "--user default --password clickhouse --multiquery "
-        f"< {ddl}"
-    )
-    print(f"$ {cmd}")
-    subprocess.run(cmd, check=True, cwd=REPO_ROOT, shell=True)
+    subprocess.run([
+        "docker", "exec", "-i", "clickhouse", "clickhouse-client",
+        "--user", "default", "--password", "clickhouse", "--multiquery",
+    ], input=ddl.read_text(), text=True, check=True, cwd=REPO_ROOT)
     for table in fact_tables_in(ddl):
         clickhouse_query(f"TRUNCATE TABLE IF EXISTS {table}")
+
+
+def prepare_data(br):
+    preparation = REPO_ROOT / "scripts" / f"prepare_br{br}.py"
+    if preparation.exists():
+        run([sys.executable, preparation])
 
 
 def job_path(br):
@@ -186,6 +188,8 @@ def spark_submit_cmd(br, spark_master):
         "docker",
         "exec",
         "-i",
+        "-e",
+        f"BR8_CHECKPOINT_DIR=/opt/data/br8/checkpoints/demo-{uuid.uuid4().hex}",
         "spark-local",
         "spark-submit",
         "--master",
@@ -236,7 +240,8 @@ def wait_for_spark_ready(name, proc, log_file, timeout=180):
         if proc.poll() is not None:
             report_exited([(name, proc, log_file)], "Spark job")
             return False
-        if "ResolveWriteToStream" in tail_file(log_file, lines=80):
+        tail = tail_file(log_file, lines=80)
+        if "BR8_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
             print(f"{name} Spark job is ready.")
             return True
         time.sleep(1)
@@ -247,20 +252,14 @@ def wait_for_spark_ready(name, proc, log_file, timeout=180):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 3 4, 3,4, or all")
+    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 8 or all")
     parser.add_argument("--events", type=int, help="Events to produce per BR; omit to send the full CSV once")
     parser.add_argument("--interval", type=float, default=0, help="Seconds between producer events")
     parser.add_argument("--loop-producers", action="store_true", help="Keep producers running forever")
     args = parser.parse_args()
+    if args.interval < 0 or (args.events is not None and args.events < 1):
+        parser.error("interval must be nonnegative and events must be positive")
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-    print("=== 1. Bringing up infra and monitoring ===")
-    build_image()
-    start_stack()
-    wait_healthy(["clickhouse", "kafka"])
-
-    print("\n=== 2. Creating Kafka topics ===")
-    create_topics()
 
     brs = discover_brs()
     if not brs:
@@ -274,8 +273,21 @@ def main():
         sys.exit(f"Unknown BR: {', '.join(unknown)} (available: {', '.join(brs)})")
 
     if not selected:
-        print("\nNo BR selected — infra is ready, stopping here.")
+        print("\nNo BR selected.")
         return
+
+    selected = list(dict.fromkeys(selected))
+    print("=== 1. Bringing up infra and monitoring ===")
+    build_image()
+    start_stack()
+    wait_healthy(["clickhouse", "kafka"])
+
+    print("\n=== Preparing selected BR datasets ===")
+    for n in selected:
+        prepare_data(n)
+
+    print("\n=== 2. Creating selected Kafka topics ===")
+    create_topics(selected)
 
     print(f"\n=== 3. Creating ClickHouse tables for {', '.join('BR' + n for n in selected)} ===")
     for n in selected:

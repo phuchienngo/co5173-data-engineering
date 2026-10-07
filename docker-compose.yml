@@ -237,6 +237,7 @@ services:
     volumes:
       - ./jobs:/opt/jobs
       - ./ingestion:/opt/ingestion
+      - ./scripts:/opt/scripts
       - ./data:/opt/data
       - ./logs:/opt/logs
       - ./requirements.txt:/opt/requirements.txt
