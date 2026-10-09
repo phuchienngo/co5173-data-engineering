@@ -25,13 +25,13 @@
 ```
 scripts/download_tlc.sh (yellow 2025-07 2026-07)
           ↓
-    data/raw/{yellow,fhvhv}/*.parquet (fact: 3–4M rows/month)
+    data/br1/raw/{yellow,fhvhv}/*.parquet (fact: 3–4M rows/month)
           ↓
 jobs/batch_fact_capacity.py
     - Read raw parquet via read_trips()
-    - Write fact_trips → data/lake/fact_trips (partitioned by service, pickup_month)
+    - Write fact_trips → data/br1/lake/fact_trips (partitioned by service, pickup_month)
     - Compute P95 capacity per (location_id, day_type, hour_of_day) over baseline 2025-07..2026-06
-    - Write dim_capacity → data/lake/dim_capacity
+    - Write dim_capacity → data/br1/lake/dim_capacity
     - Compute hourly demand ratios (baseline period) → INSERT ClickHouse pricing.demand_ratio_hourly (source='batch')
           ↓
 jobs/publish_trips.py --month 2026-07
@@ -98,6 +98,21 @@ Looker Studio (via bore.pub tunnel)
 
 ## 4. Runbook
 
+BR1 owns `data/br1/`, matching the per-BR layout used by BR3 and BR4. See
+[`data/br1/README.md`](../data/br1/README.md) for file layout and source URLs.
+
+With Docker Desktop running, download and run the full pipeline:
+
+```bash
+bash scripts/run_br1.sh yellow 2025-07 2026-06 2026-07
+```
+
+Arguments: service, baseline start, baseline end, replay month. The script reuses
+downloaded files, initializes the pricing schema, computes the baseline, publishes
+the replay month to `tlc.trips`, and runs the pricing stream in the foreground.
+Existing Kafka records/checkpoints are preserved; use the reset section for a fresh replay.
+To download data only, use Step 0 below.
+
 **Prerequisites:**
 - Docker Desktop running (Linux: also `chmod -R a+rwX data` after download to allow Spark uid 1001 write access).
 - Git repo cloned and working directory is repo root.
@@ -108,13 +123,15 @@ Looker Studio (via bore.pub tunnel)
 scripts/download_tlc.sh yellow 2025-07 2026-07
 ```
 
-This downloads ~13 monthly yellow taxi parquet files (~1 GB total) to `data/raw/yellow/`. The script also downloads `data/raw/taxi_zone_lookup.csv` if missing.
+This downloads ~13 monthly yellow taxi parquet files (~1 GB total) to `data/br1/raw/yellow/`. The script also downloads `data/br1/raw/taxi_zone_lookup.csv` if missing.
 
 ### Step 1: Start Docker Services
 
 ```bash
-docker compose up -d clickhouse kafka kafka-ui spark-master spark-worker pyspark
+docker compose --profile full --profile monitoring --profile br1 up -d --build clickhouse kafka kafka-ui spark-master spark-worker pyspark prometheus grafana
 ```
+
+The BR1 driver uses the shared Spark 4.0 image and matching Scala 2.13 Kafka connector. Monitoring provisions both the shared demo and BR1 pricing dashboards. The upstream `make demo` runner discovers BR3/BR4; run BR1 with the commands below.
 
 Wait for healthchecks to pass (about 30 seconds):
 
@@ -150,9 +167,9 @@ docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/batch_fact_capacity.py
 - `--baseline-to 2026-06` — Last month of baseline period (YYYY-MM). Default: `2026-06`.
 
 This step:
-1. Reads all parquet files under `data/raw/yellow/`
-2. Writes fact_trips to `data/lake/fact_trips`
-3. Computes P95 capacity and writes to `data/lake/dim_capacity`
+1. Reads all parquet files under `data/br1/raw/yellow/`
+2. Writes fact_trips to `data/br1/lake/fact_trips`
+3. Computes P95 capacity and writes to `data/br1/lake/dim_capacity`
 4. Inserts historical demand ratios (baseline months only, source='batch') into ClickHouse
 
 Typical output:
@@ -180,7 +197,7 @@ published 3245000 yellow trips for 2026-07 to tlc.trips
 Run in the background with logging:
 
 ```bash
-docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/stream.log 2>&1'
+docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/br1/stream.log 2>&1'
 ```
 
 The stream is capped at 1 core (`spark.cores.max=1`), so batch and publish jobs can run while it is live.
@@ -188,7 +205,7 @@ The stream is capped at 1 core (`spark.cores.max=1`), so batch and publish jobs 
 Then tail the log:
 
 ```bash
-tail -f data/stream.log
+tail -f data/br1/stream.log
 ```
 
 **Environment variable `MAX_OFFSETS`** controls replay speed:
@@ -382,14 +399,14 @@ To purge the stream and start a fresh replay:
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 --delete --topic tlc.trips
 
 # Clear Spark streaming checkpoint
-rm -rf data/checkpoints/demand_ratio
+rm -rf data/br1/checkpoints/demand_ratio
 
 # Remove stream-sourced rows from ClickHouse
 docker exec clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" -q "ALTER TABLE pricing.demand_ratio_hourly DELETE WHERE source = 'stream'"
 
 # Republish the month and restart streaming (see steps 5 & 6 of runbook)
 docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/publish_trips.py --month 2026-07
-docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/stream.log 2>&1'
+docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/br1/stream.log 2>&1'
 ```
 
 ---
@@ -400,7 +417,7 @@ docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /o
 - **"Real-time" is a replay.** The pipeline re-publishes one completed calendar month to Kafka in order, simulating a live feed. True live data would require a connection to TLC's real-time API (not public at this scale).
 - **Looker freshness ≥ 1 minute.** The MySQL connector's minimum data freshness is 1 minute; micro-batches arrive every 10 seconds but charts update at most every minute.
 - **Public tunnel (bore.pub) has no SLA.** Free service may go down; fallback to `pinggy` or `ngrok` if needed.
-- **bitnamilegacy images receive no security updates.** `bitnami/spark` was removed from Docker Hub in September 2025. The archived bitnamilegacy versions are stable but no longer patched. Consider upgrading to upstream `apache/spark:3.5.6` or `docker.io/spark:3.5.6` for production.
+- **bitnamilegacy images receive no security updates.** `bitnami/spark` was removed from Docker Hub in September 2025. The archived bitnamilegacy versions are stable but no longer patched. For production, migrate to a maintained Spark image and keep the Kafka connector matched to its Spark and Scala versions.
 - **BR2 (batch demand forecast) and rooms variant are out of scope.** BR1 covers taxi trips only. A multi-modal version (rooms, other services) would require extending LANDMARKS and adding data sources.
 
 ---

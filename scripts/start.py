@@ -139,12 +139,10 @@ def clickhouse_query(sql):
         "exec",
         "-i",
         "clickhouse",
-        "clickhouse-client",
-        "--user",
-        "default",
-        "--password",
-        "clickhouse",
-        "--query",
+        "bash",
+        "-c",
+        'exec clickhouse-client --user default --password "$CLICKHOUSE_PASSWORD" --query "$1"',
+        "--",
         sql,
     ])
 
@@ -153,13 +151,12 @@ def create_clickhouse_tables(br):
     ddl = REPO_ROOT / "sql" / "clickhouse" / f"ddl_br{br}.sql"
     if not ddl.exists():
         sys.exit(f"Missing DDL file: {ddl}")
-    cmd = (
-        "docker exec -i clickhouse clickhouse-client "
-        "--user default --password clickhouse --multiquery "
-        f"< {ddl}"
-    )
-    print(f"$ {cmd}")
-    subprocess.run(cmd, check=True, cwd=REPO_ROOT, shell=True)
+    cmd = [
+        "docker", "exec", "-i", "clickhouse", "bash", "-c",
+        'exec clickhouse-client --user default --password "$CLICKHOUSE_PASSWORD" --multiquery',
+    ]
+    print(f"$ {' '.join(cmd)} < {ddl}")
+    subprocess.run(cmd, check=True, cwd=REPO_ROOT, input=ddl.read_text(), text=True)
     for table in fact_tables_in(ddl):
         clickhouse_query(f"TRUNCATE TABLE IF EXISTS {table}")
 

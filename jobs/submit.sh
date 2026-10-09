@@ -17,8 +17,9 @@ fi
 # TLC timestamps are NYC wall-clock; UTC session keeps hours unshifted
 exec /opt/bitnami/spark/bin/spark-submit \
 	--master "${SPARK_MASTER_URL:-spark://spark-master:7077}" \
-	--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.6 \
+	--packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0,org.apache.kafka:kafka-clients:3.9.0 \
 	--conf spark.jars.ivy=/tmp/.ivy2 \
 	--conf spark.driver.host=pyspark \
+	--conf spark.sql.ansi.enabled=false \
 	--conf spark.sql.session.timeZone=UTC \
 	"$@"

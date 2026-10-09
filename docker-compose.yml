@@ -135,10 +135,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ------------------------------------------------------------------
-  # Public TCP tunnel: Looker Studio -> ClickHouse MySQL port (on demand only)
-  #   docker compose --profile tunnel up -d tunnel ; public address: docker logs tunnel
-  # ------------------------------------------------------------------
+  # Public TCP tunnel for the BR1 Looker Studio connection (on demand).
   tunnel:
     image: ekzhang/bore:latest
     container_name: tunnel
@@ -245,8 +242,6 @@ services:
       - ./logs:/opt/logs
     ports:
       - "8083:8081" # Spark worker Web UI / metrics: /metrics/prometheus/
-    volumes:
-      - ./data:/opt/data
     networks:
       - data-net
 

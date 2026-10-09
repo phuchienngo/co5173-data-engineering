@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download NYC TLC monthly trip parquet files and taxi zone lookup to ./data/raw
+# Download NYC TLC monthly trip parquet files and taxi zone lookup to ./data/br1/raw
 # Usage: scripts/download_tlc.sh <service> <YYYY-MM from> <YYYY-MM to>
 # Example: scripts/download_tlc.sh yellow 2025-07 2026-07
 
@@ -11,16 +11,32 @@ SERVICE="${1:?Usage: $0 <service> <YYYY-MM from> <YYYY-MM to>}"
 FROM="${2:?Usage: $0 <service> <YYYY-MM from> <YYYY-MM to>}"
 TO="${3:?Usage: $0 <service> <YYYY-MM from> <YYYY-MM to>}"
 
+case "$SERVICE" in
+	yellow|fhvhv) ;;
+	*) echo "Unsupported BR1 service: $SERVICE (use yellow or fhvhv)" >&2; exit 1 ;;
+esac
+for DATE in "$FROM" "$TO"; do
+	if [[ ! "$DATE" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then
+		echo "Invalid month: $DATE (use YYYY-MM)" >&2
+		exit 1
+	fi
+done
+if [[ "$FROM" > "$TO" ]]; then
+	echo "Start month must not be after end month" >&2
+	exit 1
+fi
+
 BASE_URL="https://d37ci6vzurychx.cloudfront.net"
-DATA_DIR="data/raw"
+DATA_DIR="data/br1/raw"
 SERVICE_DIR="$DATA_DIR/$SERVICE"
 
 mkdir -p "$SERVICE_DIR"
 
 # Download taxi zone lookup if missing
-if [ ! -f "$DATA_DIR/taxi_zone_lookup.csv" ]; then
+if [ ! -s "$DATA_DIR/taxi_zone_lookup.csv" ]; then
 	echo "Downloading taxi zone lookup..."
-	curl -fL --retry 3 -o "$DATA_DIR/taxi_zone_lookup.csv" "$BASE_URL/misc/taxi_zone_lookup.csv"
+	curl -fL --retry 3 -o "$DATA_DIR/taxi_zone_lookup.csv.part" "$BASE_URL/misc/taxi_zone_lookup.csv"
+	mv "$DATA_DIR/taxi_zone_lookup.csv.part" "$DATA_DIR/taxi_zone_lookup.csv"
 fi
 
 # Parse from/to into YYYYMM integers for comparison

@@ -10,7 +10,7 @@ from itertools import islice
 from pyspark.sql import DataFrame, SparkSession, functions as F
 
 # Data paths
-DATA_DIR = "/opt/data"
+DATA_DIR = "/opt/data/br1"
 RAW_DIR = f"{DATA_DIR}/raw"
 FACT_PATH = f"{DATA_DIR}/lake/fact_trips"
 CAPACITY_PATH = f"{DATA_DIR}/lake/dim_capacity"
