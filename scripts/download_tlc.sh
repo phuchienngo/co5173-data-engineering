@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download NYC TLC monthly trip parquet files and taxi zone lookup to ./data/br1/raw
+# Download NYC TLC monthly trip parquet files and taxi zone lookup to ./data/br2/raw
 # Usage: scripts/download_tlc.sh <service> <YYYY-MM from> <YYYY-MM to>
 # Example: scripts/download_tlc.sh yellow 2025-07 2026-07
 
@@ -13,7 +13,7 @@ TO="${3:?Usage: $0 <service> <YYYY-MM from> <YYYY-MM to>}"
 
 case "$SERVICE" in
 	yellow|fhvhv) ;;
-	*) echo "Unsupported BR1 service: $SERVICE (use yellow or fhvhv)" >&2; exit 1 ;;
+	*) echo "Unsupported BR2 service: $SERVICE (use yellow or fhvhv)" >&2; exit 1 ;;
 esac
 for DATE in "$FROM" "$TO"; do
 	if [[ ! "$DATE" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then
@@ -27,7 +27,7 @@ if [[ "$FROM" > "$TO" ]]; then
 fi
 
 BASE_URL="https://d37ci6vzurychx.cloudfront.net"
-DATA_DIR="data/br1/raw"
+DATA_DIR="data/br2/raw"
 SERVICE_DIR="$DATA_DIR/$SERVICE"
 
 mkdir -p "$SERVICE_DIR"

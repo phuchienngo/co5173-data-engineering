@@ -1,5 +1,5 @@
--- BR1 Dynamic Pricing: serving layer for Looker Studio.
--- Apply: docker exec -i clickhouse clickhouse-client --password "$CLICKHOUSE_PASSWORD" --multiquery < sql/pricing.sql
+-- BR2 Dynamic Pricing: serving layer for Looker Studio.
+-- Applied by scripts/start.py (create_clickhouse_tables) before the BR2 Spark job starts.
 CREATE DATABASE IF NOT EXISTS pricing;
 
 CREATE TABLE IF NOT EXISTS pricing.demand_ratio_hourly

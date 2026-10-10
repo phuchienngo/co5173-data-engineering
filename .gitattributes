@@ -1,3 +1,4 @@
 data filter=lfs diff=lfs merge=lfs -text
 data/** filter=lfs diff=lfs merge=lfs -text
 data/**/*.md -filter diff merge text
+data/br1/landmarks.csv -filter diff merge text

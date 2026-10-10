@@ -58,6 +58,16 @@ configs:
           static_configs:
             - targets: ["spark-worker:8081"]
 
+        - job_name: spark-driver
+          metrics_path: /metrics/prometheus/
+          static_configs:
+            - targets: ["spark-local:4040", "spark-local:4041", "spark-local:4042", "spark-local:4043"]
+
+        - job_name: spark-executors
+          metrics_path: /metrics/executors/prometheus/
+          static_configs:
+            - targets: ["spark-local:4040", "spark-local:4041", "spark-local:4042", "spark-local:4043"]
+
   grafana-datasource-yml:
     content: |
       apiVersion: 1
@@ -135,7 +145,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Public TCP tunnel for the BR1 Looker Studio connection (on demand).
+  # Public TCP tunnel for the BR2 Looker Studio connection (on demand).
   tunnel:
     image: ekzhang/bore:latest
     container_name: tunnel
@@ -187,6 +197,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    profiles: ["ui"]
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - data-net
+
+  # Static server for the BR1 tourist map (serving/ on the host).
+  tour-map:
+    image: nginx:1.27-alpine
+    container_name: tour-map
+    ports: ["8090:80"]
+    volumes:
+      - ./serving:/usr/share/nginx/html:ro
+    networks: [data-net]
 
   # ------------------------------------------------------------------
   # Spark

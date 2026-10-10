@@ -10,14 +10,14 @@ from itertools import islice
 from pyspark.sql import DataFrame, SparkSession, functions as F
 
 # Data paths
-DATA_DIR = "/opt/data/br1"
+DATA_DIR = "/opt/data/br2"
 RAW_DIR = f"{DATA_DIR}/raw"
 FACT_PATH = f"{DATA_DIR}/lake/fact_trips"
 CAPACITY_PATH = f"{DATA_DIR}/lake/dim_capacity"
 CHECKPOINT_DIR = f"{DATA_DIR}/checkpoints/demand_ratio"
 
 # Kafka
-KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:29092")
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
 TOPIC = "tlc.trips"
 
 # ClickHouse
@@ -154,7 +154,7 @@ def write_ratios(hourly, capacity, source):
 
 
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("br1-pricing-self-check").getOrCreate()
+    spark = SparkSession.builder.appName("br2-pricing-self-check").getOrCreate()
     df = spark.createDataFrame(
         [(80, 100, 10.0), (81, 100, 10.0), (801, 1000, 10.0), (5, None, 10.0), (3, 4, 20.0)],
         "active_bookings long, capacity int, avg_fare double"

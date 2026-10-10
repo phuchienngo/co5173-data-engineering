@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BR2 Dynamic Pricing</title>
+<style>
+  :root {
+    --text: #1f2328;
+    --muted: #57606a;
+    --border: #d0d7de;
+    --zebra: #f6f8fa;
+    --code-bg: #eff1f3;
+    --accent: #0969da;
+    --warn-bg: #fff8c5;
+    --warn-border: #d4a72c;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    padding: 0 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    color: var(--text);
+    background: #ffffff;
+    line-height: 1.55;
+  }
+  main, header, footer, nav {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  header { padding: 32px 0 16px; border-bottom: 2px solid var(--border); }
+  header h1 { margin: 0 0 4px; font-size: 2rem; }
+  header .subtitle { margin: 0; color: var(--muted); font-size: 1.05rem; }
+  header .meta { margin: 8px 0 0; color: var(--muted); font-size: 0.9rem; }
+  nav.toc { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 8px; }
+  nav.toc ol { margin: 0; padding-left: 1.4em; columns: 2; column-gap: 32px; }
+  nav.toc li { margin: 2px 0; break-inside: avoid; }
+  h2 { font-size: 1.5rem; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 1.15rem; margin: 24px 0 8px; }
+  section { padding-bottom: 8px; }
+  a { color: var(--accent); }
+  p, ul, ol, dl { margin: 0 0 14px; }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 12px 14px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin: 8px 0 16px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    font-size: 0.93rem;
+    display: block;
+    overflow-x: auto;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+                                                                                                        vertical-align: top;
+  }
+  th { background: #e9edf1; font-weight: 600; }
+  tbody tr:nth-child(even) { background: var(--zebra); }
+  dl dt { font-weight: 600; margin-top: 10px; }
+  dl dd { margin: 2px 0 0 0; }
+  .flow { margin: 12px 0 20px; }
+  .step {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #ffffff;
+  }
+  .step .label {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .step .desc { display: block; color: var(--muted); font-size: 0.93rem; }
+  .arrow {
+    text-align: center;
+    color: var(--muted);
+    line-height: 1;
+    padding: 2px 0;
+    font-size: 1.1rem;
+    position: relative;
+  }
+  .arrow::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+    transform: translateX(-0.5px);
+    z-index: -1;
+  }
+  .callout {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-left: 6px solid var(--warn-border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 16px 0;
+  }
+  .callout h3 { margin-top: 0; }
+  .callout ol { margin-bottom: 0; }
+  .quote { font-style: normal; font-family: inherit; }
+  footer {
+    margin-top: 40px;
+    padding: 16px 0 32px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  @media print {
+    body { padding: 0; font-size: 11pt; }
+    header, nav, section, footer { max-width: none; }
+    h2 { page-break-before: auto; }
+    section { page-break-inside: auto; }
+    .step, .callout, table, pre { page-break-inside: avoid; }
+    nav.toc { display: none; }
+    a { color: inherit; text-decoration: none; }
+    pre { white-space: pre-wrap; overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BR2 Dynamic Pricing</h1>
+  <p class="subtitle">CO5173 Data Engineering, Business Requirement 2</p>
+  <p class="meta">Date: 2026-10-10</p>
+  <p class="meta">What the business requirement is and how the pipeline works.</p>
+</header>
+
+<nav class="toc" aria-label="Table of contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#business-requirement">Business requirement</a></li>
+    <li><a href="#how-it-works">How it works in one paragraph</a></li>
+    <li><a href="#data-flow">Data flow</a></li>
+    <li><a href="#metric-definitions">Metric definitions</a></li>
+    <li><a href="#streaming-details">Streaming details</a></li>
+    <li><a href="#clickhouse-schema">ClickHouse schema</a></li>
+    <li><a href="#data-sources">Data sources</a></li>
+    <li><a href="#runbook">Runbook</a></li>
+    <li><a href="#dashboards">Dashboards</a></li>
+    <li><a href="#assumptions">Assumptions and limitations</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="business-requirement">
+  <h2>1. Business requirement</h2>
+  <h3>Hỗ trợ định giá linh hoạt thời gian thực (Dynamic Pricing Insights)</h3>
+  <p>A taxi and ride business near New York City's tourist landmarks wants to know, hour by hour, whether demand at each landmark is close to its practical capacity. For every landmark and hour, the platform computes a demand ratio (active bookings compared with capacity) and turns it into an automatic price suggestion. When the demand ratio exceeds 80% of capacity, the suggestion is a 15% fare increase: "Nhu cầu > 80%: Gợi ý tăng giá 15%". Otherwise the suggestion is "Giữ giá" (hold price). The output is stored in ClickHouse and charted in Grafana and Looker Studio.</p>
+  <h3>What the business gets</h3>
+  <ul>
+    <li>Hourly demand ratio per landmark.</li>
+    <li>Current price suggestion per landmark.</li>
+    <li>Count of landmarks in surge.</li>
+    <li>Heatmap of landmark × hour.</li>
+  </ul>
+</section>
+
+<section id="how-it-works">
+  <h2>2. How it works in one paragraph</h2>
+  <p>The pipeline first builds a historical baseline from 12 months of NYC yellow taxi trips (2025-07 to 2026-06). From that baseline it derives a capacity for each landmark, split by weekday or weekend and by hour of day. Then one completed month (2026-07) is replayed through Kafka to simulate a live feed. Spark Structured Streaming counts drop-offs per landmark per hour, divides each count by that landmark's capacity, and writes the ratio and the price suggestion to ClickHouse every 10 seconds. Dashboards in Grafana and Looker Studio read from ClickHouse.</p>
+</section>
+
+<section id="data-flow">
+  <h2>3. Data flow</h2>
+  <div class="flow">
+    <div class="step">
+      <span class="label">1. scripts/download_tlc.sh</span>
+      <span class="desc">Downloads monthly NYC TLC yellow taxi parquet (~3-4M trips/month) plus taxi_zone_lookup.csv into data/br2/raw/.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">2. jobs/br2_dynamic_pricing/job.py (baseline)</span>
+      <span class="desc">Builds the fact_trips lake table, computes capacity per (location_id, day_type, hour_of_day), and inserts baseline demand ratios into ClickHouse with source='batch'. Runs once; skipped when data/br2/lake/dim_capacity exists.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">3. ingestion/producers/produce_br2.py</span>
+      <span class="desc">Reads the replay month (BR2_REPLAY_MONTH) from fact_trips via pyarrow, sorts by pickup_datetime, and publishes JSON to Kafka topic tlc.trips.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">4. Kafka topic tlc.trips</span>
+      <span class="desc">Simulated live feed.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">5. jobs/br2_dynamic_pricing/job.py (streaming)</span>
+      <span class="desc">Spark Structured Streaming: 1-hour tumbling window per landmark, joins capacity, computes ratio and price action, 10-second trigger, update mode.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">6. ClickHouse pricing.demand_ratio_hourly</span>
+      <span class="desc">ReplacingMergeTree(updated_at), ORDER BY (location_id, window_start); views v_demand_ratio and v_latest_suggestion.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">7. Grafana http://localhost:3000/d/br2-pricing</span>
+      <span class="desc">Local dashboard.</span>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="step">
+      <span class="label">8. Looker Studio via bore.pub tunnel to ClickHouse MySQL port 9004</span>
+      <span class="desc">External dashboard.</span>
+    </div>
+  </div>
+</section>
+
+<section id="metric-definitions">
+  <h2>4. Metric definitions</h2>
+  <p>These definitions are taken from the code in <code>jobs/br2_dynamic_pricing/pricing.py</code> and <code>jobs/br2_dynamic_pricing/job.py</code>.</p>
+
+  <h3>Landmark zones (16 TLC drop-off location IDs)</h3>
+  <table>
+    <thead>
+      <tr><th>Location ID</th><th>Zone Name</th><th>Landmark Label</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>12</td><td>Battery Park</td><td>Statue of Liberty ferry</td></tr>
+      <tr><td>43</td><td>Central Park</td><td>Central Park</td></tr>
+      <tr><td>45</td><td>Chinatown</td><td>Chinatown</td></tr>
+      <tr><td>66</td><td>DUMBO/Vinegar Hill</td><td>Brooklyn Bridge / DUMBO</td></tr>
+      <tr><td>132</td><td>JFK Airport</td><td>JFK Airport</td></tr>
+      <tr><td>138</td><td>LaGuardia Airport</td><td>LaGuardia Airport</td></tr>
+      <tr><td>144</td><td>Little Italy/NoLiTa</td><td>Little Italy</td></tr>
+      <tr><td>161</td><td>Midtown Center</td><td>Rockefeller Center</td></tr>
+      <tr><td>186</td><td>Penn Station/Madison Sq West</td><td>Madison Square Garden</td></tr>
+      <tr><td>209</td><td>Seaport</td><td>South Street Seaport</td></tr>
+      <tr><td>211</td><td>SoHo</td><td>SoHo</td></tr>
+      <tr><td>230</td><td>Times Sq/Theatre District</td><td>Times Square &amp; Broadway</td></tr>
+      <tr><td>234</td><td>Union Sq</td><td>Union Square</td></tr>
+      <tr><td>246</td><td>West Chelsea/Hudson Yards</td><td>High Line &amp; Hudson Yards</td></tr>
+      <tr><td>249</td><td>West Village</td><td>West Village</td></tr>
+      <tr><td>261</td><td>World Trade Center</td><td>9/11 Memorial &amp; One WTC</td></tr>
+    </tbody>
+  </table>
+
+  <dl>
+    <dt>Active bookings</dt>
+    <dd>Count of trips whose drop-off location (<code>do_location_id</code>) is the landmark, grouped by pickup hour (<code>window_start</code>). Note: this is drop-off, not pickup.</dd>
+
+    <dt>day_type</dt>
+    <dd><code>weekend</code> if the day is Saturday or Sunday, otherwise <code>weekday</code>.</dd>
+
+    <dt>Capacity</dt>
+    <dd>Approximate 95th percentile (Spark <code>percentile_approx(0.95)</code>, cast to int) of hourly active bookings per (location_id, day_type, hour_of_day), over the baseline 2025-07 to 2026-06. Hours with zero bookings are absent from the grouping, so capacity skews high for quiet zones.</dd>
+
+    <dt>Demand ratio %</dt>
+    <dd><code>active_bookings × 100 / capacity</code> when capacity &gt; 0, otherwise NULL. Landmark-hours with no baseline capacity get a NULL ratio and hold price.</dd>
+
+    <dt>Price action</dt>
+    <dd>A strict ratio above 80 gives "Nhu cầu > 80%: Gợi ý tăng giá 15%" and <code>suggested_fare = avg_fare × 1.15</code>. Otherwise the action is "Giữ giá" and <code>suggested_fare = avg_fare</code>. Constants: <code>SURGE_THRESHOLD_PCT = 80</code>, <code>SURGE_UPLIFT = 0.15</code>.</dd>
+
+    <dt>Timestamps</dt>
+    <dd>NYC local wall-clock time. The Spark session timezone is kept at UTC so that hour boundaries are not shifted.</dd>
+  </dl>
+
+  <h3>Worked example</h3>
+  <table>
+    <thead>
+      <tr><th>Capacity</th><th>Active bookings</th><th>Demand ratio</th><th>Action</th><th>avg_fare</th><th>suggested_fare</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>120</td><td>102</td><td>85.0%</td><td>Nhu cầu > 80%: Gợi ý tăng giá 15% (surge)</td><td>20.00</td><td>23.00</td></tr>
+      <tr><td>120</td><td>90</td><td>75.0%</td><td>Giữ giá (hold)</td><td>20.00</td><td>20.00</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="streaming-details">
+  <h2>5. Streaming details</h2>
+  <table>
+    <thead>
+      <tr><th>Setting</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Watermark</td><td>2 hours</td></tr>
+      <tr><td>Window</td><td>1 hour tumbling on <code>pickup_datetime</code></td></tr>
+      <tr><td>Trigger</td><td><code>processingTime</code> 10 seconds</td></tr>
+      <tr><td>Output mode</td><td><code>update</code></td></tr>
+      <tr><td>startingOffsets</td><td><code>earliest</code></td></tr>
+      <tr><td><code>MAX_OFFSETS</code> env (default 20000)</td><td>About 4 hours of yellow trips per micro-batch</td></tr>
+      <tr><td><code>MAX_OFFSETS</code> = 50000</td><td>About 10 hours per micro-batch (faster replay)</td></tr>
+      <tr><td><code>MAX_OFFSETS</code> = 10000</td><td>About 2 hours per micro-batch (slower replay, lower latency simulation)</td></tr>
+      <tr><td>Sink</td><td><code>foreachBatch</code>: HTTP POST to ClickHouse port 8123, <code>INSERT ... FORMAT JSONEachRow</code>, in chunks of 50,000 rows</td></tr>
+      <tr><td>Resources</td><td>Capped at <code>spark.cores.max=1</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Kafka message</h3>
+  <p>Each message is a JSON value with the fields <code>service</code>, <code>pickup_datetime</code>, <code>pu_location_id</code>, <code>do_location_id</code>, and <code>fare_amount</code>. There is no message key.</p>
+</section>
+
+<section id="clickhouse-schema">
+  <h2>6. ClickHouse schema</h2>
+  <h3>Table <code>pricing.demand_ratio_hourly</code></h3>
+  <table>
+    <thead>
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>window_start</td><td>DateTime</td><td>Start of the 1-hour window</td></tr>
+      <tr><td>location_id</td><td>UInt16</td><td>TLC drop-off location ID</td></tr>
+      <tr><td>zone</td><td>String</td><td>Zone name</td></tr>
+      <tr><td>landmark</td><td>String</td><td>Landmark label</td></tr>
+      <tr><td>active_bookings</td><td>UInt32</td><td>Count of trips dropped off in the landmark during the hour</td></tr>
+      <tr><td>avg_fare</td><td>Float64</td><td>Average fare</td></tr>
+      <tr><td>capacity</td><td>Nullable(UInt32)</td><td>Baseline capacity (NULL if none)</td></tr>
+      <tr><td>demand_ratio_pct</td><td>Nullable(Float64)</td><td>NULL if capacity is missing or 0</td></tr>
+      <tr><td>suggested_fare</td><td>Float64</td><td>avg_fare × 1.15 on surge, otherwise avg_fare</td></tr>
+      <tr><td>price_action</td><td>String</td><td>"Nhu cầu > 80%: Gợi ý tăng giá 15%" or "Giữ giá"</td></tr>
+      <tr><td>source</td><td>String</td><td><code>'batch'</code> (baseline) or <code>'stream'</code> (replay)</td></tr>
+      <tr><td>updated_at</td><td>DateTime64(3)</td><td>Default <code>now64(3)</code>; ReplacingMergeTree version column</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Views</h3>
+  <dl>
+    <dt><code>v_demand_ratio</code></dt>
+    <dd><code>SELECT ... FROM</code> the table <code>FINAL</code>. Adds <code>date</code> and <code>hour_of_day</code>, rounds the ratio to 1 decimal place and fares to 2 decimal places.</dd>
+
+    <dt><code>v_latest_suggestion</code></dt>
+    <dd>The latest <code>window_start</code> per <code>location_id</code>, taken from <code>v_demand_ratio</code>.</dd>
+  </dl>
+</section>
+
+<section id="data-sources">
+  <h2>7. Data sources</h2>
+  <table>
+    <thead>
+      <tr><th>Source</th><th>Type</th><th>Volume</th><th>Schema</th><th>Public?</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>NYC TLC Yellow Taxi</strong></td><td>Trip records</td><td>~3–4M trips/month</td><td><code>tpep_pickup_datetime</code> → <code>pickup_datetime</code>, <code>DOLocationID</code> → <code>dropoff_location</code>, <code>fare_amount</code></td><td>Yes</td><td>https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page. Monthly parquet at https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_YYYY-MM.parquet. <strong>Chosen for BR2.</strong></td></tr>
+      <tr><td><strong>NYC TLC FHVHV</strong> (Uber/Lyft)</td><td>Trip records</td><td>~20M trips/month</td><td><code>pickup_datetime</code>, <code>base_passenger_fare</code></td><td>Yes</td><td>Scale-up option via <code>--service fhvhv</code> flag.</td></tr>
+      <tr><td><strong>TLC Taxi Zone Lookup</strong></td><td>Zone reference</td><td>263 zones</td><td>LocationID, zone name</td><td>Yes</td><td>https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv. Joined by location ID.</td></tr>
+      <tr><td><strong>TLC Monthly Industry Metrics</strong></td><td>Aggregate metrics</td><td>Monthly</td><td>Active vehicles (citywide only)</td><td>Yes</td><td>https://www.nyc.gov/assets/tlc/downloads/csv/data_reports_monthly.csv. Citywide only; not per-zone. This is why capacity is derived instead.</td></tr>
+      <tr><td><strong>Inside Airbnb NYC</strong></td><td>Room availability</td><td>Variable</td><td>Calendar, listing metadata</td><td>Yes</td><td>https://insideairbnb.com/get-the-data/. Candidate for "rooms" variant (out of scope for BR2).</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Why not others:</strong> Chicago taxi (BigQuery historical archive ends 2023), Kaggle hotel-booking-demand (119k rows, too small for statistical validity), Vietnam (no public trip- or booking-level data at scale).</p>
+</section>
+
+<section id="runbook">
+  <h2>8. Runbook</h2>
+
+  <h3>Step 0: Prerequisites</h3>
+  <ul>
+    <li>Docker Desktop running.</li>
+    <li>Git repo cloned and working directory is the repo root.</li>
+    <li><code>.env</code> created from the template (<code>cp .env.example .env</code>). Set <code>CLICKHOUSE_PASSWORD</code> now; <code>LOOKER_PASSWORD</code> is needed for Dashboards (section 9).</li>
+    <li>Linux only: after the download, run <code>chmod -R a+rwX data</code> so the Spark container (uid 1001) can write.</li>
+  </ul>
+
+  <h3>Step 1: Download NYC TLC data</h3>
+  <p>Downloads about 13 monthly yellow taxi parquet files (~1 GB) to <code>data/br2/raw/yellow/</code>, plus <code>data/br2/raw/taxi_zone_lookup.csv</code> if missing. The pipeline does not download data; this is a manual prerequisite.</p>
+  <pre><code>bash scripts/download_tlc.sh yellow 2025-07 2026-07</code></pre>
+
+  <h3>Step 2: Run the pipeline</h3>
+  <pre><code>make demo-br BR=2</code></pre>
+  <p><code>scripts/start.py</code> runs these steps in order:</p>
+  <ol>
+    <li><strong>Infra:</strong> builds the <code>spark-local</code> image and starts <code>clickhouse</code>, <code>kafka</code>, <code>tour-map</code>, <code>spark-local</code>, <code>grafana</code>, <code>prometheus</code>, <code>spark-master</code> and <code>spark-worker</code>. Waits for the ClickHouse and Kafka healthchecks.</li>
+    <li><strong>Topics:</strong> <code>scripts/topics.py --reset</code> recreates the Kafka topics, including <code>tlc.trips</code>.</li>
+    <li><strong>Schema:</strong> applies <code>sql/clickhouse/ddl_br2.sql</code> (database <code>pricing</code>, table <code>pricing.demand_ratio_hourly</code>, views <code>v_demand_ratio</code> and <code>v_latest_suggestion</code>).</li>
+    <li><strong>Spark job:</strong> submits <code>jobs/br2_dynamic_pricing/job.py</code> from the <code>spark-local</code> container to the Spark cluster (driver and executor 512m, <code>spark.cores.max=1</code>, <code>spark.sql.shuffle.partitions=4</code>). On the first run, or whenever <code>data/br2/lake/dim_capacity</code> is missing, the job builds the baseline from the raw parquet first, then starts the streaming query. <code>start.py</code> waits up to <code>SPARK_READY_TIMEOUT</code> (default 180 s) for the streaming query to start.</li>
+    <li><strong>Producer:</strong> starts <code>ingestion/producers/produce_br2.py</code>, which replays the <code>BR2_REPLAY_MONTH</code> lake month to <code>tlc.trips</code>.</li>
+  </ol>
+  <p>Logs: <code>logs/demo/br2-spark.log</code> and <code>logs/demo/br2-producer.log</code>. Ctrl+C in that terminal stops the Spark job and the producer.</p>
+  <p>Every run resets <code>tlc.trips</code> but not the Spark checkpoint, so delete <code>data/br2/checkpoints</code> before rerunning (see Reset and replay again below).</p>
+  <p><strong>First run:</strong> the baseline finishes before the streaming query starts, so it can exceed the 180 s readiness wait. Use <code>SPARK_READY_TIMEOUT=1800 make demo-br BR=2</code>.</p>
+
+  <h3>Step 3: Check results in ClickHouse</h3>
+  <p>Connect with the client, then run the two queries below.</p>
+  <pre><code>docker exec -i clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" --multiquery</code></pre>
+  <p><strong>Query 1: row counts and demand distribution.</strong> Expected: about 8000 baseline hours plus growing stream hours. Surge hours are typically about 10–20%.</p>
+      <pre><code>SELECT
+  source,
+  COUNT(*) as n_rows,
+  uniq(location_id) as n_zones,
+  min(window_start) as earliest_hour,
+  max(window_start) as latest_hour,
+  countIf(demand_ratio_pct &gt; 80) as n_surge_hours
+FROM pricing.v_demand_ratio
+GROUP BY source
+ORDER BY source DESC;</code></pre>
+      <p><strong>Query 2: latest suggestions.</strong> Expected: the latest <code>window_start</code> per landmark, with <code>price_action</code> and <code>suggested_fare</code>.</p>
+      <pre><code>SELECT * FROM pricing.v_latest_suggestion ORDER BY demand_ratio_pct DESC;</code></pre>
+
+  <h3>Step 4: Monitoring UIs</h3>
+  <ul>
+    <li>Spark Master: http://localhost:8082 (Spark worker metrics via <code>/metrics/prometheus/</code>)</li>
+    <li>Kafka UI: http://localhost:8080 (browse topic <code>tlc.trips</code>)</li>
+    <li>Grafana: http://localhost:3000 (username <code>admin</code>, password <code>admin</code>)</li>
+  </ul>
+
+  <h3>Tuning knobs</h3>
+  <table>
+    <thead>
+      <tr><th>Setting</th><th>Read by</th><th>Default</th><th>Effect</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>MAX_OFFSETS</code></td><td>Spark job</td><td><code>20000</code></td><td>Max Kafka records per 10 s micro-batch. 20000 is about 4 hours of yellow trips; 50000 is about 10 hours (faster replay); 10000 is about 2 hours.</td></tr>
+      <tr><td><code>PRODUCER_INTERVAL</code> (make var)</td><td>producer <code>--interval</code></td><td><code>0</code></td><td>Seconds between published events.</td></tr>
+      <tr><td><code>PRODUCER_LIMIT</code> (make var)</td><td>producer <code>--events</code></td><td>unset (full month)</td><td>Publish only the first N events.</td></tr>
+      <tr><td><code>BR2_SERVICE</code></td><td>Spark job, producer</td><td><code>yellow</code></td><td>TLC service.</td></tr>
+      <tr><td><code>BR2_BASELINE_FROM</code> / <code>BR2_BASELINE_TO</code></td><td>Spark job</td><td><code>2025-07</code> / <code>2026-06</code></td><td>Baseline window for <code>dim_capacity</code>.</td></tr>
+      <tr><td><code>BR2_REPLAY_MONTH</code></td><td>producer</td><td><code>2026-07</code></td><td>Lake month to replay.</td></tr>
+      <tr><td><code>SPARK_READY_TIMEOUT</code></td><td><code>start.py</code></td><td><code>180</code></td><td>Seconds to wait for the streaming query to start.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Caveat:</strong> <code>scripts/start.py</code> forwards host env vars matching <code>BR&lt;N&gt;_*</code> and <code>MAX_OFFSETS</code> into the container (<code>docker exec -e</code>), so <code>BR2_REPLAY_MONTH=2026-08 make demo-br BR=2</code> works.</p>
+
+  <h3>Reset and replay again</h3>
+  <p><code>make demo-br BR=2</code> already resets the Kafka topic <code>tlc.trips</code>. It does not clear the Spark checkpoint or the stream rows in ClickHouse, so clear those before a fresh replay:</p>
+  <pre><code># Clear the Spark streaming checkpoint
+rm -rf data/br2/checkpoints
+
+# Remove stream-sourced rows from ClickHouse
+docker exec clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" -q "ALTER TABLE pricing.demand_ratio_hourly DELETE WHERE source = 'stream'"
+
+# Rerun: resets tlc.trips, reapplies the DDL, restarts streaming and the replay
+make demo-br BR=2</code></pre>
+  <p>To rebuild the baseline as well, also delete <code>data/br2/lake/dim_capacity</code> before rerunning. The next run recomputes the baseline and re-inserts the <code>source='batch'</code> rows; <code>demand_ratio_hourly</code> is a ReplacingMergeTree, so duplicates collapse on merge.</p>
+</section>
+
+<section id="dashboards">
+  <h2>9. Dashboards</h2>
+  <h3>Local dashboard (Grafana)</h3>
+  <p>Open http://localhost:3000/d/br2-pricing (credentials <code>admin:admin</code>). The dashboard has a fixed time range of July 2026, which matches the stream data. To see the baseline too, set the date range to 2025-07-01 to 2026-07-31. No tunnel is needed because Grafana queries ClickHouse inside the <code>data-net</code> Docker network.</p>
+  <p><strong>Panels:</strong></p>
+  <ol>
+    <li><strong>Demand ratio % by landmark:</strong> time series of hourly demand ratios per landmark, with a red threshold at 80% surge.</li>
+    <li><strong>Current suggestion per landmark:</strong> table of latest suggestions with demand ratio, suggested fare, and price action.</li>
+    <li><strong>Landmarks above 80% now:</strong> stat card with the count of zones currently in surge.</li>
+    <li><strong>Surge hours by landmark in range:</strong> table of total surge hours per landmark within the selected window.</li>
+  </ol>
+
+  <h3>External dashboard (Looker Studio)</h3>
+  <p>Looker Studio connects through a public <code>bore.pub</code> tunnel to ClickHouse MySQL port 9004. Use the MySQL connector with database <code>pricing</code> and user <code>looker</code>, and add the tables <code>v_demand_ratio</code> and <code>v_latest_suggestion</code>. If the table list fails or the query times out, use a custom query such as <code>SELECT * FROM pricing.v_demand_ratio</code>. Set data freshness to 1 minute, which is the MySQL connector minimum.</p>
+  <p><strong>Recommended charts:</strong></p>
+  <ol>
+    <li><strong>Time series:</strong> X = <code>window_start</code>, Y = <code>demand_ratio_pct</code>, breakdown by <code>landmark</code>, with a reference line at 80.</li>
+    <li><strong>Heatmap / pivot table:</strong> rows = <code>landmark</code>, columns = <code>hour_of_day</code>, values = average <code>demand_ratio_pct</code>.</li>
+    <li><strong>Table:</strong> landmark, <code>demand_ratio_pct</code>, <code>avg_fare</code>, <code>suggested_fare</code>, <code>price_action</code>. Conditional formatting: red cell background where <code>demand_ratio_pct &gt; 80</code>.</li>
+    <li><strong>Scorecard:</strong> single value = count of zones with <code>demand_ratio_pct &gt; 80</code>.</li>
+    <li><strong>Filters:</strong> date range (picker on <code>date</code>) and landmark (dropdown).</li>
+  </ol>
+
+  <div class="callout" role="note">
+    <h3>Security warning</h3>
+    <p>The public tunnel (<code>bore.pub</code>) exposes ClickHouse's MySQL port (9004) to the internet. By default the <code>default</code> user has password <code>clickhouse</code>, which is public in this repo. Before starting the tunnel:</p>
+    <ol>
+      <li>Set strong passwords in <code>.env</code> (<code>CLICKHOUSE_PASSWORD</code> and <code>LOOKER_PASSWORD</code>, at least 32 random characters each).</li>
+      <li>Create a read-only <code>looker</code> user with <code>GRANT SELECT ON pricing.*</code>.</li>
+      <li>Stop the tunnel after your demo: <code>docker compose --profile tunnel stop tunnel</code>.</li>
+    </ol>
+  </div>
+
+  <h3>Tunnel setup (reference)</h3>
+  <pre><code>cp .env.example .env
+# Edit .env and set strong values
+
+set -a; . ./.env; set +a
+docker compose up -d clickhouse
+
+docker exec clickhouse clickhouse-client --password "$CLICKHOUSE_PASSWORD" --multiquery -q "CREATE USER IF NOT EXISTS looker IDENTIFIED WITH double_sha1_password BY '$LOOKER_PASSWORD'; GRANT SELECT ON pricing.* TO looker"
+
+docker compose --profile tunnel up -d tunnel
+docker logs tunnel   # look for: listening on... &lt;tunnel-id&gt;.bore.pub:&lt;port&gt;</code></pre>
+  <p>Fallback tunnels if bore.pub is down (no SLA): Pinggy (<code>ssh -p 443 -R0:localhost:9004 tcp@a.pinggy.io</code>, 60-minute sessions) or ngrok (<code>ngrok tcp 9004</code>, card verification required for TCP on the free plan).</p>
+</section>
+
+<section id="assumptions">
+  <h2>10. Assumptions and limitations</h2>
+  <ul>
+    <li><strong>Capacity is derived (P95), not ground truth.</strong> No public per-zone active vehicle count exists. The baseline months 2025-07 to 2026-06 establish a "practical capacity" from historical traffic. Hours with zero bookings are excluded, so very quiet zones' capacity may be slightly overestimated.</li>
+    <li><strong>"Real-time" is a replay.</strong> The pipeline re-publishes one completed calendar month to Kafka in order, simulating a live feed. True live data would require a connection to TLC's real-time API, which is not public at this scale.</li>
+    <li><strong>Looker freshness is at least 1 minute.</strong> The MySQL connector's minimum data freshness is 1 minute. Micro-batches arrive every 10 seconds, but charts update at most every minute.</li>
+    <li><strong>Public tunnel (bore.pub) has no SLA.</strong> The free service may go down; fall back to Pinggy or ngrok if needed.</li>
+    <li><strong>bitnamilegacy images receive no security updates.</strong> <code>bitnami/spark</code> was removed from Docker Hub in September 2025. The archived bitnamilegacy versions are stable but no longer patched. For production, migrate to a maintained Spark image and keep the Kafka connector matched to its Spark and Scala versions.</li>
+    <li><strong>BR2 (batch demand forecast) and the rooms variant are out of scope.</strong> BR2 covers taxi trips only. A multi-modal version (rooms, other services) would require extending LANDMARKS and adding data sources.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  <p>Source: docs/br2/dynamic-pricing.md, jobs/br2_dynamic_pricing/job.py and pricing.py, ingestion/producers/produce_br2.py, sql/clickhouse/ddl_br2.sql. Generated 2026-10-10.</p>
+</footer>
+
+</body>
+</html>

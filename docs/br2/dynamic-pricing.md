@@ -1,4 +1,4 @@
-# BR1: Dynamic Pricing Insights
+# BR2: Dynamic Pricing Insights
 
 **Business Requirement:** Hỗ trợ định giá linh hoạt thời gian thực (Dynamic Pricing Insights). The platform ingests NYC taxi trip fact tables and derives demand ratios (active bookings vs. landmark zone capacity) per hour. A machine-learning-ready pipeline streams these ratios into ClickHouse, where Looker Studio charts the fill trend and automatically suggests price adjustments: "Nhu cầu > 80%: Gợi ý tăng giá 15%" when demand exceeds capacity, and "Giữ giá" (hold price) otherwise.
 
@@ -8,11 +8,11 @@
 
 | Source | Type | Volume | Schema | Public? | Notes |
 |--------|------|--------|--------|---------|-------|
-| **NYC TLC Yellow Taxi** | Trip records | ~3–4M trips/month | `tpep_pickup_datetime` → `pickup_datetime`, `DOLocationID` → `dropoff_location`, `fare_amount` | Yes | https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page. Monthly parquet at https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_YYYY-MM.parquet. **Chosen for BR1.** |
+| **NYC TLC Yellow Taxi** | Trip records | ~3–4M trips/month | `tpep_pickup_datetime` → `pickup_datetime`, `DOLocationID` → `dropoff_location`, `fare_amount` | Yes | https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page. Monthly parquet at https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_YYYY-MM.parquet. **Chosen for BR2.** |
 | **NYC TLC FHVHV** (Uber/Lyft) | Trip records | ~20M trips/month | `pickup_datetime`, `base_passenger_fare` | Yes | Scale-up option via `--service fhvhv` flag. |
 | **TLC Taxi Zone Lookup** | Zone reference | 263 zones | LocationID, zone name | Yes | https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv. Joined by location ID. |
 | **TLC Monthly Industry Metrics** | Aggregate metrics | Monthly | Active vehicles (citywide only) | Yes | https://www.nyc.gov/assets/tlc/downloads/csv/data_reports_monthly.csv. Citywide only; not per-zone. Why capacity is derived instead. |
-| **Inside Airbnb NYC** | Room availability | Variable | Calendar, listing metadata | Yes | https://insideairbnb.com/get-the-data/. Candidate for "rooms" variant (out of scope for BR1). |
+| **Inside Airbnb NYC** | Room availability | Variable | Calendar, listing metadata | Yes | https://insideairbnb.com/get-the-data/. Candidate for "rooms" variant (out of scope for BR2). |
 
 **Why not others:** Chicago taxi (BigQuery historical archive ends 2023), Kaggle hotel-booking-demand (119k rows, too small for statistical validity), Vietnam (no public trip- or booking-level data at scale).
 
@@ -25,23 +25,23 @@
 ```
 scripts/download_tlc.sh (yellow 2025-07 2026-07)
           ↓
-    data/br1/raw/{yellow,fhvhv}/*.parquet (fact: 3–4M rows/month)
+    data/br2/raw/{yellow,fhvhv}/*.parquet (fact: 3–4M rows/month)
           ↓
-jobs/batch_fact_capacity.py
-    - Read raw parquet via read_trips()
-    - Write fact_trips → data/br1/lake/fact_trips (partitioned by service, pickup_month)
+jobs/br2_dynamic_pricing/job.py (baseline step; skipped if data/br2/lake/dim_capacity exists)
+    - Read raw parquet via read_trips() (pricing.py)
+    - Write fact_trips → data/br2/lake/fact_trips (partitioned by service, pickup_month)
     - Compute P95 capacity per (location_id, day_type, hour_of_day) over baseline 2025-07..2026-06
-    - Write dim_capacity → data/br1/lake/dim_capacity
+    - Write dim_capacity → data/br2/lake/dim_capacity
     - Compute hourly demand ratios (baseline period) → INSERT ClickHouse pricing.demand_ratio_hourly (source='batch')
           ↓
-jobs/publish_trips.py --month 2026-07
-    - Read fact_trips for a replay month
-    - Sort by pickup_datetime, serialize to JSON, write to Kafka topic tlc.trips
+ingestion/producers/produce_br2.py --interval X [--limit N | --loop]
+    - Read fact_trips for the replay month (BR2_REPLAY_MONTH, default 2026-07) via pyarrow
+    - Sort by pickup_datetime, serialize to JSON, publish to Kafka topic tlc.trips
           ↓
 Kafka (topic: tlc.trips) — simulates live feed
           ↓
-jobs/stream_demand_ratio.py
-    - Consume tlc.trips via Kafka Structured Streaming
+jobs/br2_dynamic_pricing/job.py (streaming query, started before the producer)
+    - Consume tlc.trips via Kafka Structured Streaming (maxOffsetsPerTrigger = MAX_OFFSETS)
     - 1-hour tumbling windows per landmark (do_location_id ∈ LANDMARKS)
     - Join with capacity
     - Compute demand_ratio_pct, price_action, suggested_fare
@@ -98,130 +98,46 @@ Looker Studio (via bore.pub tunnel)
 
 ## 4. Runbook
 
-BR1 owns `data/br1/`, matching the per-BR layout used by BR3 and BR4. See
-[`data/br1/README.md`](../data/br1/README.md) for file layout and source URLs.
+BR2 owns `data/br2/`, matching the per-BR layout used by BR3 and BR4. See
+[`data/br2/README.md`](../../data/br2/README.md) for file layout and source URLs.
 
-With Docker Desktop running, download and run the full pipeline:
+### Step 0: Prerequisites
 
-```bash
-bash scripts/run_br1.sh yellow 2025-07 2026-06 2026-07
-```
+- Docker Desktop running.
+- Git repo cloned and working directory is the repo root.
+- `.env` created from the template (`cp .env.example .env`). Set `CLICKHOUSE_PASSWORD` now; `LOOKER_PASSWORD` is needed in Section 5.
+- Linux only: after the download, run `chmod -R a+rwX data` so the Spark container (uid 1001) can write.
 
-Arguments: service, baseline start, baseline end, replay month. The script reuses
-downloaded files, initializes the pricing schema, computes the baseline, publishes
-the replay month to `tlc.trips`, and runs the pricing stream in the foreground.
-Existing Kafka records/checkpoints are preserved; use the reset section for a fresh replay.
-To download data only, use Step 0 below.
-
-**Prerequisites:**
-- Docker Desktop running (Linux: also `chmod -R a+rwX data` after download to allow Spark uid 1001 write access).
-- Git repo cloned and working directory is repo root.
-
-### Step 0: Download NYC TLC Data
+### Step 1: Download NYC TLC Data
 
 ```bash
-scripts/download_tlc.sh yellow 2025-07 2026-07
+bash scripts/download_tlc.sh yellow 2025-07 2026-07
 ```
 
-This downloads ~13 monthly yellow taxi parquet files (~1 GB total) to `data/br1/raw/yellow/`. The script also downloads `data/br1/raw/taxi_zone_lookup.csv` if missing.
+This downloads ~13 monthly yellow taxi parquet files (~1 GB total) to `data/br2/raw/yellow/`. The script also downloads `data/br2/raw/taxi_zone_lookup.csv` if missing. The pipeline does not download data; this step is a manual prerequisite.
 
-### Step 1: Start Docker Services
+### Step 2: Run the Pipeline
 
 ```bash
-docker compose --profile full --profile monitoring --profile br1 up -d --build clickhouse kafka kafka-ui spark-master spark-worker pyspark prometheus grafana
+make demo-br BR=2
 ```
 
-The BR1 driver uses the shared Spark 4.0 image and matching Scala 2.13 Kafka connector. Monitoring provisions both the shared demo and BR1 pricing dashboards. The upstream `make demo` runner discovers BR3/BR4; run BR1 with the commands below.
+`scripts/start.py` runs these steps in order:
 
-Wait for healthchecks to pass (about 30 seconds):
+1. **Infra:** builds the `spark-local` image and starts `clickhouse`, `kafka`, `tour-map`, `spark-local`, `grafana`, `prometheus`, `spark-master` and `spark-worker`. Waits for the ClickHouse and Kafka healthchecks.
+2. **Topics:** `scripts/topics.py --reset` recreates the Kafka topics, including `tlc.trips`.
+3. **Schema:** applies `sql/clickhouse/ddl_br2.sql` (database `pricing`, table `pricing.demand_ratio_hourly`, views `v_demand_ratio` and `v_latest_suggestion`).
+4. **Spark job:** submits `jobs/br2_dynamic_pricing/job.py` from the `spark-local` container to the Spark cluster (driver and executor 512m, `spark.cores.max=1`, `spark.sql.shuffle.partitions=4`). On the first run, or whenever `data/br2/lake/dim_capacity` is missing, the job builds the baseline from the raw parquet first, then starts the streaming query. `start.py` waits up to `SPARK_READY_TIMEOUT` (default 180 s) for the streaming query to start.
+5. **Producer:** starts `ingestion/producers/produce_br2.py`, which replays the `BR2_REPLAY_MONTH` lake month to `tlc.trips`.
 
-```bash
-docker compose ps
-```
+Logs: `logs/demo/br2-spark.log` and `logs/demo/br2-producer.log`. Ctrl+C in that terminal stops the Spark job and the producer.
 
-### Step 2: Initialize ClickHouse Schema
+Every run resets `tlc.trips` but not the Spark checkpoint, so delete `data/br2/checkpoints` before rerunning (see Section 6).
 
-```bash
-docker exec -i clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" --multiquery < sql/pricing.sql
-```
+> **First run:** the baseline finishes before the streaming query starts, so it can exceed the 180 s readiness wait. Use `SPARK_READY_TIMEOUT=1800 make demo-br BR=2`.
 
-Creates database `pricing`, table `pricing.demand_ratio_hourly` (ReplacingMergeTree), and views `v_demand_ratio` and `v_latest_suggestion`.
+### Step 3: Check Results in ClickHouse
 
-### Step 3: Self-Check
-
-```bash
-docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/common.py
-```
-
-Expected output: `pricing self-check OK`. This runs the unit tests in `common.py` to verify pricing logic.
-
-### Step 4: Batch — Compute Baseline Capacity
-
-```bash
-docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/batch_fact_capacity.py
-```
-
-**Optional arguments** (all have sensible defaults):
-- `--service yellow` — TLC service name (`yellow` or `fhvhv`). Default: `yellow`.
-- `--baseline-from 2025-07` — First month of baseline period (YYYY-MM). Default: `2025-07`.
-- `--baseline-to 2026-06` — Last month of baseline period (YYYY-MM). Default: `2026-06`.
-
-This step:
-1. Reads all parquet files under `data/br1/raw/yellow/`
-2. Writes fact_trips to `data/br1/lake/fact_trips`
-3. Computes P95 capacity and writes to `data/br1/lake/dim_capacity`
-4. Inserts historical demand ratios (baseline months only, source='batch') into ClickHouse
-
-Typical output:
-```
-fact rows (yellow): 42500000, baseline landmark-hours: 8000, capacity slots: 1500
-```
-
-### Step 5: Replay — Publish One Month to Kafka
-
-```bash
-docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/publish_trips.py --month 2026-07
-```
-
-**Optional arguments:**
-- `--month 2026-07` — Replay month (YYYY-MM). Default: `2026-07`.
-- `--service yellow` — TLC service name. Default: `yellow`.
-
-This serializes all trips from the specified month to JSON and writes them to Kafka topic `tlc.trips` in pickup_datetime order. Typical output:
-```
-published 3245000 yellow trips for 2026-07 to tlc.trips
-```
-
-### Step 6: Stream — Start Real-Time Demand Ratio Pipeline
-
-Run in the background with logging:
-
-```bash
-docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/br1/stream.log 2>&1'
-```
-
-The stream is capped at 1 core (`spark.cores.max=1`), so batch and publish jobs can run while it is live.
-
-Then tail the log:
-
-```bash
-tail -f data/br1/stream.log
-```
-
-**Environment variable `MAX_OFFSETS`** controls replay speed:
-- **Default:** 20000 (about 4 hours of yellow taxi data per 10 s micro-batch)
-- **50000:** Roughly 10 hours per 10 s micro-batch (faster replay)
-- **10000:** Roughly 2 hours per 10 s micro-batch (slower replay, lower latency simulation)
-
-Yellow taxi averages ~5000 trips/hour, so `MAX_OFFSETS=20000` represents a ~4-hour window of live traffic per micro-batch trigger.
-
-**To stop streaming:**
-
-```bash
-docker compose restart pyspark
-```
-
-### Step 7: Check Results in ClickHouse
 
 Connect to ClickHouse and query:
 
@@ -254,7 +170,7 @@ SELECT * FROM pricing.v_latest_suggestion ORDER BY demand_ratio_pct DESC;
 
 Expected: Latest window_start per landmark, with price_action and suggested_fare.
 
-### Step 8: Monitoring UIs
+### Step 4: Monitoring UIs
 
 - **Spark Master:** http://localhost:8082 (also Spark worker metrics via `/metrics/prometheus/`)
 - **Kafka UI:** http://localhost:8080 (browse topic `tlc.trips`)
@@ -262,7 +178,7 @@ Expected: Latest window_start per landmark, with price_action and suggested_fare
 
 #### Local dashboard (Grafana)
 
-Access the BR1 Dynamic Pricing dashboard at **http://localhost:3000/d/br1-pricing** with credentials `admin:admin`.
+Access the BR2 Dynamic Pricing dashboard at **http://localhost:3000/d/br2-pricing** with credentials `admin:admin`.
 
 The dashboard displays a fixed time range of **July 2026** (the replay month), which matches the `stream` data in ClickHouse. To view the full historical data including the baseline period, adjust the date range to **2025-07-01 to 2026-07-31** in the dashboard's date picker.
 
@@ -273,6 +189,21 @@ The dashboard displays a fixed time range of **July 2026** (the replay month), w
 - **Surge hours by landmark in range:** Table of total surge hours per landmark within the selected time window.
 
 No tunnel is needed—the dashboard queries ClickHouse directly inside the `data-net` Docker network.
+
+### Tuning Knobs
+
+| Setting | Read by | Default | Effect |
+|---------|---------|---------|--------|
+| `MAX_OFFSETS` | Spark job | `20000` | Max Kafka records per 10 s micro-batch. 20000 ≈ 4 h of yellow taxi data; 50000 ≈ 10 h (faster replay); 10000 ≈ 2 h. |
+| `PRODUCER_INTERVAL` (make var) | producer `--interval` | `0` | Seconds between published events. |
+| `PRODUCER_LIMIT` (make var) | producer `--events` | unset (full month) | Publish only the first N events. |
+| `BR2_SERVICE` | Spark job, producer | `yellow` | TLC service. |
+| `BR2_BASELINE_FROM` / `BR2_BASELINE_TO` | Spark job | `2025-07` / `2026-06` | Baseline window for `dim_capacity`. |
+| `BR2_REPLAY_MONTH` | producer | `2026-07` | Lake month to replay. |
+| `SPARK_READY_TIMEOUT` | `start.py` | `180` | Seconds to wait for the streaming query to start. |
+
+**Caveat:** `scripts/start.py` forwards host env vars matching `BR<N>_*` and `MAX_OFFSETS` into the container (`docker exec -e`), so `BR2_REPLAY_MONTH=2026-08 make demo-br BR=2` works.
+
 
 ---
 
@@ -301,7 +232,7 @@ cp .env.example .env
 
 ```bash
 set -a; . ./.env; set +a
-docker compose up -d clickhouse pyspark
+docker compose up -d clickhouse
 ```
 
 Wait for ClickHouse healthcheck to pass:
@@ -392,22 +323,20 @@ ngrok tcp 9004
 
 ## 6. Reset and Replay Again
 
-To purge the stream and start a fresh replay:
+`make demo-br BR=2` already resets the Kafka topic `tlc.trips`. It does not clear the Spark checkpoint or the stream rows in ClickHouse, so clear those before a fresh replay:
 
 ```bash
-# Delete Kafka topic
-docker exec kafka kafka-topics --bootstrap-server localhost:9092 --delete --topic tlc.trips
-
-# Clear Spark streaming checkpoint
-rm -rf data/br1/checkpoints/demand_ratio
+# Clear the Spark streaming checkpoint
+rm -rf data/br2/checkpoints
 
 # Remove stream-sourced rows from ClickHouse
 docker exec clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" -q "ALTER TABLE pricing.demand_ratio_hourly DELETE WHERE source = 'stream'"
 
-# Republish the month and restart streaming (see steps 5 & 6 of runbook)
-docker exec pyspark bash /opt/jobs/submit.sh /opt/jobs/publish_trips.py --month 2026-07
-docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /opt/jobs/stream_demand_ratio.py > /opt/data/br1/stream.log 2>&1'
+# Rerun: resets tlc.trips, reapplies the DDL, restarts streaming and the replay
+make demo-br BR=2
 ```
+
+To rebuild the baseline as well, also delete `data/br2/lake/dim_capacity` before rerunning. The next run recomputes the baseline and re-inserts the `source='batch'` rows; `demand_ratio_hourly` is a ReplacingMergeTree, so duplicates collapse on merge.
 
 ---
 
@@ -418,7 +347,7 @@ docker exec -d -e MAX_OFFSETS=50000 pyspark bash -c 'bash /opt/jobs/submit.sh /o
 - **Looker freshness ≥ 1 minute.** The MySQL connector's minimum data freshness is 1 minute; micro-batches arrive every 10 seconds but charts update at most every minute.
 - **Public tunnel (bore.pub) has no SLA.** Free service may go down; fallback to `pinggy` or `ngrok` if needed.
 - **bitnamilegacy images receive no security updates.** `bitnami/spark` was removed from Docker Hub in September 2025. The archived bitnamilegacy versions are stable but no longer patched. For production, migrate to a maintained Spark image and keep the Kafka connector matched to its Spark and Scala versions.
-- **BR2 (batch demand forecast) and rooms variant are out of scope.** BR1 covers taxi trips only. A multi-modal version (rooms, other services) would require extending LANDMARKS and adding data sources.
+- **BR2 (batch demand forecast) and rooms variant are out of scope.** BR2 covers taxi trips only. A multi-modal version (rooms, other services) would require extending LANDMARKS and adding data sources.
 
 ---
 

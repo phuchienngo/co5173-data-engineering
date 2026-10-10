@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lộ trình du lịch BR1</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--fg:#1d2430;--muted:#5d6878;--accent:#0b6bcb;--danger:#b42318;--border:#dde2ea;--hover:#eef4fc}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111820;--panel:#1a2330;--fg:#e6ebf2;--muted:#9aa6b5;--accent:#5aa9ff;--danger:#ff8a80;--border:#2c3848;--hover:#223044}}
+:root[data-theme="dark"]{--bg:#111820;--panel:#1a2330;--fg:#e6ebf2;--muted:#9aa6b5;--accent:#5aa9ff;--danger:#ff8a80;--border:#2c3848;--hover:#223044}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);font-size:15px}
+.app{display:flex;flex-direction:column;min-height:100vh}
+aside{background:var(--panel);border-bottom:1px solid var(--border);padding:16px}
+section{margin-bottom:20px}
+h1{font-size:1.2rem;margin:0 0 12px}
+h2{font-size:1rem;margin:0 0 8px;color:var(--accent)}
+label{display:block;font-size:.85rem;color:var(--muted);margin:8px 0 3px}
+select,input{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font-size:.95rem}
+button{padding:8px 12px;border:0;border-radius:6px;background:var(--accent);color:#fff;font-size:.95rem;cursor:pointer;margin-top:10px}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--border);margin-top:0}
+button.wide{width:100%}
+.list{margin-top:8px;max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:6px}
+.item{display:block;width:100%;text-align:left;background:var(--panel);color:var(--fg);border:0;border-bottom:1px solid var(--border);border-radius:0;margin:0;padding:8px 10px}
+.item:hover{background:var(--hover)}
+.item small{display:block;color:var(--muted);margin-top:2px}
+.item.sel-start{border-left:3px solid var(--accent)}
+.rm{background:transparent;color:var(--danger);margin:0;padding:0 6px;font-size:1.1rem}
+.hint{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+.banner{display:none;background:var(--danger);color:#fff;padding:10px 16px;font-size:.9rem}
+.banner.show{display:block}
+main{display:flex;flex-direction:column;min-width:0}
+#map{height:55vh;min-height:300px;width:100%}
+#info{padding:12px 16px;background:var(--panel);border-top:1px solid var(--border)}
+#info .line{margin:3px 0}
+.total{font-size:1.5rem;font-weight:800;margin:10px 0;color:var(--accent)}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{padding:6px 6px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+td.n,th.n{text-align:right}
+td.name{white-space:normal}
+footer{font-size:.78rem;color:var(--muted);padding:10px 16px 16px}
+.num{background:var(--accent);color:#fff;border:2px solid #fff;border-radius:50%;width:28px;height:28px;line-height:24px;text-align:center;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.empty{color:var(--muted);font-size:.9rem;padding:8px 10px}
+@media (min-width:800px){
+  .app{flex-direction:row;height:100vh;min-height:0}
+  aside{width:360px;flex:0 0 360px;overflow-y:auto;border-bottom:0;border-right:1px solid var(--border)}
+  main{flex:1;height:100vh}
+  #map{flex:1;height:auto;min-height:0}
+  #info{max-height:34vh;overflow-y:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <h1>Lộ trình du lịch</h1>
+  <section>
+    <h2>A. Tour gợi ý</h2>
+    <label for="city">Thành phố</label>
+    <select id="city">
+      <option value="hcmc">TP. Hồ Chí Minh</option>
+      <option value="hanoi">Hà Nội</option>
+      <option value="danang">Đà Nẵng</option>
+    </select>
+    <label for="nstops">Số điểm dừng</label>
+    <select id="nstops">
+      <option value="">Tất cả</option>
+      <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+    </select>
+    <label for="budget">Ngân sách tối đa (₫, tùy chọn)</label>
+    <input id="budget" type="number" min="0" step="10000" placeholder="Ví dụ 500000">
+    <button id="btnTours" class="wide">Tìm tour</button>
+    <div id="tours" class="list"></div>
+  </section>
+  <section>
+    <h2>B. Tự chọn điểm đến</h2>
+    <label for="q">Tìm điểm tham quan (theo thành phố ở mục A)</label>
+    <input id="q" type="search" placeholder="Ví dụ: hồ, chợ, bảo tàng">
+    <div id="hits" class="list"></div>
+    <label>Điểm đã chọn (tối đa 8, điểm đầu là xuất phát)</label>
+    <div id="sel" class="list"></div>
+    <button id="btnOpt" class="wide">Tối ưu lộ trình</button>
+    <p class="hint">Duyệt mọi thứ tự của các điểm còn lại (tối đa 7) để tìm đường ngắn nhất.</p>
+  </section>
+</aside>
+<main>
+  <div id="banner" class="banner" role="alert"></div>
+  <div id="map"></div>
+  <div id="info"><p class="empty">Chọn một tour hoặc tự chọn điểm đến để xem lộ trình.</p></div>
+  <footer>Nguồn: OpenStreetMap · Khoảng cách tính bằng PySpark (haversine ≈ ST_DISTANCE) · Chi phí ước tính</footer>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const CH = {url: params.get('ch') || 'http://localhost:8123', user: params.get('user') || 'default', password: params.get('pw') || 'clickhouse'};
+const CITIES = {hcmc: 'TP. Hồ Chí Minh', hanoi: 'Hà Nội', danang: 'Đà Nẵng'};
+const MAX_SEL = 8;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const vnd = n => Math.round(Number(n)).toLocaleString('vi-VN') + ' ₫';
+const km = n => Number(n).toFixed(1) + ' km';
+
+const map = L.map('map').setView([16.0, 107.5], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+const routeLayer = L.layerGroup().addTo(map);
+
+function showError(msg) { const b = $('banner'); b.textContent = msg; b.classList.add('show'); }
+function clearError() { $('banner').classList.remove('show'); }
+const guard = fn => () => { clearError(); fn().catch(e => showError(e.message)); };
+
+// Query params go as param_<name> so the server does the escaping; only inline values are validated first.
+async function chQuery(sql, qparams = {}) {
+  const q = new URLSearchParams({user: CH.user, password: CH.password, add_http_cors_header: 1, default_format: 'JSON', query: sql});
+  for (const [k, v] of Object.entries(qparams)) q.set('param_' + k, String(v));
+  let res;
+  try {
+    res = await fetch(CH.url + '/?' + q);
+  } catch (e) {
+    throw new Error(`Không kết nối được ClickHouse (${CH.url}). Kiểm tra container hoặc CORS.`);
+  }
+  const text = await res.text();
+  if (!res.ok) throw new Error('ClickHouse lỗi: ' + text.slice(0, 300));
+  return JSON.parse(text).data;
+}
+
+function cityVal() {
+  const c = $('city').value;
+  if (!(c in CITIES)) throw new Error('Thành phố không hợp lệ');
+  return c;
+}
+
+// ---- Section A: precomputed tours ----
+async function findTours() {
+  const city = cityVal();
+  const n = $('nstops').value;
+  const budget = $('budget').value.trim();
+  let where = `city = '${city}'`;
+  if (n) where += ` AND n_stops = ${parseInt(n, 10)}`;
+  if (budget) {
+    const b = Number(budget);
+    if (!Number.isFinite(b) || b < 0) throw new Error('Ngân sách không hợp lệ');
+    where += ` AND total_cost_vnd <= ${Math.floor(b)}`;
+  }
+  const rows = await chQuery(`SELECT request_id, n_stops, total_km, total_fare_vnd, total_ticket_vnd, total_cost_vnd, stop_names FROM tour.fact_tour WHERE ${where} ORDER BY total_cost_vnd LIMIT 20`);
+  $('tours').innerHTML = rows.length ? rows.map(r => `
+    <button class="item" data-rid="${esc(r.request_id)}">
+      <b>${vnd(r.total_cost_vnd)}</b> · ${esc(r.n_stops)} điểm · ${km(r.total_km)}
+      <small>${r.stop_names.map(esc).join(' → ')}</small>
+    </button>`).join('') : '<div class="empty">Không có tour nào khớp bộ lọc.</div>';
+}
+
+async function loadTour(rid) {
+  const [head] = await chQuery(
+    'SELECT stop_ids, stop_names, lats, lons, total_km, total_fare_vnd, total_ticket_vnd, total_cost_vnd FROM tour.fact_tour WHERE request_id = {rid:UInt64} LIMIT 1',
+    {rid});
+  if (!head) throw new Error('Không tìm thấy tour ' + rid);
+  const legRows = await chQuery(
+    'SELECT seq, from_id, to_id, to_name, leg_km, leg_fare_vnd, ticket_vnd, cum_cost_vnd FROM tour.fact_tour_leg WHERE request_id = {rid:UInt64} ORDER BY seq',
+    {rid});
+  const stops = head.stop_names.map((name, i) => ({
+    name, lat: +head.lats[i], lon: +head.lons[i], ticket: +legRows[i].ticket_vnd
+  }));
+  const legs = legRows.map(l => ({seq: +l.seq, name: l.to_name, km: +l.leg_km, fare: +l.leg_fare_vnd, ticket: +l.ticket_vnd, cum: +l.cum_cost_vnd}));
+  const totals = {km: +head.total_km, fare: +head.total_fare_vnd, ticket: +head.total_ticket_vnd, total: +head.total_cost_vnd};
+  drawRoute(stops, legs, totals);
+}
+
+// ---- Section B: custom selection ----
+const selected = []; // {id, name}
+
+async function searchPlaces() {
+  const city = cityVal();
+  const q = $('q').value.trim();
+  if (!q) { $('hits').innerHTML = ''; return; }
+  const rows = await chQuery(
+    `SELECT osm_id, name, category, ticket_vnd FROM tour.dim_landmark WHERE city = '${city}' AND name ILIKE concat('%', {q:String}, '%') ORDER BY name LIMIT 15`,
+    {q});
+  $('hits').innerHTML = rows.length ? rows.map(r => `
+    <button class="item" data-id="${esc(r.osm_id)}" data-name="${esc(r.name)}">
+      ${esc(r.name)}<small>${esc(r.category)} · vé ${vnd(r.ticket_vnd)}</small>
+    </button>`).join('') : '<div class="empty">Không tìm thấy điểm nào.</div>';
+}
+
+function renderSel() {
+  $('sel').innerHTML = selected.length ? selected.map((s, i) => `
+    <div class="item ${i === 0 ? 'sel-start' : ''}" style="display:flex;align-items:center">
+      <span style="flex:1">${i + 1}. ${esc(s.name)}${i === 0 ? ' (xuất phát)' : ''}</span>
+      <button class="rm" data-idx="${i}" title="Bỏ">×</button>
+    </div>`).join('') : '<div class="empty">Chưa chọn điểm nào.</div>';
+}
+
+// ponytail: k<=8 so brute force; the Spark job does NN+2-opt for bulk
+function* permutations(a) {
+  if (a.length <= 1) { yield a; return; }
+  for (let i = 0; i < a.length; i++) {
+    const rest = [...a.slice(0, i), ...a.slice(i + 1)];
+    for (const p of permutations(rest)) yield [a[i], ...p];
+  }
+}
+
+async function optimize() {
+  const city = cityVal();
+  if (selected.length < 2) throw new Error('Chọn ít nhất 2 điểm (điểm đầu là xuất phát).');
+  const ids = selected.map(s => s.id);
+  if (!ids.every(id => /^[nwr]\d+$/.test(id))) throw new Error('ID điểm không hợp lệ');
+  const inList = ids.map(id => `'${id}'`).join(',');
+
+  const dm = await chQuery(`SELECT from_id, to_id, dist_km, fare_vnd FROM tour.dist_matrix WHERE city = '${city}' AND from_id IN (${inList}) AND to_id IN (${inList})`);
+  const M = {};
+  dm.forEach(r => { M[r.from_id + '|' + r.to_id] = {km: +r.dist_km, fare: +r.fare_vnd}; });
+
+  const lm = await chQuery(`SELECT osm_id, name, lat, lon, ticket_vnd FROM tour.dim_landmark WHERE osm_id IN (${inList})`);
+  const byId = Object.fromEntries(lm.map(r => [r.osm_id, r]));
+  if (ids.some(id => !byId[id])) throw new Error('Thiếu thông tin điểm trong dim_landmark');
+
+  // shortest open path from the start stop; ties broken by fare
+  let best = null;
+  for (const perm of permutations(ids.slice(1))) {
+    const path = [ids[0], ...perm];
+    let d = 0, f = 0, ok = true;
+    for (let i = 0; i < path.length - 1 && ok; i++) {
+      const e = M[path[i] + '|' + path[i + 1]];
+      if (!e) ok = false; else { d += e.km; f += e.fare; }
+    }
+    if (ok && (!best || d < best.km - 1e-9 || (Math.abs(d - best.km) < 1e-9 && f < best.fare))) best = {path, km: d, fare: f};
+  }
+  if (!best) throw new Error('Thiếu cặp khoảng cách trong dist_matrix cho các điểm đã chọn');
+
+  const stops = best.path.map(id => ({id, name: byId[id].name, lat: +byId[id].lat, lon: +byId[id].lon, ticket: +byId[id].ticket_vnd}));
+  let cum = stops[0].ticket, tickets = stops[0].ticket;
+  const legs = [{seq: 0, name: stops[0].name, km: 0, fare: 0, ticket: stops[0].ticket, cum}];
+  for (let i = 1; i < stops.length; i++) {
+    const e = M[stops[i - 1].id + '|' + stops[i].id];
+    cum += e.fare + stops[i].ticket;
+    tickets += stops[i].ticket;
+    legs.push({seq: i, name: stops[i].name, km: e.km, fare: e.fare, ticket: stops[i].ticket, cum});
+  }
+  drawRoute(stops, legs, {km: best.km, fare: best.fare, ticket: tickets, total: best.fare + tickets});
+}
+
+// ---- Drawing ----
+function drawRoute(stops, legs, t) {
+  routeLayer.clearLayers();
+  const latlngs = stops.map(s => [s.lat, s.lon]);
+  L.polyline(latlngs, {color: '#0b6bcb', weight: 4}).addTo(routeLayer);
+  stops.forEach((s, i) => {
+    L.marker([s.lat, s.lon], {
+      icon: L.divIcon({className: '', html: `<div class="num">${i + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14]})
+    }).bindPopup(`<b>${i + 1}. ${esc(s.name)}</b><br>Vé: ${vnd(s.ticket)}`).addTo(routeLayer);
+  });
+  map.fitBounds(L.latLngBounds(latlngs), {padding: [40, 40], maxZoom: 14});
+  $('info').innerHTML = `
+    <div class="line">Tổng quãng đường <b>${km(t.km)}</b></div>
+    <div class="line">Tiền xe (taxi) <b>${vnd(t.fare)}</b></div>
+    <div class="line">Vé tham quan <b>${vnd(t.ticket)}</b></div>
+    <div class="total">TỔNG CHI PHÍ DỰ KIẾN ${vnd(t.total)}</div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>Điểm đến</th><th class="n">Km</th><th class="n">Tiền xe</th><th class="n">Vé</th><th class="n">Cộng dồn</th></tr></thead>
+      <tbody>${legs.map(l => `<tr>
+        <td>${l.seq}</td><td class="name">${esc(l.name)}</td><td class="n">${Number(l.km).toFixed(1)}</td>
+        <td class="n">${vnd(l.fare)}</td><td class="n">${vnd(l.ticket)}</td><td class="n">${vnd(l.cum)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+}
+
+// ---- Wiring ----
+$('btnTours').onclick = guard(findTours);
+$('btnOpt').onclick = guard(optimize);
+$('tours').onclick = e => {
+  const b = e.target.closest('button[data-rid]');
+  if (b) guard(() => loadTour(b.dataset.rid))();
+};
+$('q').oninput = (() => { let t; return () => { clearTimeout(t); t = setTimeout(guard(searchPlaces), 300); }; })();
+$('hits').onclick = e => {
+  const b = e.target.closest('button[data-id]');
+  if (!b) return;
+  if (selected.some(s => s.id === b.dataset.id)) return;
+  if (selected.length >= MAX_SEL) return showError(`Tối đa ${MAX_SEL} điểm.`);
+  selected.push({id: b.dataset.id, name: b.dataset.name});
+  renderSel();
+};
+$('sel').onclick = e => {
+  const b = e.target.closest('button[data-idx]');
+  if (!b) return;
+  selected.splice(+b.dataset.idx, 1);
+  renderSel();
+};
+$('city').onchange = () => {
+  selected.length = 0;
+  renderSel();
+  $('hits').innerHTML = '';
+  routeLayer.clearLayers();
+  $('info').innerHTML = '<p class="empty">Chọn một tour hoặc tự chọn điểm đến để xem lộ trình.</p>';
+};
+
+renderSel();
+guard(findTours)();
+</script>
+</body>
+</html>

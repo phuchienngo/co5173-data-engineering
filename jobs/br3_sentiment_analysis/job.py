@@ -87,4 +87,4 @@ def write_batch(batch_df, batch_id):
         write_dataframe(batch_df.toPandas(), "fact_reviews")
 
 
-fact.writeStream.foreachBatch(write_batch).trigger(processingTime="5 seconds").start().awaitTermination()
+fact.writeStream.queryName("reviews").foreachBatch(write_batch).trigger(processingTime="5 seconds").start().awaitTermination()
