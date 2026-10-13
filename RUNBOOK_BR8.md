@@ -68,6 +68,10 @@ make demo-br BR=8
 
 Lệnh build image, khởi động stack, tải/chuẩn hóa TripWorld, reset **topic/fact của BR được chọn**, tạo DDL, chạy Spark rồi phát dữ liệu. Giữ terminal mở. `Ctrl+C` dừng job/producer; `make down` dừng container mà giữ volumes.
 
+Một lệnh `make demo-br` khởi chạy **cả producer và consumer bằng hai process riêng** thông qua `scripts/start.py`: runner chạy consumer (Spark Structured Streaming) trước, đợi sẵn sàng rồi chạy producer (Python đọc CSV và gửi event vào Kafka). Producer gửi hết dữ liệu thì kết thúc; consumer vẫn chạy để chờ event mới. Log của hai process nằm riêng trong `logs/demo/br8-producer.log` và `logs/demo/br8-spark.log`.
+
+Các lệnh dưới đây là **các lựa chọn theo mục đích**, không phải các bước phải chạy lần lượt:
+
 ```bash
 # Giới hạn event để thử nhanh (chỉ số chưa phản ánh toàn bộ snapshot).
 make demo-br BR=8 PRODUCER_LIMIT=500
@@ -84,6 +88,24 @@ python3 scripts/prepare_br8.py --region Q1490 --max-places 20 --refresh
 # Chỉ tải nguồn, chưa cần container.
 python3 scripts/prepare_br8.py --download-only
 ```
+
+| Lệnh/tùy chọn | Ý nghĩa | Chạy producer + consumer? |
+| --- | --- | --- |
+| `make demo-br BR=8 PRODUCER_LIMIT=500` | Producer gửi tối đa 500 event rồi kết thúc; Spark vẫn chờ dữ liệu. Chỉ số dựa trên phần dữ liệu đã gửi. | Có |
+| `make demo-br BR=8 PRODUCER_INTERVAL=0.01` | Gửi toàn bộ CSV, chờ 0,01 giây giữa mỗi event để quan sát dashboard thay đổi. | Có |
+| `BR8_REGION=ALL BR8_MAX_PLACES=30 make demo-br BR=8` | Chọn tối đa 30 địa điểm trên toàn bộ các vùng, chuẩn bị dữ liệu rồi chạy demo. | Có |
+| `python3 scripts/prepare_br8.py --region Q1490 --max-places 20 --refresh` | Chỉ tạo lại CSV cho tối đa 20 địa điểm vùng đô thị Tokyo; cần container `spark-local` đang chạy. | Không |
+| `python3 scripts/prepare_br8.py --download-only` | Chỉ tải Parquet nguồn, chưa chuẩn hóa và chưa cần container. | Không |
+
+Để thử nhanh và quan sát luồng dữ liệu, kết hợp giới hạn event với độ trễ:
+
+```bash
+make demo-br BR=8 PRODUCER_LIMIT=500 PRODUCER_INTERVAL=0.1
+```
+
+Producer gửi 500 event với độ trễ 0,1 giây mỗi event, mất khoảng 50 giây cho phần độ trễ phát dữ liệu, chưa tính thời gian khởi động, chuẩn bị dữ liệu và xử lý. Khi muốn chạy toàn bộ dữ liệu mặc định, dùng `make demo-br BR=8` và bảo đảm không còn đặt biến môi trường `BR8_REGION`/`BR8_MAX_PLACES` từ lần chạy khác.
+
+**Mỗi lần chạy `make demo-br` đều reset topic và fact của BR được chọn rồi nạp lại.** Chạy thử 500 event rồi chạy bản đầy đủ sẽ tính lại từ đầu, không cộng thêm vào 500 event trước đó. Các lệnh `prepare_br8.py` chỉ chuẩn bị/tải dữ liệu, không tự khởi chạy producer hoặc consumer.
 
 Cache/raw/prepared/checkpoint nằm ở `data/br8/` và không commit. Tóm tắt dữ liệu thật nằm ở `data/br8/prepared/summary.json`. Mỗi lần `make demo` reset fact/topic, runner dùng checkpoint mới để không bỏ qua event sau reset. Khi chạy trực tiếp job với checkpoint cố định, không reset topic/fact riêng lẻ.
 
