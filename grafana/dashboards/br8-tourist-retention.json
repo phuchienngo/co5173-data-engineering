@@ -9,22 +9,22 @@
   "panels": [
     {
       "id": 1,
-      "title": "BR8 — Returning visitors at named tourist attractions",
+      "title": "BR8 · Tổng quan khách quay lại",
       "type": "text",
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 3
+        "h": 4
       },
       "options": {
         "mode": "markdown",
-        "content": "TripWorld destination check-ins • One visit = one user + one place + one UTC date. Returning = at least 2 distinct visit dates. All-history repeat-visit rate, not 30/90-day cohort retention. Counts across places are **user–place pairs**, so one user visiting two attractions contributes twice. Historical replay: 2017–2018."
+        "content": "## Khách có quay lại cùng điểm tham quan?\n**TripWorld · 03/10/2017–20/10/2018** · Phát lại dữ liệu lịch sử qua Kafka → Spark\n\nKPI và bảng tính trên **toàn bộ dữ liệu đã xử lý**. Bộ chọn thời gian áp dụng cho phần hiển thị biểu đồ lịch sử."
       }
     },
     {
-      "id": 2,
-      "title": "Visited attractions",
+      "id": 5,
+      "title": "Tỷ lệ khách quay lại",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -32,144 +32,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 3,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse"
-          },
-          "editorType": "sql",
-          "format": 1,
-          "queryType": "table",
-          "rawSql": "SELECT count() AS visited_attractions FROM v_br8_place_retention",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none"
-      }
-    },
-    {
-      "id": 3,
-      "title": "Visitor–place pairs",
-      "type": "stat",
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 3,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse"
-          },
-          "editorType": "sql",
-          "format": 1,
-          "queryType": "table",
-          "rawSql": "SELECT sum(unique_visitors) AS visitor_place_pairs FROM v_br8_place_retention",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none"
-      }
-    },
-    {
-      "id": 4,
-      "title": "Returning visitor–place pairs",
-      "type": "stat",
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 3,
-        "w": 6,
-        "h": 4
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse"
-          },
-          "editorType": "sql",
-          "format": 1,
-          "queryType": "table",
-          "rawSql": "SELECT sum(returning_visitors) AS returning_visitor_place_pairs FROM v_br8_place_retention",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none"
-      }
-    },
-    {
-      "id": 5,
-      "title": "Weighted repeat-visit rate (%)",
-      "type": "stat",
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 3,
-        "w": 6,
-        "h": 4
+        "y": 4,
+        "w": 8,
+        "h": 5
       },
       "targets": [
         {
@@ -187,7 +52,71 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 2
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 48
+        }
+      },
+      "description": "Tổng khách quay lại theo từng địa điểm chia tổng khách tính theo từng địa điểm, nhân 100%. Không phải trung bình tỷ lệ của các địa điểm."
+    },
+    {
+      "id": 2,
+      "title": "Điểm tham quan",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() AS visited_attractions FROM v_br8_place_retention",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "locale",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -200,22 +129,30 @@
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none"
-      }
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 36
+        }
+      },
+      "description": "Số địa điểm có ít nhất một lượt ghé hợp lệ."
     },
     {
-      "id": 6,
-      "title": "Repeat-visit rate by attraction — full observed history",
-      "type": "table",
+      "id": 3,
+      "title": "Khách · tính theo từng địa điểm",
+      "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
         "uid": "clickhouse"
       },
       "gridPos": {
-        "x": 0,
-        "y": 7,
-        "w": 24,
-        "h": 9
+        "x": 13,
+        "y": 4,
+        "w": 6,
+        "h": 5
       },
       "targets": [
         {
@@ -226,23 +163,104 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT place_name, city_name, country_name, unique_visitors, returning_visitors, total_visits, repeat_visit_rate, first_observed_date, last_observed_date FROM v_br8_place_retention ORDER BY repeat_visit_rate DESC, unique_visitors DESC",
+          "rawSql": "SELECT sum(unique_visitors) AS visitor_place_pairs FROM v_br8_place_retention",
           "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "decimals": 0
+          "decimals": 0,
+          "unit": "locale",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "cyan"
+          },
+          "min": 0
         },
         "overrides": []
       },
       "options": {
-        "showHeader": true
-      }
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 36
+        }
+      },
+      "description": "Mỗi người được tính một lần tại mỗi địa điểm. Một người ghé hai địa điểm được tính hai lần trong tổng này."
+    },
+    {
+      "id": 4,
+      "title": "Khách quay lại · theo địa điểm",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 4,
+        "w": 5,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT sum(returning_visitors) AS returning_visitor_place_pairs FROM v_br8_place_retention",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "locale",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "cyan"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 36
+        }
+      },
+      "description": "Mỗi người ghé cùng địa điểm vào ít nhất hai ngày khác nhau được tính một lần tại địa điểm đó. Một người quay lại hai địa điểm được tính hai lần."
     },
     {
       "id": 7,
-      "title": "Cumulative repeat-visit rate by attraction (%)",
+      "title": "Khách quay lại tăng như thế nào theo thời gian?",
       "type": "timeseries",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -250,9 +268,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 16,
-        "w": 24,
-        "h": 9
+        "y": 9,
+        "w": 14,
+        "h": 11
       },
       "targets": [
         {
@@ -263,7 +281,7 @@
           "editorType": "sql",
           "format": 0,
           "queryType": "time series",
-          "rawSql": "SELECT toDateTime(r.visit_date, 'UTC') AS time, d.place_name AS attraction, r.repeat_visit_rate FROM v_br8_daily_retention AS r INNER JOIN dim_br8_places AS d ON r.place_id = d.place_id ORDER BY time, attraction",
+          "rawSql": "WITH daily AS (SELECT visit_date, sum(new_visitors) AS new_visitors, sum(new_returning) AS new_returning FROM (SELECT first_visit AS visit_date, toUInt64(1) AS new_visitors, toUInt64(0) AS new_returning FROM v_br8_user_retention UNION ALL SELECT visit_days[2] AS visit_date, toUInt64(0) AS new_visitors, toUInt64(1) AS new_returning FROM v_br8_user_retention WHERE has_returned = 1) GROUP BY visit_date) SELECT toDateTime(visit_date, 'UTC') AS time, round(100.0 * sum(new_returning) OVER w / nullIf(sum(new_visitors) OVER w, 0), 2) AS repeat_visit_rate FROM daily WINDOW w AS (ORDER BY visit_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) ORDER BY time",
           "refId": "A"
         }
       ],
@@ -274,24 +292,243 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "stepAfter",
-            "spanNulls": true
+            "spanNulls": true,
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "showPoints": "never",
+            "axisLabel": "Tỷ lệ (%)",
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisPlacement": "left",
+            "gradientMode": "opacity"
+          },
+          "displayName": "Tỷ lệ quay lại",
+          "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
           }
         },
         "overrides": []
       },
       "options": {
         "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
+          "showLegend": false
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "single",
+          "sort": "none"
         }
+      },
+      "description": "Tỷ lệ quay lại tính từ đầu dữ liệu đến từng ngày: khách bắt đầu được tính khi ghé lần đầu và được tính là quay lại khi ghé vào ngày khác. Đường hiển thị trong khoảng thời gian đang chọn."
+    },
+    {
+      "id": 10,
+      "title": "Nơi có nhiều khách quay lại nhất · Top 10",
+      "type": "barchart",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 9,
+        "w": 10,
+        "h": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(place_name, ' · ', city_name) AS attraction, returning_visitors FROM v_br8_place_retention ORDER BY returning_visitors DESC, unique_visitors DESC, place_id LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "locale",
+          "decimals": 0,
+          "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "cyan"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "fillOpacity": 85,
+            "lineWidth": 0,
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "returning_visitors"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Khách quay lại"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "attraction",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "barWidth": 0.85,
+        "barRadius": 0.25,
+        "colorByField": "",
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "xTickLabelRotation": 0
+      },
+      "description": "Xếp theo số khách quay lại tại mỗi địa điểm trong toàn bộ lịch sử; đây không phải bảng xếp hạng theo tỷ lệ."
+    },
+    {
+      "id": 9,
+      "title": "Dữ liệu đã xử lý · tổng toàn kỳ",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() AS daily_visits, sum(raw_checkins) AS source_checkins, min(visit_date) AS first_day, max(visit_date) AS last_day FROM fact_br8_visits FINAL",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "locale"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "daily_visits"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tổng lượt ghé (gom theo ngày)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "source_checkins"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tổng check-in trước khi gom"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "first_day"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày ghé sớm nhất"
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "last_day"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày ghé muộn nhất"
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "horizontal",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "valueSize": 25,
+          "titleSize": 13
+        }
+      },
+      "description": "Tổng check-in trước khi gom: check-in hợp lệ sau lọc và loại trùng. Tổng lượt ghé: gom các check-in cùng người, cùng địa điểm, cùng ngày UTC thành một lượt. Ví dụ 2 check-in hôm nay + 1 ngày mai tại cùng điểm = 3 check-in và 2 lượt ghé. Các số này là tổng toàn kỳ, không phải mỗi ngày."
+    },
+    {
+      "id": 11,
+      "type": "text",
+      "title": "Cách đếm · ví dụ dễ hiểu",
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Bạn check-in Tokyo Tower 2 lần hôm nay, 1 lần ngày mai:**\n\n| Chỉ số | Kết quả |\n| --- | --- |\n| Check-in trước khi gom | **3** |\n| Lượt ghé sau khi gom theo ngày | **2** |\n| Khách tại Tokyo Tower | **1**, có quay lại |\n\nMột người ghé **2 địa điểm** được tính **2 lần** trong KPI khách. Quay lại cần ít nhất **2 ngày UTC khác nhau tại cùng địa điểm**."
       }
     },
     {
-      "id": 8,
-      "title": "Users who returned — distinct UTC days",
+      "id": 6,
+      "title": "Tra cứu địa điểm · lọc và sắp xếp theo cột",
       "type": "table",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -299,8 +536,246 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 25,
-        "w": 14,
+        "y": 26,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT place_name, city_name, country_name, unique_visitors, returning_visitors, total_visits, repeat_visit_rate, first_observed_date, last_observed_date FROM v_br8_place_retention ORDER BY unique_visitors DESC, returning_visitors DESC, place_id",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "locale",
+          "decimals": 0,
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "place_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Địa điểm"
+              },
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "city_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Thành phố"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "country_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Quốc gia"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unique_visitors"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Khách tại điểm"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "returning_visitors"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Khách quay lại"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total_visits"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tổng lượt ghé (gom theo ngày)"
+              },
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "repeat_visit_rate"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Tỷ lệ quay lại"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "first_observed_date"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày đầu"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "last_observed_date"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày cuối"
+              },
+              {
+                "id": "custom.width",
+                "value": 135
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "enablePagination": true,
+        "sortBy": [
+          {
+            "displayName": "Khách tại điểm",
+            "desc": true
+          }
+        ],
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Mặc định ưu tiên địa điểm nhiều khách nhất. Bấm tiêu đề cột để đổi thứ tự; dùng bộ lọc ở đầu cột để tìm địa điểm, thành phố hoặc quốc gia. Khách tại điểm là số user duy nhất ở chính địa điểm đó. Tỷ lệ cao ở điểm ít khách cần được đọc cùng số khách. Tổng lượt ghé là tổng của toàn bộ lịch sử: check-in nhiều lần cùng ngày của cùng người tại cùng địa điểm chỉ tính một lượt."
+    },
+    {
+      "id": 8,
+      "title": "Chi tiết khách quay lại · 100 bản ghi nhiều ngày ghé nhất",
+      "type": "table",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 24,
         "h": 9
       },
       "targets": [
@@ -318,53 +793,95 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "decimals": 0
+          "decimals": 0,
+          "custom": {
+            "filterable": true
+          }
         },
-        "overrides": []
-      },
-      "options": {
-        "showHeader": true
-      }
-    },
-    {
-      "id": 9,
-      "title": "Observed data coverage",
-      "type": "table",
-      "datasource": {
-        "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse"
-      },
-      "gridPos": {
-        "x": 14,
-        "y": 25,
-        "w": 10,
-        "h": 9
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse"
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "place_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Địa điểm"
+              }
+            ]
           },
-          "editorType": "sql",
-          "format": 1,
-          "queryType": "table",
-          "rawSql": "SELECT count() AS daily_visits, sum(raw_checkins) AS source_checkins, min(visit_date) AS first_day, max(visit_date) AS last_day FROM fact_br8_visits FINAL",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "decimals": 0
-        },
-        "overrides": []
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "user_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Mã khách"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "visit_count"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Số ngày ghé"
+              },
+              {
+                "id": "unit",
+                "value": "locale"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "first_visit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày đầu"
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "last_visit"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ngày cuối"
+              },
+              {
+                "id": "unit",
+                "value": "time:YYYY-MM-DD"
+              }
+            ]
+          }
+        ]
       },
       "options": {
-        "showHeader": true
-      }
+        "showHeader": true,
+        "cellHeight": "md",
+        "enablePagination": true
+      },
+      "description": "Hiển thị 100 khách tại các địa điểm có nhiều ngày ghé nhất. Cùng một khách có thể xuất hiện ở nhiều địa điểm. Mã khách lấy từ dataset."
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 41,
   "tags": [
     "co5173",
@@ -380,7 +897,7 @@
     "to": "2018-10-21T00:00:00Z"
   },
   "timezone": "utc",
-  "title": "BR8 Tourist repeat-visit retention",
+  "title": "BR8 · Khách quay lại điểm tham quan",
   "uid": "co5173-br8-tourist-retention",
-  "version": 1
+  "version": 4
 }

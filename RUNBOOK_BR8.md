@@ -11,6 +11,8 @@ returning_visitors = số user có visit_count ≥ 2 ở chính place đó
 
 Một lượt ghé được quy ước là `(user_id, place_id, ngày UTC)`. Các check-in trong cùng ngày được gom thành một lượt và giữ thời gian sớm nhất. Đây là quy ước đo trên dữ liệu check-in, không phải số chuyến thực tế được xác nhận. Quay lại một bảo tàng khác không tính là quay lại bảo tàng đầu tiên.
 
+Trên dashboard, **“Tổng lượt ghé (gom theo ngày)”** là tổng lượt trong toàn bộ khoảng quan sát, không phải số lượt mỗi ngày. **“Tổng check-in trước khi gom”** là số check-in hợp lệ sau lọc và loại trùng, trước khi gom theo ngày. Ví dụ một người check-in cùng địa điểm hai lần hôm nay và một lần ngày mai được tính **3 check-in, 2 lượt ghé** và là khách quay lại tại địa điểm đó.
+
 Chỉ dùng check-in ở nơi đến du lịch (`c_o`) và yêu cầu `r_h != r_o`. Không dùng check-in ở quê nhà (`c_h`). Chỉ giữ địa điểm có tên và category/schema phù hợp nhóm tham quan; danh sách từ khóa nằm trong `jobs/common/br8_rules.py`.
 
 Chỉ số là **tỷ lệ ghé lại trong toàn bộ khoảng quan sát**, không phải D30/D90 cohort retention. User xuất hiện cuối kỳ có ít cơ hội quay lại hơn. Khi tổng hợp nhiều địa điểm, mẫu số là **cặp user–địa điểm**, không phải số user duy nhất trên toàn hệ thống.
@@ -94,6 +96,7 @@ python3 scripts/prepare_br8.py --download-only
 | `make demo-br BR=8 PRODUCER_LIMIT=500` | Producer gửi tối đa 500 event rồi kết thúc; Spark vẫn chờ dữ liệu. Chỉ số dựa trên phần dữ liệu đã gửi. | Có |
 | `make demo-br BR=8 PRODUCER_INTERVAL=0.01` | Gửi toàn bộ CSV, chờ 0,01 giây giữa mỗi event để quan sát dashboard thay đổi. | Có |
 | `BR8_REGION=ALL BR8_MAX_PLACES=30 make demo-br BR=8` | Chọn tối đa 30 địa điểm trên toàn bộ các vùng, chuẩn bị dữ liệu rồi chạy demo. | Có |
+| `BR8_REGION=ALL BR8_MAX_PLACES=0 make demo-br BR=8 PRODUCER_LIMIT= PRODUCER_INTERVAL=0` | Chọn tất cả điểm tham quan hợp lệ trên tất cả vùng, gửi toàn bộ lịch sử sau lọc, không thêm độ trễ giữa các event. | Có |
 | `python3 scripts/prepare_br8.py --region Q1490 --max-places 20 --refresh` | Chỉ tạo lại CSV cho tối đa 20 địa điểm vùng đô thị Tokyo; cần container `spark-local` đang chạy. | Không |
 | `python3 scripts/prepare_br8.py --download-only` | Chỉ tải Parquet nguồn, chưa chuẩn hóa và chưa cần container. | Không |
 
@@ -104,6 +107,33 @@ make demo-br BR=8 PRODUCER_LIMIT=500 PRODUCER_INTERVAL=0.1
 ```
 
 Producer gửi 500 event với độ trễ 0,1 giây mỗi event, mất khoảng 50 giây cho phần độ trễ phát dữ liệu, chưa tính thời gian khởi động, chuẩn bị dữ liệu và xử lý. Khi muốn chạy toàn bộ dữ liệu mặc định, dùng `make demo-br BR=8` và bảo đảm không còn đặt biến môi trường `BR8_REGION`/`BR8_MAX_PLACES` từ lần chạy khác.
+
+### Chạy toàn bộ dữ liệu thuộc phạm vi BR8
+
+`make demo-br BR=8` mặc định chỉ replay toàn bộ lịch sử của tối đa **20 điểm tham quan vùng Tokyo**, không phải tất cả địa điểm trong dataset. Để bỏ cả giới hạn vùng, địa điểm và số event, dừng lần demo đang chạy bằng `Ctrl+C`, rồi chạy:
+
+```bash
+BR8_REGION=ALL BR8_MAX_PLACES=0 make demo-br BR=8 PRODUCER_LIMIT= PRODUCER_INTERVAL=0
+```
+
+- `BR8_REGION=ALL`: lấy tất cả vùng nơi đến.
+- `BR8_MAX_PLACES=0`: lấy tất cả điểm tham quan hợp lệ, không giới hạn top 20.
+- `PRODUCER_LIMIT=`: gửi toàn bộ CSV, kể cả khi trước đó đã đặt giới hạn qua biến môi trường.
+- `PRODUCER_INTERVAL=0`: không thêm thời gian chờ giữa các event.
+
+Runner tự chuẩn bị lại CSV khi phạm vi khác cache hiện có, reset topic/fact BR8 rồi chạy consumer và producer. “Toàn bộ” ở đây vẫn tuân theo bộ lọc BR8: check-in `c_o` ở nơi đến khác quê nhà, địa điểm có tên và category/schema phù hợp tham quan, ID/thời gian hợp lệ; loại trùng và gom một lượt cho mỗi user–địa điểm–ngày UTC. Các bản ghi thô ngoài phạm vi này và bộ Google reviews không được đưa vào luồng BR8.
+
+Số địa điểm, lượt ghé và khoảng thời gian sau lọc nằm trong `data/br8/prepared/summary.json`. Phạm vi tất cả vùng/địa điểm cần nhiều RAM và thời gian hơn demo mặc định; bước chuẩn bị hiện dùng Spark local với driver memory `2g`.
+
+Dashboard tự làm mới mỗi 30 giây. Biểu đồ lịch sử vẽ một đường tỷ lệ quay lại tích lũy toàn hệ thống, tính theo cặp user–địa điểm; biểu đồ thanh hiển thị 10 điểm có nhiều khách quay lại nhất. KPI và bảng tỷ lệ dùng toàn bộ địa điểm đã xử lý; bảng có bộ lọc theo cột và phân trang, mặc định xếp theo số khách tại địa điểm. Nhãn “Khách tính theo từng địa điểm” nghĩa là một user ghé hai địa điểm được tính hai lần. Grafana được cấp tối đa 1 GB RAM và 1 CPU trong Compose.
+
+Khi producer báo đã gửi hết, giữ terminal demo mở để Spark xử lý các batch còn lại. Mở terminal khác để đối chiếu toàn bộ CSV với ClickHouse và kiểm tra Grafana:
+
+```bash
+python3 scripts/verify_br8.py --timeout 120
+```
+
+Kết quả kiểm thử 2.995 lượt ghé ở phần dưới chỉ thuộc cấu hình Tokyo/20 điểm, không phải số lượng kỳ vọng của lần chạy tất cả vùng.
 
 **Mỗi lần chạy `make demo-br` đều reset topic và fact của BR được chọn rồi nạp lại.** Chạy thử 500 event rồi chạy bản đầy đủ sẽ tính lại từ đầu, không cộng thêm vào 500 event trước đó. Các lệnh `prepare_br8.py` chỉ chuẩn bị/tải dữ liệu, không tự khởi chạy producer hoặc consumer.
 

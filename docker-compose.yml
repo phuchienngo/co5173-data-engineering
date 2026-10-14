@@ -270,8 +270,8 @@ services:
     image: grafana/grafana:13.2
     container_name: grafana
     profiles: ["monitoring"]
-    mem_limit: 512m
-    cpus: 0.5
+    mem_limit: 1g
+    cpus: 1.0
     depends_on:
       - prometheus
     environment:
