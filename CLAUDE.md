@@ -4,7 +4,10 @@
 
 - Course project for CO5173 Data Engineering (HCMUT). Domain: **Tourism**. Presentation topic, which is also the focus of the implementation: **Big Data Processing Optimization**.
 - Requirements and grading: `docs/DE_Presentation_and_Project_Descriptions_and_Requirements.md`. Each business requirement (BR) is graded on data correctness, DE performance, and how well the app lets users exploit the data. Alternative solutions are benchmarked against the main one.
-- **Business requirements / application intents:** `docs/intents/brN.md`, one file per BR. Read the relevant file whenever you need business context for a BR.
+- **Per-BR documents live in `docs/brN/`, one folder per business requirement (BR).** Every document about a BR goes in its own folder with a fixed file name, for example:
+  - `docs/brN/intent.md`: the business requirement / application intent. Read it whenever you need business context for a BR.
+  - Later documents (spec, plan, ...) follow the same rule: `docs/brN/spec.md`, `docs/brN/plan.md`, and so on.
+  - Project-wide documents (course requirements, tech solution) stay directly in `docs/`.
 - Raw data for each BR: `data/brN/`, stored with Git LFS (`data/**`).
 - Tech solution (`docs/Main_Technology_Solution.md`): Kafka → Spark (PySpark, batch and Structured Streaming) → ClickHouse → Grafana or a web app.
 
