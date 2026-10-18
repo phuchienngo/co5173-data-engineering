@@ -121,3 +121,6 @@ venv/
 
 # Per-BR datasets (everyone prepares their own, see README "Preparing data")
 logs/
+
+# Claude
+CLAUDE.local.md
