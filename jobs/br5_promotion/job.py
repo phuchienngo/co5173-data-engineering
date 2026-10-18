@@ -9,6 +9,7 @@ BR5 app.
 """
 
 import argparse
+import json
 import os
 import sys
 import uuid
@@ -17,6 +18,7 @@ from pyspark.sql import Window
 from pyspark.sql import functions as F
 from pyspark.sql.types import LongType, StructField, StructType
 
+import run_settings
 import runs
 import source
 import star
@@ -37,10 +39,13 @@ def parse_args():
     when.add_argument("--if-empty", action="store_true", help="Import only if no data is stored (default)")
     when.add_argument("--replace", action="store_true", help="Import and replace the stored data")
     parser.add_argument("--multiplier", type=int, default=1, help="Repeat the dataset N times (synthetic data)")
-    parser.add_argument("--writer", choices=WRITERS, default="partitions")
-    parser.add_argument("--write-partitions", type=int, default=2, help="Spark partitions used to write")
+    parser.add_argument("--writer", choices=WRITERS, help="Default: the writer setting")
+    parser.add_argument("--write-partitions", type=int, help="Spark partitions used to write. Default: the setting")
     parser.add_argument("--run-id", help="Run id to record (the app passes its own)")
     parser.add_argument("--source", default=source.SOURCE_FILE)
+    parser.add_argument("--settings-json", help="Resolved settings (launch.py passes them); default: the current "
+                                                "settings stored in br5.settings")
+    parser.add_argument("--settings-label", default="current settings", help="Where the settings came from")
     args = parser.parse_args()
     if args.multiplier < 1:
         parser.error("--multiplier must be at least 1")
@@ -198,25 +203,38 @@ def main():
             print(f"BR5 data already imported ({stored} bookings); nothing to do. Use --replace to re-import.")
             return
 
+    if args.settings_json:
+        values = run_settings.resolve(json.loads(args.settings_json))
+    else:
+        values = run_settings.resolve(runs.load_settings(client, run_settings.CURRENT))
+    pipeline = run_settings.options(values)["pipeline"]
+    args.writer = args.writer or pipeline["writer"]
+    args.write_partitions = args.write_partitions or pipeline["write_partitions"]
+    values.update({"pipeline.writer": args.writer, "pipeline.write_partitions": str(args.write_partitions)})
+    cluster = runs.cluster_info()
+
     run = runs.Run(
         get_client(autogenerate_session_id=False),
         "import",
         run_id=args.run_id,
         multiplier=args.multiplier,
         writer=args.writer,
+        settings=run_settings.snapshot(values, cluster, label=args.settings_label),
         source_file=args.source,
         source_bytes=os.path.getsize(args.source) if os.path.exists(args.source) else 0,
     )
     run.start()
+    runs.stop_on_sigterm()
     print(f"[br5] import run {run.run_id} started", flush=True)
 
     spark = None
     try:
-        spark = get_spark_session("br5_import")
+        spark = get_spark_session("br5_import", conf=run_settings.spark_conf(values))
         spark.sparkContext.setLogLevel("WARN")
+        run.update(settings=run_settings.snapshot(values, cluster, spark, args.settings_label))
         import_data(spark, client, run, args)
     except BaseException as exc:
-        message = f"{type(exc).__name__}: {exc}"
+        message = runs.failure_message(exc)
         print(f"[br5] import failed: {message}", flush=True)
         try:
             client.command(f"DROP DATABASE IF EXISTS {runs.STAGING_DB} SYNC")

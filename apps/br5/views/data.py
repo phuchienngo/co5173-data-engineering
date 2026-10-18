@@ -3,6 +3,7 @@
 import streamlit as st
 
 import backend
+import launch
 
 MULTIPLIERS = [1, 10, 50]
 STEP_LABELS = {
@@ -44,6 +45,9 @@ def show_running(run, job):
     if job and job["log_tail"]:
         with st.expander("Spark log"):
             st.code(job["log_tail"])
+    if job and st.button("Stop import", help="The stored data stays as it is."):
+        backend.stop_job()
+        st.rerun(scope="fragment")
 
 
 def show_stored(status):
@@ -82,18 +86,17 @@ def import_controls(status, busy):
     st.subheader("Re-import" if loaded else "Import")
     multiplier = st.selectbox("Data size", MULTIPLIERS, format_func=multiplier_label, key="multiplier",
                               disabled=busy)
-    with st.expander("Technical options"):
-        writer = st.selectbox("ClickHouse writer", ["partitions", "pandas"], key="writer", disabled=busy,
-                              help="partitions: each Spark task writes its own rows (parallel). "
-                                   "pandas: all rows go through the driver (baseline).")
-        write_partitions = st.number_input("Write partitions", 1, 64, 2, key="write_partitions", disabled=busy)
+    values = backend.current_values()
+    st.caption(f"Uses the current Advanced Settings: writer **{values['pipeline.writer']}**, "
+               f"{values['pipeline.write_partitions']} write partitions, executor memory "
+               f"{values['spark.executor.memory']}.")
 
     if busy:
         st.button("Import", disabled=True, help="Busy: another BR5 run is in progress.")
         return
     if not loaded:
         if st.button("Import", type="primary"):
-            start(multiplier, writer, write_partitions)
+            start(multiplier)
         return
     if not st.session_state.get("confirm_replace"):
         if st.button("Re-import"):
@@ -105,14 +108,14 @@ def import_controls(status, busy):
     yes, no = st.columns(2)
     if yes.button("Yes, replace", type="primary"):
         st.session_state.confirm_replace = False
-        start(multiplier, writer, write_partitions)
+        start(multiplier)
     if no.button("Cancel"):
         st.session_state.confirm_replace = False
         st.rerun(scope="fragment")
 
 
-def start(multiplier, writer, write_partitions):
-    error = backend.launch_import(multiplier, writer, int(write_partitions))
+def start(multiplier):
+    error = backend.launch_job("import", launch.import_args(multiplier))
     if error:
         st.error(error)
     else:
@@ -125,10 +128,12 @@ def panel():
     if not status["ready"]:
         st.error(status["reason"])
         return
-    job = backend.launched_job()
+    job = backend.launched_job("import")
     running = status["busy"] or (job and job["running"])
 
-    if running:
+    if status["busy"] and status["busy"]["run_type"] != "import":
+        st.info("Busy: a promotion run is in progress. Import is possible when it has finished.")
+    elif running:
         run = (job["run"] if job and job["running"] else None) or status["busy"]
         if status["busy"] and run and run["run_id"] != status["busy"]["run_id"]:
             run = status["busy"]

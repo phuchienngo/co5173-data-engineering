@@ -153,7 +153,7 @@ ORDER BY (hotel_key, country_key, reserved_room_type_key, arrival_date_key);
 CREATE TABLE IF NOT EXISTS br5.pipeline_runs
 (
     run_id         UUID,
-    run_type       LowCardinality(String),  -- 'import'
+    run_type       LowCardinality(String),  -- 'import' | 'analysis'
     status         LowCardinality(String),  -- 'running' | 'succeeded' | 'failed'
     step           String,
     started_at     DateTime64(3, 'UTC'),
@@ -174,3 +174,75 @@ CREATE TABLE IF NOT EXISTS br5.pipeline_runs
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY run_id;
+
+-- Added by the pipeline plan (docs/plan/br5/plan-pipeline.md). ADD COLUMN IF
+-- NOT EXISTS keeps this file re-runnable on an existing br5 database.
+ALTER TABLE br5.pipeline_runs
+    ADD COLUMN IF NOT EXISTS criteria       Map(String, String),  -- analysis: hotel, country, room_type
+    ADD COLUMN IF NOT EXISTS settings       Map(String, String),  -- snapshot of every setting used
+    ADD COLUMN IF NOT EXISTS rows_used      UInt64,
+    ADD COLUMN IF NOT EXISTS rows_excluded  Map(String, UInt64),  -- per cleaning reason (+ report-only counts)
+    ADD COLUMN IF NOT EXISTS result_count   UInt16,
+    ADD COLUMN IF NOT EXISTS result_summary String;               -- JSON: low-season texts, messages
+
+-- Current settings (__current__) and named presets. Kept by fresh mode.
+CREATE TABLE IF NOT EXISTS br5.settings
+(
+    name           String,
+    setting_values Map(String, String),
+    is_deleted     UInt8,
+    updated_at     DateTime64(3, 'UTC')
+)
+ENGINE = ReplacingMergeTree(updated_at, is_deleted)
+ORDER BY name;
+
+-- Results of analysis runs, kept for every run. target_rank 0 = the whole
+-- selection (the chart); 1.. = the ranked cards.
+CREATE TABLE IF NOT EXISTS br5.run_month
+(
+    run_id        UUID,
+    target_rank   UInt16,
+    month         UInt8,
+    demand        Float64,  -- room-nights per month (average per year, per original row)
+    bookings      Float64,
+    avg_adr       Nullable(Float64),
+    share_of_peak Float64,
+    is_low        UInt8,
+    is_peak       UInt8
+)
+ENGINE = MergeTree
+ORDER BY (run_id, target_rank, month);
+
+CREATE TABLE IF NOT EXISTS br5.run_card
+(
+    run_id            UUID,
+    target_rank       UInt16,
+    hotel             String,
+    room_type         String,
+    country_code      String,
+    country_name      String,
+    valid_bookings    Float64,
+    low_months        Array(UInt8),
+    when_text         String,
+    peak_month        UInt8,
+    peak_demand       Float64,
+    low_demand        Float64,
+    demand_ratio      Float64,
+    potential         Float64,
+    offers            Array(String),
+    evidence          Array(String),
+    discount          String,
+    channels          Array(String),
+    low_bookings      Float64,
+    peak_bookings     Float64,
+    low_median_lead   Nullable(Float64),
+    peak_median_lead  Nullable(Float64),
+    low_avg_stay      Nullable(Float64),
+    peak_avg_stay     Nullable(Float64),
+    low_family_share  Nullable(Float64),
+    peak_family_share Nullable(Float64),
+    low_avg_adr       Nullable(Float64),
+    peak_avg_adr      Nullable(Float64)
+)
+ENGINE = MergeTree
+ORDER BY (run_id, target_rank);

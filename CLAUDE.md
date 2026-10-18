@@ -57,7 +57,7 @@ MODE = "batch"   # or "stream" (the default when MODE is absent)
 - Compose stack and Dockerfile
 - BR plug-in convention and job modes
 - `scripts/topics.py`
-- `jobs/common` helpers: `get_client`, `get_producer`, `get_spark_session`, and `write_partitions` (parallel ClickHouse writer: each Spark partition inserts its own rows). **Keep `toPandas()` → `insert_df` (`write_dataframe`) as the naive baseline for benchmarks.**
+- `jobs/common` helpers: `get_client`, `get_producer`, `get_spark_session` (optional `conf` dict overrides its defaults, for per-run settings), and `write_partitions` (parallel ClickHouse writer: each Spark partition inserts its own rows). **Keep `toPandas()` → `insert_df` (`write_dataframe`) as the naive baseline for benchmarks.**
 - Grafana provisioning (add a new dashboard JSON per BR)
 
 **Extend shared code** (`scripts/`, `jobs/common/`, compose). **Keep changes additive and don't break BR3/BR4.** Planned extensions:

@@ -129,7 +129,7 @@ The job:
   - `MULTIPLIER=10`
   - `WRITER=pandas`
   - `YES=1` skips the confirmation
-- CLI imports run inside `spark-local`, through `docker exec`, like `start.py` does.
+- CLI imports run inside `spark-local`, through `docker exec`, like `start.py` does. *Changed by [plan-pipeline.md](plan-pipeline.md): `make br5-import` now runs `launch.py` inside `br5-app`, the same launcher the app uses, with the stored settings; the writer and write partitions come from those settings unless `WRITER=` is given.*
 - `make demo-br BR=5` still works. It runs `job.py` with no arguments, so it imports only when data is empty.
 
 ## 7. App skeleton and Data screen (D3, D5–D8, section 5 of the spec)
@@ -142,7 +142,7 @@ The job:
   - Import time and duration, and the source file and its size. These come from the latest succeeded import whose `import_id` matches the live fact table.
   - Row count of each table, so the star schema is visible.
 - **Import / Re-import button:**
-  - A multiplier choice: ×1, ×10, ×50.
+  - A multiplier choice: ×1, ×10, ×50. (The writer options first shown here moved to Advanced Settings with [plan-pipeline.md](plan-pipeline.md).)
   - A confirmation dialog when data exists.
   - The button launches the same `spark-submit` command as the CLI, as a background process, logging to `logs/br5/import-<run_id>.log`.
 - **Progress:** refreshes every 2 s and shows the current step from `pipeline_runs`. During `write_raw` and `write_fact`, it also shows a bar: the staging table's row count against `rows_expected`.

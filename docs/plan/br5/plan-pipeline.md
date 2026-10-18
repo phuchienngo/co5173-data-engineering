@@ -17,9 +17,9 @@ Confirmed; the spec was updated to match.
 | A5 | **An alternative engine: the same aggregates computed by ClickHouse SQL** (`engine = clickhouse`, run as plain Python, no Spark). Its results feed the same `rules.py`. | The course asks for alternatives benchmarked against the main solution. It also serves as a correctness reference: both engines must give the same cards. Spec: engine setting and C13. |
 | A6 | **Settings are one registry** (`run_settings.py`): name, group, explanation, type, range, default. The app, the CLI launcher and the jobs all use it. The current values and named presets are stored in ClickHouse (`br5.settings`), so the app and `make br5-run` use the same values. | One source of truth for the screen, validation, the spark-submit command and the snapshot. |
 | A7 | **Settings apply to imports too.** The writer choice and write partitions move from the Data page to Advanced Settings, and every import records a settings snapshot. | Imports are Spark applications too. Tuning (for example the broadcast threshold for the fact build) helps them as well. |
-| A8 | **A settings combination that can never start is an error, not a warning.** For example, executor memory plus overhead larger than the worker's memory. | Spark standalone doesn't fail on such a run; it waits forever for resources, holding the busy lock. Other cluster checks stay warnings (C4). |
+| A8 | **A settings combination that can never start is an error, not a warning.** For example, executor memory larger than the worker's memory, or more cores per executor than the worker or the run may use. Spark standalone schedules on executor memory alone, so memory plus overhead above the worker's memory is a warning (the executor starts but may be killed). | Spark standalone doesn't fail on such a run; it waits forever for resources, holding the busy lock. Other cluster checks stay warnings (C4). |
 | A9 | **Results are normalized by the import multiplier.** Demand figures and the minimum-data check use valid bookings ÷ multiplier. | Synthetic copies must not change the business answer. This gives a cheap correctness check: ×1 and ×10 produce the same cards. |
-| A10 | **A Stop button for runs started from the app** (kills the process group). A stopped run shows as interrupted once its heartbeat is stale. | A run stuck waiting for resources would otherwise keep the busy lock until the stack restarts. |
+| A10 | **A Stop button for runs and imports started from the app.** It sends SIGTERM to the job's Python process, which records the run as failed with "Stopped by the user" and stops Spark cleanly. The process group is killed if it is still running after 20 s. The busy lock clears at once. | A run stuck waiting for resources would otherwise keep the busy lock until the stack restarts. |
 
 **Readings of the spec this plan uses** (confirmed and written into the spec):
 
@@ -44,9 +44,11 @@ Promotion Finder "Find promotions"  /  make br5-run HOTEL=.. COUNTRY=.. ROOM=.. 
        ├─ engine spark:      spark-submit analyze.py --hotel H --country C --room-type R --settings-json ..
        └─ engine clickhouse: python3 analyze.py ...           (no Spark application)
             1. register run in pipeline_runs (run_type 'analysis', criteria, settings snapshot, import_id)
-            2. read       needed fact columns, filters pushed down; dims read on the driver
-            3. clean      exclusion reason per row → counts per reason; cache cleaned rows (setting)
-            4. aggregate  room-nights and bookings per target × year × month → driver
+            2. read       needed fact columns, filters pushed down, exclusion reason per row; dims read on
+                          the driver. With caching on, the rows are cached and counted here, so this step
+                          includes the read; with caching off it only builds the plan (Spark is lazy)
+            3. clean      counts per exclusion reason
+            4. aggregate  room-nights and bookings per target × month (years summed) → driver
             5. rank       rules.py: per-year average, peak, low months, potential; minimum data; top N
             6. profile    kept targets only, low season vs peak month: median lead time, stay length,
                           family share, ADR (> 0 only), bookings per market segment → driver
@@ -59,7 +61,7 @@ Promotion Finder "Find promotions"  /  make br5-run HOTEL=.. COUNTRY=.. ROOM=.. 
 
 **Cleaning (step 3).** Every row gets at most one exclusion reason, checked in this order: canceled, zero nights, zero guests, then duplicate (only when the setting says remove). This keeps `read = used + Σ excluded` exact (R4). Two further counts are only reported, since those rows are kept: missing country (shown as Unknown) and ADR ≤ 0 (counted in demand, left out of price).
 
-**Per-year average (spec 3.3).** The months that exist in the data come from one small ClickHouse query over the whole fact table (`DISTINCT intDiv(arrival_date_key, 100)`), not from the filtered rows. A target with no booking in a month that exists gets 0 for it.
+**Per-year average (spec 3.3).** The months that exist in the data come from one small ClickHouse query over the whole fact table (`DISTINCT intDiv(arrival_date_key, 100)`), not from the filtered rows. A month's total over all years is divided by the number of years that have that month. A target with no booking in a month that exists gets 0 for it.
 
 **Join placement (setting).** The dimension names can be joined either:
 - **late** (default): aggregate on integer keys, then attach names to the few result rows. Month and year come from the date key, so no join is needed while aggregating.
@@ -71,23 +73,24 @@ The early variant is what makes the broadcast-threshold and skew-join settings v
 
 | File | New/changed | Content |
 |---|---|---|
-| `jobs/br5_promotion/run_settings.py` | new | Settings registry (section 4), built-in presets, `validate(values, cluster)` → errors and warnings, `spark_conf(values)`, `submit_args(values)`. Pure Python |
+| `jobs/br5_promotion/run_settings.py` | new | Settings registry (section 4), built-in presets, `validate(values, cluster)` → errors and warnings, `spark_conf(values)`, `options(values)`, `snapshot(...)`. Pure Python |
 | `jobs/br5_promotion/rules.py` | new | Pure Python: month coverage and per-year average, peak and low months, ranges and their text, potential, minimum data, ranking, offers, discount tier, evidence lines, cards |
-| `jobs/br5_promotion/analyze.py` | new | Run entry point (arguments: `--hotel`, `--country`, `--room-type`, `--run-id`, `--settings-json`). Steps as in section 2; picks the engine |
+| `jobs/br5_promotion/analyze.py` | new | Run entry point (arguments: `--hotel`, `--country`, `--room-type`, `--run-id`, `--settings-json`, `--settings-label`). Steps as in section 2; picks the engine |
+| `jobs/br5_promotion/compare_runs.py` | new | Checks that two runs gave the same cards and monthly figures (rounded to 2 decimals). Used for verification rows 3–5 and by the restart guide's fair-comparison section |
 | `jobs/br5_promotion/pipeline_spark.py` | new | Spark engine: `read` (parallel Arrow or driver), `clean`, `aggregate`, `profile`. Logs `explain()` of the aggregate and the profile |
 | `jobs/br5_promotion/pipeline_sql.py` | new | ClickHouse engine: the same outputs from two SQL queries (`quantileExact` for the median) |
-| `jobs/br5_promotion/launch.py` | new | Builds and starts the spark-submit or python command for an import or a run from the resolved settings. Used by the app, and as a CLI (`python3 launch.py run ...`) by `scripts/br5.py` |
-| `jobs/br5_promotion/runs.py` | additive | `run_type` `'analysis'`; new run fields (section 5); settings and preset load/save; `latest_result` |
+| `jobs/br5_promotion/launch.py` | new | Builds and starts the spark-submit or python command for an import or a run from the resolved settings, and stops it (A10). Used by the app, and as a CLI (`python3 launch.py run ...`) by `scripts/br5.py` |
+| `jobs/br5_promotion/runs.py` | additive | `run_type` `'analysis'`; new run fields (section 5); settings and preset load/save; latest run and its results; `cluster_info()` from the Spark master; SIGTERM handling for Stop |
 | `jobs/br5_promotion/job.py` | small | Accepts `--settings-json`, builds its session with those Spark settings, records the snapshot. Existing arguments keep working (`make demo-br BR=5` unchanged) |
 | `jobs/common/spark_session.py` | additive | `get_spark_session(app_name, conf=None)`: entries in `conf` override the shared defaults. Without `conf`, BR3/BR4 behave exactly as today |
 | `sql/clickhouse/ddl_br5.sql` | additive | Tables `settings`, `run_month`, `run_card`; `ALTER TABLE pipeline_runs ADD COLUMN IF NOT EXISTS ...` |
 | `apps/br5/backend.py` | changed | Launch through `launch.py`; Stop; settings and presets; option lists; read results |
 | `apps/br5/views/promotion_finder.py` | rewritten | Promotion Finder screen (section 7) |
 | `apps/br5/views/settings.py` | rewritten | Advanced Settings screen (section 6) |
-| `apps/br5/views/data.py` | small | Technical options removed (now settings); a line says which writer and preset the import will use |
+| `apps/br5/views/data.py` | small | Technical options removed (now settings); a line says which writer the import will use; Stop for an import started from the app |
 | `scripts/br5.py` | additive | `run` subcommand. `import` and `run` execute `launch.py` inside `br5-app`, so the CLI and the app build the same command |
 | `Makefile` | additive | `br5-run` (variables `HOTEL`, `COUNTRY`, `ROOM`, `PRESET`), `PRESET` for `br5-import`, `br5-test` |
-| `docker-compose.yml` | additive | `br5-app` also mounts `./tests` (read-only) |
+| `docker-compose.yml` | additive | `br5-app` also mounts `./tests` (read-only); a commented ClickHouse server-settings config for the restart guide |
 | `tests/br5/test_rules.py`, `tests/br5/test_settings.py` | new | `unittest` (no new dependency), run inside `br5-app` by `make br5-test` |
 | `docs/guide/br5/config-guide.md` | new | Restart guide (section 8) |
 | `docs/spec/br5/*.md` | done | Updated with the confirmed decisions (engine and reader settings, C4 errors, C13, the S-readings, open decisions 4–5) |
@@ -99,8 +102,8 @@ Defaults are Spark's own, except the resources, which are sized for the demo clu
 | Group | Setting | Default | Notes |
 |---|---|---|---|
 | Resources | `spark.driver.memory` | 512m | Passed as `--driver-memory`, since the driver JVM is already running in client mode. Warning above 1g: the app container has 2 GB |
-| | `spark.executor.memory` | 512m | Error if memory + overhead (max 384 MB or 10%) is larger than the worker's memory (A8) |
-| | `spark.executor.cores` | (unset) = all worker cores | Error if larger than the worker's cores |
+| | `spark.executor.memory` | 512m | Error if larger than the worker's memory; warning if memory + overhead (max 384 MB or 10%) + off-heap is, or if fewer executors fit than the cores ask for (A8) |
+| | `spark.executor.cores` | (unset) = all worker cores | Error if larger than the worker's cores or the total cores |
 | | `spark.cores.max` | 2 | |
 | Memory | `spark.memory.fraction` / `storageFraction` | 0.6 / 0.5 | Range 0.1–0.9 |
 | | `spark.memory.offHeap.enabled` / `.size` | false / 0 | Error if enabled with size 0 |
@@ -112,7 +115,7 @@ Defaults are Spark's own, except the resources, which are sized for the demo clu
 | Joins | `spark.sql.autoBroadcastJoinThreshold` | 10m | -1 turns broadcast off |
 | | Join dimension names | late | early / late (section 2) |
 | Serialization | `spark.serializer` | Java | Java / Kryo. The help text notes that DataFrames mostly bypass it |
-| Caching | Cache the cleaned rows / storage level | on / MEMORY_AND_DISK | MEMORY_ONLY, MEMORY_AND_DISK, DISK_ONLY, OFF_HEAP |
+| Caching | Cache the bookings read (with their exclusion reason) / storage level | on / MEMORY_AND_DISK | MEMORY_ONLY, MEMORY_AND_DISK, MEMORY_AND_DISK_DESER, DISK_ONLY, OFF_HEAP (error unless off-heap memory is on) |
 | Reading and writing | Engine | spark | spark / clickhouse (A5) |
 | | Reader / read partitions | parallel / 2 | parallel / driver (A3) |
 | | Writer / write partitions (import) | partitions / 2 | partitions / pandas (C8, already built) |
@@ -120,7 +123,7 @@ Defaults are Spark's own, except the resources, which are sized for the demo clu
 | Analysis rules (3b) | Low-season threshold | 60% | |
 | | Early-bird / last-minute lead time | 30 / 14 days | |
 | | Shorter stay, family share, price already low | 25% / half of peak / 30% | |
-| | Discount tiers | < 40%: 20–30%; 40–50%: 10–20%; 50–60%: 5–10% | Edited as three bounds and labels |
+| | Discount tiers | < 40%: 20–30%; 40–50%: 10–20%; 50–60%: 5–10% | Edited as two bounds and three labels (the third tier is "everything above") |
 | | Minimum valid bookings | 100 | Compared after dividing by the multiplier (A9) |
 | | Exact duplicates | keep | keep / remove |
 | | Number of cards | 10 | |
@@ -134,13 +137,18 @@ Users save their own presets by name (C5).
 **Where values go:**
 - Spark settings go into `get_spark_session(conf=...)`, so they override the shared defaults. The driver memory goes on the command line.
 - Pipeline and rule settings are read by the job from `--settings-json`.
-- Snapshot (C6): `pipeline_runs.settings` stores every resolved value, plus the effective value Spark reports for each Spark key, plus the cluster seen at start (worker memory and cores from the Spark master's `/json` page).
+- Snapshot (C6): `pipeline_runs.settings` stores:
+  - every resolved value
+  - `launch.settings_from`: "current settings" or "preset NAME"
+  - `effective.<key>`: the value Spark itself reports for each Spark key
+  - `cluster.*`: the cluster seen at start (worker memory and cores, from the Spark master's `/json` page)
+- A job started without `--settings-json` (for example by `make demo-br BR=5`) loads the current settings itself.
 
 ## 5. Tables (additive)
 
 **`br5.settings`.**
-- Engine: `ReplacingMergeTree(updated_at)`, `ORDER BY name`.
-- Columns: `name, values Map(String, String), is_deleted UInt8, updated_at`.
+- Engine: `ReplacingMergeTree(updated_at, is_deleted)`, `ORDER BY name`; read with `FINAL`, which hides deleted presets.
+- Columns: `name, setting_values Map(String, String), is_deleted UInt8, updated_at`.
 - The row `__current__` holds the working values. Other rows are user presets. Built-in presets live in code.
 - Fresh mode keeps this table, like `pipeline_runs`.
 
@@ -150,6 +158,7 @@ Users save their own presets by name (C5).
 - `rows_used UInt64`
 - `rows_excluded Map(String, UInt64)` (reasons, plus the two report-only counts)
 - `result_count UInt16`
+- `result_summary String`: JSON with the low-season texts, the "not enough data" message, and the number of targets found and qualified
 
 `rows_read` and `multiplier` are reused. `import_id` is the data the run read.
 
@@ -193,6 +202,7 @@ Results are kept for every run (they are small). The monitoring plan will chart 
 - **R1:** an Altair bar chart of demand per month. Low months are coloured, with a line at the threshold, and the low-season text ("Nov – Feb: demand is 40% of peak").
 - **R2:** cards ranked by potential.
   - Each card shows target, when, why (low vs peak demand, potential in room-nights per month), what (offers, each with its evidence line, and the discount tier), and where (channels).
+  - Each card has its own small chart, except with one exact target, where the chart above is the same.
   - When there is not enough data, or no month falls below the threshold, a message gives the reason instead of a chart.
 - **R3:** an expander with the month table and each card's low-vs-peak figures.
 - **R4:** an expander with:
@@ -243,7 +253,7 @@ ClickHouse server settings need a new `config.d` entry in `docker-compose.yml`; 
 | 6 | Run with preset `baseline` | Snapshot shows its values and Spark's effective values match; the log's `explain()` shows a sort-merge join | C2, C6 |
 | 7 | Enter an out-of-range value; set executor memory to 4g | First rejected; second blocks Run with a clear error | C4, A8 |
 | 8 | A thin target (for example Resort Hotel + a small country + room G) | "Not enough data" with the count; no chart | Spec 3.2 |
-| 9 | Start a run during an import; press Stop on a run | Refused as busy; the stopped run shows as interrupted and the lock clears | D8, A10 |
+| 9 | Start a run while another job runs; press Stop on a run | Refused as busy; the stopped run shows "Stopped by the user" and the lock clears | D8, A10 |
 | 10 | `spark-submit` commands for BR3/BR4 | Unchanged (shared change is additive) | BR3/BR4 |
 
 The result file records a few figures only:
@@ -259,3 +269,4 @@ The result file records a few figures only:
 - **Skew handling** only shows with the early join and broadcast off, and with the skew threshold lowered (our partitions are far below the 256 MB default). The help text says so.
 - **Parallel reader slices** each scan the fact table with a `source_row % N` filter. At these sizes a ClickHouse scan takes milliseconds; the read partitions setting caps N.
 - **Floating-point sums** can differ in the last digits with partitioning, so figures are rounded to 2 decimals before comparing or showing them.
+- **Import time with the new defaults:** the import now follows the shuffle-partitions setting (Spark's 200) instead of a fixed 4, which made it slower (×1: about 69 → 93 s). This is a tuning finding, not a bug: see [result-pipeline.md](../../result/br5/result-pipeline.md).

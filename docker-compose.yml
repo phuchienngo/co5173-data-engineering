@@ -21,6 +21,16 @@ configs:
           </prometheus>
       </clickhouse>
 
+  # ClickHouse server-level settings (need a ClickHouse restart). To use:
+  # uncomment this config and its entry under the clickhouse service's
+  # `configs:`, then follow docs/guide/br5/config-guide.md.
+  # clickhouse-server-xml:
+  #   content: |
+  #     <clickhouse>
+  #         <max_server_memory_usage_to_ram_ratio>0.9</max_server_memory_usage_to_ram_ratio>
+  #         <background_pool_size>4</background_pool_size>
+  #     </clickhouse>
+
   spark-metrics-properties:
     content: |
       *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
@@ -118,6 +128,8 @@ services:
     configs:
       - source: clickhouse-prometheus-xml
         target: /etc/clickhouse-server/config.d/prometheus.xml
+      # - source: clickhouse-server-xml
+      #   target: /etc/clickhouse-server/config.d/server-tuning.xml
     networks:
       - data-net
     healthcheck:
@@ -280,6 +292,7 @@ services:
       - ./jobs:/opt/jobs
       - ./data:/opt/data
       - ./logs:/opt/logs
+      - ./tests:/opt/tests:ro
     ports:
       - "8501:8501"
     networks:
