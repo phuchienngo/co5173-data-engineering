@@ -4,7 +4,7 @@ Part of [spec.md](spec.md).
 
 ## 1. What import means
 
-Import loads the raw booking file (`data/br5/hotel_bookings.csv`) into the data store (ClickHouse). The data is loaded **as-is** (only the text "NULL" is turned into a real empty value); no rows are dropped. Cleaning happens in each run, so every run can report what it excluded and why.
+Import loads the raw booking file (`data/br5/hotel_bookings.csv`) into the data store (ClickHouse). The data is loaded **as-is** (only the texts "NULL" and "NA" are turned into real empty values); no rows are dropped. It is stored twice: once exactly as in the file, and once organized as a star schema (one booking table plus small lookup tables for dates, hotels, countries, room types, channels and booking profiles) for fast analysis. Cleaning happens in each run, so every run can report what it excluded and why.
 
 Runs read from the data store, not from the CSV file.
 

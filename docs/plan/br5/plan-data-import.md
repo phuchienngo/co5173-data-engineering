@@ -43,15 +43,17 @@ make br5-import / Data screen button
 | `sql/clickhouse/ddl_br5.sql` | new | `CREATE DATABASE IF NOT EXISTS br5`; all tables from the data model plus `pipeline_runs` (`IF NOT EXISTS`) |
 | `data/br5/countries.csv` | new (LFS) | `code,name` for every code in the bookings file. Generated once with `pycountry` on the dev machine (not a runtime dependency); codes that aren't ISO (for example `CN`, `TMP`) are added by hand |
 | `jobs/br5_promotion/job.py` | new | Import job entry point (section 5) |
+| `jobs/br5_promotion/source.py` | new | Reads the CSV as text, checks the header, types the columns and counts lost values |
 | `jobs/br5_promotion/star.py` | new | Builds the dimension and fact DataFrames from the typed input |
 | `jobs/br5_promotion/runs.py` | new | Run-history and busy-lock helpers, shared by the job, the launcher and the app |
+| `jobs/br5_promotion/status.py` | new | Prints the data status (`make br5-status`) |
 | `jobs/common/clickhouse_io.py` | additive | `write_partitions(df, table, batch_rows)` |
-| `scripts/start.py` | additive | `create_clickhouse_tables(br, truncate=True)`, called with `truncate` only for stream BRs; `spark_submit_cmd(..., job_args=(), packages=SPARK_KAFKA_PACKAGE)`; `start_stack(services=None)`. Defaults behave as today |
+| `scripts/start.py` | additive | `create_clickhouse_tables(br, truncate=True)`, called with `truncate` only for stream BRs; `spark_submit_cmd(..., job_args=(), packages=SPARK_KAFKA_PACKAGE)`. Defaults behave as today. Two fixes found while testing: job paths use `/` on Windows hosts, and builds skip attestations so an unchanged image keeps its ID (otherwise every `compose up` recreated the Spark containers and killed running jobs) |
 | `scripts/br5.py` | new | Launcher: `up`, `fresh`, `import`, `status` (section 6) |
 | `Makefile` | additive | `br5-up`, `br5-fresh`, `br5-import`, `br5-status`; `down` and `clean` also cover the `br5` profile |
 | `docker-compose.yml` | additive | `br5-app` service (profile `br5`, port 8501, `hostname: br5-app`, mounts `./apps`, `./jobs`, `./data`, `./logs`) |
 | `requirements.txt` | additive | `streamlit` |
-| `apps/br5/app.py`, `apps/br5/pages/*` | new | App skeleton with 3 pages. Only the Data page is implemented here (section 7) |
+| `apps/br5/app.py`, `apps/br5/backend.py`, `apps/br5/views/*` | new | App skeleton with 3 pages (`views/`, not `pages/`, which Streamlit would treat as its older multipage folder). Only the Data page is implemented here (section 7) |
 | `CLAUDE.md` | small edit | Generic lines only: truncation applies to stream BRs; a BR may have its own database, launcher `scripts/brN.py` and app `apps/brN/` |
 
 ## 4. Tables
@@ -132,7 +134,7 @@ The job:
 
 ## 7. App skeleton and Data screen (D3, D5–D8, section 5 of the spec)
 
-`apps/br5/app.py` is a Streamlit app with three pages: Promotion Finder, Advanced Settings and Data. The first two are placeholders here; they show "no data yet, import now" when the fact table is empty.
+`apps/br5/app.py` is a Streamlit app (1.66) with three pages: Promotion Finder, Advanced Settings and Data. The first two are placeholders here; they show "no data yet, import now" when the fact table is empty.
 
 **Data page:**
 - **Status:**

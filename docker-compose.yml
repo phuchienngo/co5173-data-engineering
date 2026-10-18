@@ -243,6 +243,48 @@ services:
     networks:
       - data-net
 
+  # BR5 web app (Streamlit). Same image as spark-local, so it can launch
+  # spark-submit itself; the driver runs here, hence the fixed hostname.
+  br5-app:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: br5-app
+    hostname: br5-app
+    profiles: ["br5"]
+    mem_limit: 2g
+    cpus: 1.0
+    user: "0:0"
+    depends_on:
+      - clickhouse
+    entrypoint:
+      - python3
+      - -m
+      - streamlit
+      - run
+      - /opt/apps/br5/app.py
+      - --server.port=8501
+      - --server.address=0.0.0.0
+      - --server.headless=true
+      - --browser.gatherUsageStats=false
+      - --client.toolbarMode=minimal
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_DRIVER_HOST=br5-app
+      - CLICKHOUSE_HOST=clickhouse
+      - PYTHONPATH=/opt/jobs/common:/opt/jobs/br5_promotion
+      - BR5_LOG_DIR=/opt/logs/br5
+    volumes:
+      - ./apps:/opt/apps
+      - ./jobs:/opt/jobs
+      - ./data:/opt/data
+      - ./logs:/opt/logs
+    ports:
+      - "8501:8501"
+    networks:
+      - data-net
+
   # ------------------------------------------------------------------
   # Prometheus
   # ------------------------------------------------------------------

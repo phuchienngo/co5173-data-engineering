@@ -7,10 +7,18 @@
 - **Per-BR documents are organized by document type first, then by business requirement (BR):** `docs/<type>/brN/<file>.md`.
   - `docs/intent/brN/intent.md`: the business requirement / application intent. Read it whenever you need business context for a BR.
   - `docs/spec/brN/spec.md`: the detailed specification. If it gets too long, keep `spec.md` as the entry point (overview and index) and split the details into `spec-<topic>.md` files in the same folder.
-  - `docs/plan/brN/plan.md`: the implementation plan, and so on for any new type (for example `docs/guide/brN/` for how-to guides). Create the type folder when the first document of that type is written.
+  - `docs/plan/brN/plan.md`: the implementation plan. A BR built in parts gets one `plan-<part>.md` per part.
+  - `docs/result/brN/result-<part>.md`: measured results of an end-to-end test (see Workflow).
+  - Other types follow the same pattern (for example `docs/guide/brN/` for how-to guides). Create the type folder when the first document of that type is written.
   - Project-wide documents (course requirements, tech solution) stay directly in `docs/`.
 - Raw data for each BR: `data/brN/`, stored with Git LFS (`data/**`).
 - Tech solution (`docs/Main_Technology_Solution.md`): Kafka → Spark (PySpark, batch and Structured Streaming) → ClickHouse → Grafana or a web app.
+
+## Workflow (intent → spec → plan → implementation → result)
+
+- **Planning:** if a spec requirement is unreasonable (impossible, or a huge effort for its value), raise it with the user instead of planning around it silently. Update the spec with what the user decides.
+- **Implementation:** when the implementation has to deviate noticeably from the plan, update the plan so it reflects what was really built.
+- **End-to-end test:** once it succeeds, write a short `docs/result/brN/result-<part>.md` with the figures useful for the report (record counts, run times per step, sizes, comparisons) and what was verified.
 
 ## Stack (`docker-compose.yml`)
 
@@ -24,10 +32,12 @@
 ## BR plug-in convention (discovered by filename)
 
 ```
-sql/clickhouse/ddl_brN.sql            the BR is discovered from this file; start.py truncates its fact_* tables before each run
+sql/clickhouse/ddl_brN.sql            the BR is discovered from this file; for stream BRs, start.py truncates its fact_* tables before each run
 jobs/brN_<name>/job.py (+ helpers)    spark-submit target; jobs/common/*.py and sibling .py files are shipped as --py-files
 ingestion/producers/produce_brN.py    stream BRs only; must define TOPIC = "..." (scripts/topics.py reads it with ast)
 ```
+
+Optional per BR: its own ClickHouse database (created in its DDL), a launcher `scripts/brN.py` with `make brN-*` targets, and a web app in `apps/brN/` run as a compose service under profile `brN`.
 
 ### Job mode
 
@@ -38,7 +48,7 @@ MODE = "batch"   # or "stream" (the default when MODE is absent)
 ```
 
 - **`stream`**: `start.py` submits the job and waits for `ResolveWriteToStream` in the log. It then starts `produce_brN.py`, and the job keeps running until Ctrl+C.
-- **`batch`**: `start.py` submits the job and waits for it to exit. It prints the end of the log and fails if the exit code is non-zero. No producer is started, so the job reads its input from `/opt/data/brN/` itself.
+- **`batch`**: `start.py` submits the job and waits for it to exit. It prints the end of the log and fails if the exit code is non-zero. No producer is started, so the job reads its input from `/opt/data/brN/` itself. Its tables are not truncated: the job manages its own data.
 - When batch and stream BRs are selected together, all batch jobs run first, one at a time, and then the stream jobs start.
 
 ## Guidance for new BRs: reuse vs. write our own
@@ -47,11 +57,10 @@ MODE = "batch"   # or "stream" (the default when MODE is absent)
 - Compose stack and Dockerfile
 - BR plug-in convention and job modes
 - `scripts/topics.py`
-- `jobs/common` helpers: `get_client`, `get_producer`, `get_spark_session`
+- `jobs/common` helpers: `get_client`, `get_producer`, `get_spark_session`, and `write_partitions` (parallel ClickHouse writer: each Spark partition inserts its own rows). **Keep `toPandas()` → `insert_df` (`write_dataframe`) as the naive baseline for benchmarks.**
 - Grafana provisioning (add a new dashboard JSON per BR)
 
 **Extend shared code** (`scripts/`, `jobs/common/`, compose). **Keep changes additive and don't break BR3/BR4.** Planned extensions:
-- A parallel ClickHouse writer (JDBC/Spark connector) next to the current `toPandas()` → `insert_df` writer. **Keep `toPandas` as the naive baseline for benchmarks.**
 - A configurable Kafka partition count.
 - A common producer helper with a message key, typed fields and an event time.
 - Rejected-row counting instead of dropping rows silently. The shared session sets `spark.sql.ansi.enabled=false`, so a bad `.cast()` returns null.
