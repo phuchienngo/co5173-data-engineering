@@ -41,12 +41,12 @@ Only three choices, because these are the ones a hotel marketer decides on. Each
 |---|---|---|---|---|
 | Q1 | **Hotel** | City Hotel, Resort Hotel, All | All | Must |
 | Q2 | **Guest country** (target market) | countries with enough bookings, All | All | Must |
-| Q3 | **Room type** | room types with enough bookings, All | All | Must |
+| Q3 | **Room type** (the room type booked) | room types with enough bookings, All | All | Must |
 
-- Choosing **All** for country or room type means "rank them for me" (see 3.2).
+- Choosing **All** for country or room type means "rank them for me" (see 3.2). **All** for hotel combines both hotels; hotels are not ranked.
 - Options with too little data are not offered (see 3.5), so the user never gets a recommendation based on a handful of bookings.
 - Year, month, week and similar choices are **not** asked: the analysis always looks at the whole period in the data. Analysis parameters (such as how low "low" is) are team settings, not business choices (see the config spec).
-- The button is disabled while a run is in progress; only one run at a time, with a clear "busy" message.
+- The button is disabled while a run is in progress; only one run at a time, with a clear "busy" message. A run started from the app can be stopped.
 
 ### 3.2 What the user gets back
 
@@ -66,7 +66,7 @@ Only three choices, because these are the ones a hotel marketer decides on. Each
 | When | The low-season months to run the promotion |
 | Why | Demand in low season vs. its own peak, and the potential: room-nights per month that could be filled if demand reached the peak |
 | What | The suggested promotion: offer type(s) and discount level, from the rules in 3.4 |
-| Where | The booking channel(s) most used by this target in low season (for example Online travel agent, Direct), where the offer should be shown |
+| Where | The two booking channels (market segments) most used by this target in low season, with their shares (for example Online travel agent, Direct), where the offer should be shown |
 | Evidence | One line per suggestion saying which figure triggered it (for example "guests book 5 days ahead on average") |
 
 **How the choices shape the list**
@@ -78,14 +78,17 @@ Only three choices, because these are the ones a hotel marketer decides on. Each
 | Room type = All | Cards for the best-potential room types for the chosen country and hotel |
 | Everything = All | Cards for the best-potential room type × country combinations, top 10 |
 
+Bookings with an unknown country count in the overall demand but are never offered as a ranked target.
+
 If there is not enough data, show "not enough data to recommend" with the reason, never an empty chart or a guess.
 
 ### 3.3 Definitions
 
 - **Demand** = room-nights of bookings that were **not canceled** (stay nights = weekend nights + week nights). **Price** = average ADR (average daily rate) of those bookings.
-- **Period** = calendar month. Low-season periods are shown as ranges where months are adjacent (for example "Nov – Feb").
-- **Peak** = the month with the highest demand for the chosen target.
+- **Period** = calendar month of arrival (a whole stay counts in its arrival month). Low-season periods are shown as ranges where months are adjacent, wrapping from December to January (for example "Nov – Feb").
+- **Peak** = the month with the highest demand for the chosen target. **Peak-season bookings** (used by the rules in 3.4) are the bookings of that month.
 - **Low season** = months whose demand is below the low-season threshold (default **60%**) of the peak.
+- **Low-season demand** = the average demand of the low-season months. It is used in the text ("Nov – Feb: demand is 40% of peak", one text per range), for potential, and for the discount level.
 - **Potential** = peak demand − low-season demand, in room-nights per month. This is the ranking measure.
 - The data does not cover every month of every year (2015 starts in July, 2017 ends in August), so a month's demand is the **average per year** over the years where that month exists, not a plain sum.
 - Guest country is the guest's home country (the data has no hotel location). Countries are shown by name where known, otherwise by code.
@@ -96,7 +99,7 @@ Each rule compares the target's **low-season** bookings with its **peak-season**
 
 | Signal in the data | Suggested offer | Default trigger |
 |---|---|---|
-| Guests book **far ahead** in low season | **Early-bird offer**: book at least N days ahead (N from the typical lead time) | Typical lead time of 30 days or more |
+| Guests book **far ahead** in low season | **Early-bird offer**: book at least N days ahead (N = the typical lead time rounded down to a multiple of 5 days) | Typical lead time (the median) of 30 days or more |
 | Guests book **at the last minute** | **Last-minute deal** shown close to arrival | Typical lead time of 14 days or less |
 | Low-season stays are **much shorter** than peak stays | **Stay-longer offer** (for example third night free) | At least 25% shorter than peak |
 | **Families** are much rarer in low season | **Family package** (kids stay free) | Share of bookings with children less than half of peak |
@@ -111,8 +114,10 @@ Discount depth (when a discount is suggested), by how far demand falls below pea
 | 40–50% | Moderate: 10–20% |
 | 50–60% | Light: 5–10% |
 
+If the low-season threshold is raised above 60%, demand above the last tier gets the light discount.
+
 Notes:
-- Several offers can apply to one target. Each card lists all that triggered, each with its evidence line. If none triggers, the card says "no specific offer pattern; consider a general discount at the level above".
+- Several offers can apply to one target. Each card lists all that triggered, each with its evidence line. The price rule always gives either "add value" or a discount, so "none triggers" only happens when the low season or the peak month has no booking with a price above 0. The card then says "no specific offer pattern; consider a general discount at the level above".
 - These are **suggestions from booking patterns**, not predictions: the data has no information on how guests react to prices, so the app does not claim revenue results.
 
 ### 3.5 Data cleaning and minimum data (applied at every run, counts in R4)
@@ -125,7 +130,7 @@ Notes:
 | Missing country | Kept, shown as "Unknown" |
 | ADR of 0 or below (e.g. complimentary stays) | Counted in demand, left out of average price |
 | Exact duplicate rows (the data has no booking ID) | Kept by default; the team can choose to remove them |
-| **Minimum data** | A country or room type is offered only with at least **100** valid bookings in total; a target with less shows "not enough data". On this data, about 33 of 165 countries qualify |
+| **Minimum data** | A country or room type is offered only with at least **100** valid bookings in total; a target with less shows "not enough data". On this data, about 33 of 165 countries qualify. With the data multiplier, counts are divided by the multiplier first, so synthetic copies never change the answer |
 
 ## 4. Non-functional requirements
 
@@ -154,5 +159,7 @@ Payment method, province/city, restaurants (the data only covers hotels), demand
 1. **Promotion rules and numbers in 3.4** (triggers and discount tiers) are my starting proposal from a look at the data; please adjust to what a hotel marketer would find credible.
 2. **Low-season threshold default 60%:** on this data it flags roughly Nov–Feb for both hotels.
 3. **Duplicates default:** keep exact duplicates? They are more often canceled bookings, so excluding cancellations already removes many.
-4. **Bigger data for benchmarking:** the dataset has only 119k rows, which is small for optimization comparisons. Add the optional "data multiplier" in the import spec?
-5. **One Spark run per click vs. a long-running Spark session:** left to the plan; the spec assumes each run starts fresh, so settings apply cleanly.
+4. ~~Bigger data for benchmarking~~ **Decided:** the data multiplier (×1, ×10, ×50) is part of the import.
+5. ~~One Spark run per click vs. a long-running Spark session~~ **Decided:** each run starts its own Spark application, so resource settings apply cleanly (15–30 s start-up per run).
+
+Items 1–3 are used as the defaults above and can be changed in Advanced Settings.

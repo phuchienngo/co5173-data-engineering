@@ -6,7 +6,7 @@ Part of [spec.md](spec.md). Purpose: let us change how the data processing runs,
 
 | Kind | When it takes effect | How we change it |
 |---|---|---|
-| **Per-run** | On the next **Run** (each run starts its own Spark application, so no restart is needed) | **Advanced Settings** screen |
+| **Per-run** | On the next **Run** or **Import** (each starts its own Spark application, so no restart is needed) | **Advanced Settings** screen |
 | **Needs restart** | Only after restarting a service or the stack | The restart guide (section 4) |
 
 ## 2. Advanced Settings screen
@@ -16,7 +16,7 @@ Part of [spec.md](spec.md). Purpose: let us change how the data processing runs,
 | C1 | Lists the per-run settings in section 3, grouped as shown, each with: name, one-line explanation, default, current value | Must |
 | C2 | Editing a setting and pressing Run uses the new value; no restart | Must |
 | C3 | **Reset to defaults** per setting and for all | Must |
-| C4 | Values are checked before a run: wrong type or out-of-range is rejected with a message; settings that cannot fit the cluster (for example executor memory larger than the worker has) get a warning | Should |
+| C4 | Values are checked before a run: wrong type or out-of-range is rejected with a message. A combination that can never start on the cluster (for example executor memory larger than the worker has) is an error that blocks Run and Import, because Spark would wait for resources forever. Other doubtful values (for example a large driver memory) get a warning | Should |
 | C5 | **Named presets:** save the current settings under a name (for example "baseline", "tuned") and load them later | Should |
 | C6 | Every run records a snapshot of all settings used (shown in run history and Grafana) | Must |
 | C7 | A "Needs restart" section on the same screen shows the current values read from the running stack (read-only) and links to the restart guide | Could |
@@ -31,15 +31,16 @@ Defaults are Spark's own unless noted; the plan fixes exact defaults for our sma
 | **Memory** | `spark.memory.fraction`, `spark.memory.storageFraction`, `spark.memory.offHeap.enabled` / `.size` | Split between working memory and cached data; off-heap memory |
 | **Shuffle and partitions** | `spark.sql.shuffle.partitions`, `spark.default.parallelism`, `spark.sql.files.maxPartitionBytes`, `spark.shuffle.compress`, `spark.io.compression.codec` | How data is split and moved between steps |
 | **Adaptive Query Execution (AQE)** | `spark.sql.adaptive.enabled`, `.coalescePartitions.enabled`, `.advisoryPartitionSizeInBytes`, `.skewJoin.enabled`, `.skewJoin.skewedPartitionFactor`, `.skewJoin.skewedPartitionThresholdInBytes` | Spark adjusting the plan while running, including handling uneven (skewed) partitions |
-| **Joins** | `spark.sql.autoBroadcastJoinThreshold` | Whether small tables are sent to every worker |
+| **Joins** | `spark.sql.autoBroadcastJoinThreshold`; join the lookup tables before or after aggregating | Whether small tables are sent to every worker; how much data the joins handle |
 | **Serialization** | `spark.serializer` (Java / Kryo) | How data is packed when moved or cached |
 | **Caching** | Cache the cleaned data between steps (on/off), storage level | Reuse vs. recompute |
-| **Reading and writing** | Number of parallel writers to the data store; ClickHouse per-query limits (`max_threads`, `max_memory_usage`) | Speed of reading from and writing to ClickHouse |
+| **Reading and writing** | Engine (Spark, or ClickHouse SQL as the alternative solution); reader (parallel, or one read through the driver as the baseline) and number of read partitions; writer and number of parallel writers for the import; ClickHouse per-query limits (`max_threads`, `max_memory_usage`) | Where the work is done; speed of reading from and writing to ClickHouse |
 
 | ID | Requirement | Priority |
 |---|---|---|
 | C8 | Keep the simple, single-threaded write path as a "baseline" choice next to the parallel one, so the two can be compared | Should |
 | C9 | Selectable ClickHouse table layouts (sorting/partitioning), applied on the next import | Could |
+| C13 | The ClickHouse SQL engine gives the same recommendation as the Spark engine for the same choices and analysis rules, so the two can be compared fairly | Should |
 
 ## 3b. Analysis rules (team settings, not shown to the business user)
 

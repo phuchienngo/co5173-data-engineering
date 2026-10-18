@@ -75,7 +75,7 @@ erDiagram
 
 ## 3. What the model gives the optimization story
 
-The same promotion question can be answered on several models. The analysis plan will choose which ones to measure:
+The same promotion question can be answered on several models. [plan-pipeline.md](plan-pipeline.md) uses the star schema (Spark, or ClickHouse SQL as the alternative engine); the other variants are left for the benchmark step:
 
 | Variant | Where | What it shows |
 |---|---|---|
