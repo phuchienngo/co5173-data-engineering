@@ -185,3 +185,11 @@ That is about 110 images. The script logs in to Grafana through its login API. I
   - Same result: yes.
 - **Screenshots:** the 4 files are 150–300 KB each. A first version showed All / All / All above a run's result, cut rows in the compare tables and part of the next run in the Grafana window; all three are fixed (sections 4 and 6).
 - **Not yet built:** the `report` sub-command.
+
+**S3-L3 for the other two inputs (2026-10-19):** I1-L3 and I2-L3, after one warm-up (I1-L3, 27.7 s).
+- **Run times:** I1 27.1 and 27.2 s; I2 24.5 and 25.4 s. Each pair is within 4%.
+- **Checks 1–4 passed:**
+  - Every run used 4 cores, cores max 4 and 4 read partitions.
+  - Rows read were 1,193,900 (I1) and 309,600 (I2); each run's 4 read queries add up to these exactly.
+  - Same result within each cell: yes (10 cards / 132 month rows; 5 cards / 72 month rows).
+- **Screenshots:** the 4 files per cell are saved. The I1 result page is 7,841 px tall with its 10 cards, so the script's height limit was raised from 8,000 to 12,000 px.

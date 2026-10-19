@@ -222,7 +222,7 @@ def reference_run(block, cell, row):
     return None, None
 
 
-def fit_height(page, limit=8000):
+def fit_height(page, limit=12000):
     """Streamlit and Grafana scroll inside an element, so a full-page shot
     would only show the viewport: make the viewport as tall as the content."""
     height = page.evaluate("""() => Math.max(document.documentElement.scrollHeight,
