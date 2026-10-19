@@ -10,7 +10,6 @@ floating-point sums can differ in the last digits between engines.
 import sys
 
 import runs
-from clickhouse_io import get_client
 
 SKIP = {"run_id"}
 
@@ -20,6 +19,15 @@ def normalized(rows):
     for row in rows:
         out.append({k: round(v, 2) if isinstance(v, float) else v for k, v in row.items() if k not in SKIP})
     return out
+
+
+def settings_diff(a, b):
+    """[(key, value in a, value in b)] for the snapshot keys that differ
+    (None = missing). Settings first, then Spark's effective values, the
+    cluster and where the settings came from."""
+    order = {"effective": 1, "cluster": 2, "launch": 3}
+    keys = sorted(set(a) | set(b), key=lambda k: (order.get(k.split(".", 1)[0], 0), k))
+    return [(k, a.get(k), b.get(k)) for k in keys if a.get(k) != b.get(k)]
 
 
 def differences(client, run_a, run_b):
@@ -42,6 +50,8 @@ def differences(client, run_a, run_b):
 def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
+    from clickhouse_io import get_client  # here, so the app and tests import this without it
+
     problems, cards, months = differences(get_client(), sys.argv[1], sys.argv[2])
     if problems:
         print("\n".join(problems[:50]))

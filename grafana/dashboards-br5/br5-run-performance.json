@@ -1,0 +1,1050 @@
+{
+  "uid": "br5-run-performance",
+  "title": "BR5 Run performance",
+  "description": "Run time of BR5 imports and analysis runs, per step and per setting (spec M6).",
+  "tags": [
+    "br5"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "version": 1,
+  "id": null,
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "timezone": "browser",
+  "links": [
+    {
+      "title": "BR5 app",
+      "type": "link",
+      "url": "http://localhost:8501",
+      "targetBlank": true,
+      "icon": "external link",
+      "tooltip": "Promotion Finder"
+    },
+    {
+      "title": "Run History (app)",
+      "type": "link",
+      "url": "http://localhost:8501/run_history",
+      "targetBlank": true,
+      "icon": "external link"
+    },
+    {
+      "title": "Spark history",
+      "type": "link",
+      "url": "http://localhost:18080",
+      "targetBlank": true,
+      "icon": "external link"
+    },
+    {
+      "title": "BR5 dashboards",
+      "type": "dashboards",
+      "tags": [
+        "br5"
+      ],
+      "asDropdown": true,
+      "keepTime": true,
+      "includeVars": false
+    }
+  ],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Runs",
+      "description": "Runs matching the filters.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() FROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "auto"
+      },
+      "id": 1,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Median run time",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT quantileExact(0.5)(duration_s) FROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "decimals": 1,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "auto"
+      },
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Fastest",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT min(duration_s) FROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "decimals": 1,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "auto"
+      },
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Slowest",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT max(duration_s) FROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "decimals": 1,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "auto"
+      },
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Run time over time",
+      "description": "One point per run, one colour per settings variant (preset and engine).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 0,
+          "queryType": "timeseries",
+          "rawSql": "SELECT started_at AS time, variant, duration_s FROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote}) ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "points",
+            "pointSize": 9,
+            "showPoints": "always",
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "displayName": "${__field.labels.variant}",
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "count",
+            "mean",
+            "min",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "id": 5,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "Compare by a setting: ${setting}",
+      "collapsed": false,
+      "id": 6,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Median run time by ${setting}",
+      "description": "Keep the other filters fixed (same choice and multiplier) so only this setting differs.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT value, median_s FROM (\nSELECT if(settings['${setting}'] = '', '(unset)', settings['${setting}']) AS value,\n       count() AS runs,\n       round(quantileExact(0.5)(duration_s), 1) AS median_s,\n       round(min(duration_s), 1) AS min_s,\n       round(max(duration_s), 1) AS max_s\nFROM br5.run_history\nWHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})\nGROUP BY value ORDER BY median_s)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "value",
+        "orientation": "auto",
+        "stacking": "none",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelMaxLength": 40,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      }
+    },
+    {
+      "type": "table",
+      "title": "Runs per value of ${setting}",
+      "description": "Compare medians, not single runs; repeat each variant at least 3 times (config guide).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT if(settings['${setting}'] = '', '(unset)', settings['${setting}']) AS value,\n       count() AS runs,\n       round(quantileExact(0.5)(duration_s), 1) AS median_s,\n       round(min(duration_s), 1) AS min_s,\n       round(max(duration_s), 1) AS max_s\nFROM br5.run_history\nWHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})\nGROUP BY value ORDER BY median_s",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      }
+    },
+    {
+      "type": "row",
+      "title": "Steps",
+      "collapsed": false,
+      "id": 9,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Analysis steps (latest 15 runs)",
+      "description": "Seconds per step. 'start-up and other' is the time outside the steps: mostly creating the Spark session.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT run, read, clean, aggregate, rank, profile, recommend, write, `start-up and other`\nFROM (\nSELECT started_at, concat(left(toString(run_id), 8), ' · ', variant) AS run,\n       step_durations['read'] / 1000 AS read,\n       step_durations['clean'] / 1000 AS clean,\n       step_durations['aggregate'] / 1000 AS aggregate,\n       step_durations['rank'] / 1000 AS rank,\n       step_durations['profile'] / 1000 AS profile,\n       step_durations['recommend'] / 1000 AS recommend,\n       step_durations['write'] / 1000 AS write,\n       outside_steps_s AS `start-up and other`\nFROM br5.run_history\nWHERE $__timeFilter(started_at)\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote}) AND run_type = 'analysis'\nORDER BY started_at DESC LIMIT 15\n) ORDER BY started_at",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "start-up and other"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "run",
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelMaxLength": 40,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Import steps (latest 8 imports)",
+      "description": "Seconds per step. 'start-up and other' is mostly creating the Spark session.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT run, read, check, derive, write_raw, write_dims, write_fact, verify, swap, `start-up and other`\nFROM (\nSELECT started_at, concat(left(toString(run_id), 8), ' · ', variant) AS run,\n       step_durations['read'] / 1000 AS read,\n       step_durations['check'] / 1000 AS check,\n       step_durations['derive'] / 1000 AS derive,\n       step_durations['write_raw'] / 1000 AS write_raw,\n       step_durations['write_dims'] / 1000 AS write_dims,\n       step_durations['write_fact'] / 1000 AS write_fact,\n       step_durations['verify'] / 1000 AS verify,\n       step_durations['swap'] / 1000 AS swap,\n       outside_steps_s AS `start-up and other`\nFROM br5.run_history\nWHERE $__timeFilter(started_at)\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote}) AND run_type = 'import'\nORDER BY started_at DESC LIMIT 8\n) ORDER BY started_at",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "start-up and other"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "run",
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelMaxLength": 40,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Spark task time per step (latest 15 Spark runs)",
+      "description": "Executor task time summed over tasks, per step (from Spark's REST API). It can exceed the step's wall time when tasks run in parallel.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT run, read, clean, aggregate, profile FROM (\nSELECT started_at, concat(left(toString(run_id), 8), ' · ', variant) AS run,\n       resources['spark.run_ms@read'] / 1000 AS read,\n       resources['spark.run_ms@clean'] / 1000 AS clean,\n       resources['spark.run_ms@aggregate'] / 1000 AS aggregate,\n       resources['spark.run_ms@profile'] / 1000 AS profile\nFROM br5.run_history\nWHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote}) AND run_type = 'analysis' AND engine = 'spark' AND resources['spark.run_ms'] > 0\nORDER BY started_at DESC LIMIT 15) ORDER BY started_at",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "run",
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelMaxLength": 40,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "id": 12,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      }
+    },
+    {
+      "type": "row",
+      "title": "Runs",
+      "collapsed": false,
+      "id": 13,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Runs",
+      "description": "Click run_id for the app's Run History (compare two runs), spark_app_id for the run's Spark page.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT started_at AS time, run_type, status, choice, variant, multiplier,\n       round(duration_s, 1) AS duration_s, rows_read, rows_used, rows_written, result_count AS cards,\n       toString(run_id) AS run_id, spark_app_id, error\nFROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})\nORDER BY started_at DESC LIMIT 200",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "run_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open in the app's Run History",
+                    "targetBlank": true,
+                    "url": "http://localhost:8501/run_history?run=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "spark_app_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the run's Spark page",
+                    "targetBlank": true,
+                    "url": "http://localhost:18080/history/${__value.raw}/jobs/"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "succeeded": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 14,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      }
+    },
+    {
+      "type": "table",
+      "title": "Resource figures per run",
+      "description": "Exact figures stored with each run. Spark CPU counts JVM task threads only (not the Python workers of the parallel reader); container CPU on the Resource use dashboard includes them. Peak heap is sampled at executor heartbeats (every 10 s).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT started_at AS time, left(toString(run_id), 8) AS run, run_type, variant, round(duration_s, 1) AS duration_s,\n       round(resources['spark.cpu_ms'] / 1000, 1) AS spark_cpu_s,\n       round(resources['spark.run_ms'] / 1000, 1) AS spark_task_s,\n       round(resources['spark.gc_ms'] / 1000, 2) AS spark_gc_s,\n       round(resources['spark.shuffle_write_bytes'] / 1048576, 1) AS shuffle_mb,\n       round((resources['spark.spill_memory_bytes'] + resources['spark.spill_disk_bytes']) / 1048576, 1) AS spill_mb,\n       round(resources['spark.executor_peak_heap_bytes'] / 1048576) AS executor_heap_mb,\n       round(resources['spark.driver_peak_heap_bytes'] / 1048576) AS driver_heap_mb,\n       resources['clickhouse.queries'] AS ch_queries,\n       resources['clickhouse.read_rows'] AS ch_rows_read,\n       resources['clickhouse.written_rows'] AS ch_rows_written,\n       round(resources['clickhouse.cpu_ms'] / 1000, 2) AS ch_cpu_s,\n       round(resources['clickhouse.peak_memory_bytes'] / 1048576) AS ch_peak_mb\nFROM br5.run_history WHERE $__timeFilter(started_at)\n  AND run_type IN (${run_type:singlequote})\n  AND status IN (${status:singlequote})\n  AND engine IN (${engine:singlequote})\n  AND settings_from IN (${preset:singlequote})\n  AND toString(multiplier) IN (${multiplier:singlequote})\n  AND choice IN (${choice:singlequote})\nORDER BY started_at DESC LIMIT 200",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 15,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 61
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "run_type",
+        "label": "Type",
+        "type": "custom",
+        "query": "analysis,import",
+        "multi": true,
+        "includeAll": true,
+        "options": [
+          {
+            "text": "analysis",
+            "value": "analysis",
+            "selected": true
+          },
+          {
+            "text": "import",
+            "value": "import",
+            "selected": false
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": [
+            "analysis"
+          ],
+          "value": [
+            "analysis"
+          ]
+        }
+      },
+      {
+        "name": "status",
+        "label": "Status",
+        "type": "custom",
+        "query": "succeeded,failed,running",
+        "multi": true,
+        "includeAll": true,
+        "options": [
+          {
+            "text": "succeeded",
+            "value": "succeeded",
+            "selected": true
+          },
+          {
+            "text": "failed",
+            "value": "failed",
+            "selected": false
+          },
+          {
+            "text": "running",
+            "value": "running",
+            "selected": false
+          }
+        ],
+        "current": {
+          "selected": true,
+          "text": [
+            "succeeded"
+          ],
+          "value": [
+            "succeeded"
+          ]
+        }
+      },
+      {
+        "name": "engine",
+        "label": "Engine",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT DISTINCT engine FROM br5.run_history ORDER BY engine",
+        "definition": "SELECT DISTINCT engine FROM br5.run_history ORDER BY engine",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 0,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "preset",
+        "label": "Settings from",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT DISTINCT settings_from FROM br5.run_history ORDER BY settings_from",
+        "definition": "SELECT DISTINCT settings_from FROM br5.run_history ORDER BY settings_from",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 0,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "multiplier",
+        "label": "Multiplier",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT DISTINCT toString(multiplier) FROM br5.run_history ORDER BY toUInt32(toString(multiplier))",
+        "definition": "SELECT DISTINCT toString(multiplier) FROM br5.run_history ORDER BY toUInt32(toString(multiplier))",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 0,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "choice",
+        "label": "Choice",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT DISTINCT choice FROM br5.run_history ORDER BY choice",
+        "definition": "SELECT DISTINCT choice FROM br5.run_history ORDER BY choice",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "sort": 0,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "setting",
+        "label": "Compare by setting",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT DISTINCT arrayJoin(mapKeys(settings)) AS k FROM br5.run_history WHERE NOT startsWith(k, 'effective.') ORDER BY k",
+        "definition": "SELECT DISTINCT arrayJoin(mapKeys(settings)) AS k FROM br5.run_history WHERE NOT startsWith(k, 'effective.') ORDER BY k",
+        "refresh": 2,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {
+          "selected": true,
+          "text": "spark.sql.adaptive.enabled",
+          "value": "spark.sql.adaptive.enabled"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

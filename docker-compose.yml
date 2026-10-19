@@ -62,6 +62,13 @@ configs:
           static_configs:
             - targets: ["spark-worker:8081"]
 
+        # BR5: CPU and memory per container (docker/docker-stats). Shorter
+        # interval, since a BR5 run lasts about 30 s.
+        - job_name: docker-stats
+          scrape_interval: 5s
+          static_configs:
+            - targets: ["docker-stats:9417"]
+
   grafana-datasource-yml:
     content: |
       apiVersion: 1
@@ -100,6 +107,17 @@ configs:
           updateIntervalSeconds: 30
           options:
             path: /var/lib/grafana/dashboards
+        # BR5 dashboards, in their own folder and directory (the provider above
+        # reads its directory recursively).
+        - name: BR5
+          orgId: 1
+          folder: BR5
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br5
 
 services:
 
@@ -295,6 +313,56 @@ services:
       - ./tests:/opt/tests:ro
     ports:
       - "8501:8501"
+      - "4040:4040"   # live Spark page of the run in progress
+    networks:
+      - data-net
+
+  # BR5 monitoring (docs/plan/br5/plan-monitoring.md).
+  # Spark history server: keeps each BR5 run's Spark page after the run ends.
+  spark-history:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: spark-history
+    profiles: ["br5"]
+    mem_limit: 512m
+    cpus: 0.5
+    user: "0:0"
+    entrypoint:
+      - bash
+      - -c
+      - mkdir -p /opt/logs/spark-events && exec /opt/bitnami/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+    environment:
+      - SPARK_DAEMON_MEMORY=256m
+      - >-
+        SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:/opt/logs/spark-events
+        -Dspark.history.fs.update.interval=5s
+        -Dspark.history.fs.cleaner.enabled=true
+        -Dspark.history.fs.cleaner.maxAge=30d
+    volumes:
+      - ./logs:/opt/logs
+    ports:
+      - "18080:18080"
+    networks:
+      - data-net
+
+  # CPU and memory per container for Prometheus (cAdvisor can't map containers
+  # on this Docker host). Reads the Docker socket; read-only use.
+  docker-stats:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: docker-stats
+    profiles: ["br5"]
+    mem_limit: 128m
+    cpus: 0.25
+    user: "0:0"
+    entrypoint: ["python3", "-u", "/opt/docker-stats/exporter.py"]
+    volumes:
+      - ./docker/docker-stats:/opt/docker-stats:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - data-net
 
@@ -310,6 +378,11 @@ services:
     configs:
       - source: prometheus-yml
         target: /etc/prometheus/prometheus.yml
+    # Image defaults plus a longer retention (BR5 run history, plan B6).
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=90d
     volumes:
       - prometheus-data:/prometheus
     ports:
@@ -341,6 +414,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/dashboards-br5:/var/lib/grafana/dashboards-br5:ro
     ports:
       - "3000:3000"
     networks:

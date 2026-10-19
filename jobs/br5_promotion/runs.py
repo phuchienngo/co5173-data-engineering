@@ -58,6 +58,8 @@ RUN_COLUMNS = [
     "rows_excluded",
     "result_count",
     "result_summary",
+    "spark_app_id",
+    "resources",
 ]
 
 
@@ -73,6 +75,7 @@ class Run:
         self._lock = threading.Lock()
         self._stop = threading.Event()
         self._thread = None
+        self.on_step = None  # called with the step name (Spark: job group, for per-step figures)
         started = now()
         self.row = {
             "run_id": run_id or str(uuid.uuid4()),
@@ -100,6 +103,8 @@ class Run:
             "rows_excluded": {},
             "result_count": 0,
             "result_summary": "",
+            "spark_app_id": "",
+            "resources": {},
         }
         self.row.update(fields)
 
@@ -120,6 +125,8 @@ class Run:
     def step(self, name):
         print(f"[br5] step: {name}", flush=True)
         self.update(step=name)
+        if self.on_step:
+            self.on_step(name)
         start = time.monotonic()
         yield
         took = int((time.monotonic() - start) * 1000)

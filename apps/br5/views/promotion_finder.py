@@ -69,6 +69,9 @@ def run_panel():
             st.info("Busy: data is being imported. Try again when it has finished (see the Data page).")
         else:
             st.info(f"Running: {STEP_LABELS.get(run['step'], run['step']) if run else 'Starting Spark… (15–30 s)'}")
+            if run and run["run_type"] == "analysis" and run.get("spark_app_id"):
+                st.link_button("Live Spark page", backend.SPARK_LIVE_URL,
+                               help="Spark's own page of this run: jobs and stages per step, while it runs.")
         if ours:
             if st.button("Stop", help="Stop the job started from this app."):
                 backend.stop_job()
@@ -223,6 +226,11 @@ with st.expander("Run summary (for the team)"):
     steps = run["step_durations"]
     right.table({"Step": list(steps), "Seconds": [f"{ms / 1000:.1f}" for ms in steps.values()]})
     right.caption(f"Total {(run['duration_ms'] or 0) / 1000:.1f} s, Spark start-up included.")
+    buttons = st.columns(4)
+    if run["spark_app_id"]:
+        buttons[0].link_button("Spark page of this run", backend.spark_page_url(run["spark_app_id"]), width="stretch")
+    buttons[1].link_button("Resource use during the run", backend.dashboard_url("Resource use", run), width="stretch")
+    buttons[2].page_link("views/run_history.py", label="Compare with another run", query_params={"run": str(run["run_id"])})
     st.markdown(f"**Settings:** engine **{settings.get('pipeline.engine')}**, from "
                 f"{settings.get('launch.settings_from', 'current settings')}. "
                 f"{summary.get('targets_found', 0)} targets found, {summary.get('targets_qualified', 0)} qualified.")

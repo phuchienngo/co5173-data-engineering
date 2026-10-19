@@ -27,7 +27,8 @@ from start import (
 )
 
 BR = "5"
-SERVICES = ["clickhouse", "spark-master", "spark-worker", "spark-local", "prometheus", "grafana"]
+SERVICES = ["clickhouse", "spark-master", "spark-worker", "spark-local", "prometheus", "grafana",
+            "spark-history", "docker-stats"]  # the last two: BR5 monitoring
 APP_SERVICE = "br5-app"
 # Same list as jobs/br5_promotion/runs.py DATA_TABLES; pipeline_runs is kept.
 DATA_TABLES = [
@@ -44,7 +45,10 @@ LAUNCH = ["docker", "exec", "-i", APP_SERVICE, "python3", "/opt/jobs/br5_promoti
 URLS = {
     "BR5 app": "http://localhost:8501",
     "Grafana": "http://localhost:3000",
+    "Grafana BR5 dashboards": "http://localhost:3000/dashboards?tag=br5",
     "Spark master UI": "http://localhost:8082",
+    "Spark history": "http://localhost:18080",
+    "Prometheus": "http://localhost:9090",
 }
 
 
@@ -140,7 +144,7 @@ def confirm_replace(args):
 def print_urls():
     print()
     for name, url in URLS.items():
-        print(f"{name:16} {url}")
+        print(f"{name:23} {url}")
 
 
 def cmd_up(args):

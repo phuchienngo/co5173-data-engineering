@@ -185,6 +185,11 @@ ALTER TABLE br5.pipeline_runs
     ADD COLUMN IF NOT EXISTS result_count   UInt16,
     ADD COLUMN IF NOT EXISTS result_summary String;               -- JSON: low-season texts, messages
 
+-- Added by the monitoring plan (docs/plan/br5/plan-monitoring.md, B2–B3).
+ALTER TABLE br5.pipeline_runs
+    ADD COLUMN IF NOT EXISTS spark_app_id String,                 -- link to the Spark history server
+    ADD COLUMN IF NOT EXISTS resources    Map(String, Float64);   -- spark.* (total, @step), clickhouse.*
+
 -- Current settings (__current__) and named presets. Kept by fresh mode.
 CREATE TABLE IF NOT EXISTS br5.settings
 (
@@ -246,3 +251,39 @@ CREATE TABLE IF NOT EXISTS br5.run_card
 )
 ENGINE = MergeTree
 ORDER BY (run_id, target_rank);
+
+-- One row per run, flattened for Grafana and the app's Run History
+-- (docs/plan/br5/plan-monitoring.md). Replaced on every apply, so it follows
+-- new columns.
+CREATE OR REPLACE VIEW br5.run_history AS
+SELECT
+    run_id,
+    run_type,
+    status,
+    step,
+    started_at,
+    finished_at,
+    duration_ms / 1000 AS duration_s,
+    -- Spark start-up and other time outside the recorded steps.
+    greatest(duration_ms - arraySum(mapValues(step_durations)), 0) / 1000 AS outside_steps_s,
+    if(settings['launch.settings_from'] = '', 'unknown', settings['launch.settings_from']) AS settings_from,
+    if(settings['pipeline.engine'] = '' OR run_type = 'import', 'spark', settings['pipeline.engine']) AS engine,
+    if(run_type = 'analysis',
+       concat(criteria['hotel'], ' · ', criteria['country'], ' · ', criteria['room_type']),
+       'import') AS choice,
+    concat(settings_from, if(run_type = 'analysis', concat(' · ', engine), '')) AS variant,
+    multiplier,
+    rows_read,
+    rows_used,
+    rows_written,
+    rows_excluded,
+    step_durations,
+    settings,
+    criteria,
+    resources,
+    spark_app_id,
+    import_id,
+    result_count,
+    result_summary,
+    error
+FROM br5.pipeline_runs FINAL;

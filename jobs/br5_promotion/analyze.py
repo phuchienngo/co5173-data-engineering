@@ -14,6 +14,7 @@ import json
 import sys
 
 import rules
+import run_metrics
 import run_settings
 import runs
 from clickhouse_io import get_client
@@ -286,15 +287,22 @@ def main():
 
     spark = None
     engine = None
+    ui = None
     try:
         if engine_name == "spark":
             # Imported here: the ClickHouse engine runs without pyspark.
             from pipeline_spark import SparkEngine
             from spark_session import get_spark_session
 
-            spark = get_spark_session("br5_analysis", conf=run_settings.spark_conf(values))
+            conf = run_settings.spark_conf(values)
+            run_metrics.prepare_event_log(conf)
+            spark = get_spark_session("br5_analysis", conf=conf)
             spark.sparkContext.setLogLevel("WARN")
-            run.update(settings=run_settings.snapshot(values, cluster, spark, args.settings_label))
+            ui = run_metrics.spark_ui(spark)
+            run.update(settings=run_settings.snapshot(values, cluster, spark, args.settings_label),
+                       spark_app_id=ui[1])
+            # Spark jobs are grouped by step, for the per-step figures and the Spark page.
+            run.on_step = lambda name: spark.sparkContext.setJobGroup(name, name)
             ctx = Context(client, criteria, dims, values, multiplier, coverage,
                           codes=opts["pipeline"]["join"] == "early")
             engine = SparkEngine(spark, ctx)
@@ -303,19 +311,23 @@ def main():
 
             ctx = Context(client, criteria, dims, values, multiplier, coverage, codes=False)
             engine = SqlEngine(ctx)
+        # Tags the run's ClickHouse queries in system.query_log.
+        ctx.query_settings["log_comment"] = run.run_id
         cards, message = analyze(ctx, engine, run)
+        run.finish("succeeded")
     except BaseException as exc:
         error = runs.failure_message(exc)
         print(f"[br5] analysis failed: {error}", flush=True)
         run.finish("failed", error=error[:4000])
         raise
     finally:
+        # After finish (not part of the run time), before Spark stops.
+        run_metrics.record(run, client, ui)
         if engine is not None:
             engine.close()
         if spark is not None:
             spark.stop()
 
-    run.finish("succeeded")
     print(f"[br5] analysis succeeded: {len(cards)} cards in {run.row['duration_ms'] / 1000:.1f}s"
           + (f" ({message})" if message else ""), flush=True)
     for card in cards:

@@ -18,6 +18,7 @@ from pyspark.sql import Window
 from pyspark.sql import functions as F
 from pyspark.sql.types import LongType, StructField, StructType
 
+import run_metrics
 import run_settings
 import runs
 import source
@@ -228,11 +229,19 @@ def main():
     print(f"[br5] import run {run.run_id} started", flush=True)
 
     spark = None
+    ui = None
     try:
-        spark = get_spark_session("br5_import", conf=run_settings.spark_conf(values))
+        conf = run_settings.spark_conf(values)
+        run_metrics.prepare_event_log(conf)
+        spark = get_spark_session("br5_import", conf=conf)
         spark.sparkContext.setLogLevel("WARN")
-        run.update(settings=run_settings.snapshot(values, cluster, spark, args.settings_label))
+        ui = run_metrics.spark_ui(spark)
+        run.update(settings=run_settings.snapshot(values, cluster, spark, args.settings_label),
+                   spark_app_id=ui[1])
+        # Spark jobs are grouped by step, for the per-step figures and the Spark page.
+        run.on_step = lambda name: spark.sparkContext.setJobGroup(name, name)
         import_data(spark, client, run, args)
+        run.finish("succeeded")
     except BaseException as exc:
         message = runs.failure_message(exc)
         print(f"[br5] import failed: {message}", flush=True)
@@ -242,10 +251,11 @@ def main():
             run.finish("failed", error=message[:4000])
         raise
     finally:
+        # After finish (not part of the run time), before Spark stops.
+        run_metrics.record(run, client, ui)
         if spark is not None:
             spark.stop()
 
-    run.finish("succeeded")
     print(f"[br5] import succeeded: {run.row['rows_written']} bookings in "
           f"{run.row['duration_ms'] / 1000:.1f}s", flush=True)
 

@@ -19,6 +19,7 @@ GROUPS = [
     "Caching",
     "Reading and writing",
     "Analysis rules",
+    "Monitoring",
 ]
 
 SERIALIZERS = {
@@ -27,6 +28,8 @@ SERIALIZERS = {
 }
 STORAGE_LEVELS = ["MEMORY_ONLY", "MEMORY_AND_DISK", "MEMORY_AND_DISK_DESER", "DISK_ONLY", "OFF_HEAP"]
 MB = 1024 * 1024
+# Read by the spark-history service (docker-compose.yml); logs/ on the host.
+EVENT_LOG_DIR = "/opt/logs/spark-events"
 
 
 @dataclass(frozen=True)
@@ -198,6 +201,11 @@ SETTINGS = [
     _s("rules.top_n", "Analysis rules", "Number of cards",
        "How many ranked recommendations to show when country or room type is All.",
        "int", "10", "rule", min=1, max=50),
+    # Monitoring
+    _s("spark.eventLog.enabled", "Monitoring", "Spark event log",
+       "Write the run's Spark event log, so its Spark page stays on the history server "
+       "(http://localhost:18080) after the run. Costs a little disk and time; turn it off to measure that.",
+       "bool", "true", "spark"),
 ]
 BY_KEY = {s.key: s for s in SETTINGS}
 
@@ -358,6 +366,8 @@ def spark_conf(values):
         if value in ("", None):
             continue
         conf[s.key] = SERIALIZERS[value] if s.key == "spark.serializer" else str(value)
+    if conf.get("spark.eventLog.enabled") == "true":
+        conf["spark.eventLog.dir"] = "file:" + EVENT_LOG_DIR
     return conf
 
 

@@ -20,11 +20,11 @@ Most settings change live: edit them on the app's **Advanced Settings** page (ht
 
 | Setting | File and line | Restart |
 |---|---|---|
-| [Spark worker memory and cores](#spark-worker-memory-and-cores) | `docker-compose.yml` lines 216–217 | `spark-worker` |
+| [Spark worker memory and cores](#spark-worker-memory-and-cores) | `docker-compose.yml` lines 234–235 | `spark-worker` |
 | [Container memory and CPU limits](#container-memory-and-cpu-limits) | `docker-compose.yml`, `mem_limit` / `cpus` of each service | the changed service |
-| [Spark background memory](#spark-background-memory-spark_daemon_memory) | `docker-compose.yml` lines 190 and 218 | `spark-master`, `spark-worker` |
-| [ClickHouse server settings](#clickhouse-server-settings) | `docker-compose.yml` lines 27–32 and 131–132 | `clickhouse` |
-| [Prometheus scrape interval](#prometheus-scrape-interval) | `docker-compose.yml` line 43 | `prometheus` |
+| [Spark background memory](#spark-background-memory-spark_daemon_memory) | `docker-compose.yml` lines 208 and 236 | `spark-master`, `spark-worker` |
+| [ClickHouse server settings](#clickhouse-server-settings) | `docker-compose.yml` lines 27–32 and 149–150 | `clickhouse` |
+| [Prometheus scrape interval](#prometheus-scrape-interval) | `docker-compose.yml` lines 43 and 68 | `prometheus` |
 
 Line numbers are those of the version this guide was written with. If they have moved, search the file for the setting name.
 
@@ -33,10 +33,10 @@ Line numbers are those of the version this guide was written with. If they have 
 - **What it does:** the total memory and cores the Spark worker offers to runs. It is the ceiling for the per-run settings "Executor memory", "Cores per executor" and "Total cores". The Advanced Settings page blocks a run whose executor can never fit in it.
 - **Where:** `docker-compose.yml`, service `spark-worker`:
   ```yaml
-  - SPARK_WORKER_MEMORY=2G     # line 216
-  - SPARK_WORKER_CORES=2       # line 217
+  - SPARK_WORKER_MEMORY=2G     # line 234
+  - SPARK_WORKER_CORES=2       # line 235
   ```
-  Keep the container limit above the worker memory: the same service's `mem_limit` (line 208, `2500m`) must cover the worker memory plus about 300 MB for the worker process itself. Keep `cpus` (line 209) at least equal to the cores.
+  Keep the container limit above the worker memory: the same service's `mem_limit` (line 226, `2500m`) must cover the worker memory plus about 300 MB for the worker process itself. Keep `cpus` (line 227) at least equal to the cores.
 - **Sample value:** `SPARK_WORKER_MEMORY=3G`, `SPARK_WORKER_CORES=3`, with `mem_limit: 3500m` and `cpus: 3.0`. The laptop must have that much free memory.
 - **Restart:** `spark-worker`.
 - **Confirm:**
@@ -50,12 +50,14 @@ Line numbers are those of the version this guide was written with. If they have 
 
   | Service | Lines | Current |
   |---|---|---|
-  | `clickhouse` | 112–113 | 1g, 1.0 |
-  | `kafka` (not used by BR5) | 147–148 | 1g, 1.0 |
-  | `spark-master` | 185–186 | 512m, 0.5 |
-  | `spark-worker` | 208–209 | 2500m, 2.0 |
-  | `spark-local` | 239–240 | 6g, 2.0 |
-  | `br5-app` (runs the Spark driver of every BR5 job) | 268–269 | 2g, 1.0 |
+  | `clickhouse` | 130–131 | 1g, 1.0 |
+  | `kafka` (not used by BR5) | 165–166 | 1g, 1.0 |
+  | `spark-master` | 203–204 | 512m, 0.5 |
+  | `spark-worker` | 226–227 | 2500m, 2.0 |
+  | `spark-local` | 257–258 | 6g, 2.0 |
+  | `br5-app` (runs the Spark driver of every BR5 job) | 286–287 | 2g, 1.0 |
+  | `spark-history` (BR5 monitoring) | 329–330 | 512m, 0.5 |
+  | `docker-stats` (BR5 monitoring) | 359–360 | 128m, 0.25 |
 
 - **Sample value:** `clickhouse` with `mem_limit: 2g` and `cpus: 2.0`.
 - **Restart:** the changed service. If you change `br5-app`, the app reloads; a job it started is stopped.
@@ -66,7 +68,7 @@ Line numbers are those of the version this guide was written with. If they have 
 ### Spark background memory (`SPARK_DAEMON_MEMORY`)
 
 - **What it does:** the memory of the Spark master and worker processes themselves, not of the runs. It only needs to grow with many workers or a long history of applications.
-- **Where:** `docker-compose.yml`, `SPARK_DAEMON_MEMORY=256m` in `spark-master` (line 190) and `spark-worker` (line 218).
+- **Where:** `docker-compose.yml`, `SPARK_DAEMON_MEMORY=256m` in `spark-master` (line 208) and `spark-worker` (line 236). The `spark-history` service has its own (line 337).
 - **Sample value:** `512m`. Raise the container's `mem_limit` by the same amount.
 - **Restart:** `spark-master` and `spark-worker` (restart the master first).
 - **Confirm:** `docker top spark-worker` shows the Java command line with `-Xmx512m`.
@@ -78,7 +80,7 @@ Line numbers are those of the version this guide was written with. If they have 
   - `background_pool_size`: the threads that merge table parts in the background, after imports.
 - **Where:** `docker-compose.yml` has a commented example:
   1. Uncomment the `clickhouse-server-xml` config (lines 27–32) and set the values in it.
-  2. Uncomment the two lines under the `clickhouse` service's `configs:` (lines 131–132). They mount the file as `/etc/clickhouse-server/config.d/server-tuning.xml`.
+  2. Uncomment the two lines under the `clickhouse` service's `configs:` (lines 149–150). They mount the file as `/etc/clickhouse-server/config.d/server-tuning.xml`.
 - **Sample value:** `<background_pool_size>4</background_pool_size>`.
 - **Restart:** `clickhouse`. Its data is kept. The app and running jobs lose their connection while it restarts, so restart it only when nothing is running.
 - **Confirm:**
@@ -91,11 +93,13 @@ Line numbers are those of the version this guide was written with. If they have 
 
 ### Prometheus scrape interval
 
-- **What it does:** how often Prometheus collects metrics from ClickHouse and Spark. A run of about 30 s gets only 2 points at 15 s. A shorter interval gives smoother resource charts in Grafana, at the cost of more stored data.
-- **Where:** `docker-compose.yml`, config `prometheus-yml`, `scrape_interval: 15s` (line 43).
-- **Sample value:** `5s`.
+- **What it does:** how often Prometheus collects metrics. A shorter interval gives smoother resource charts in Grafana, at the cost of more stored data. There are two:
+  - `scrape_interval: 15s` (line 43): the default, for ClickHouse's and Spark's own metrics. A run of about 30 s gets only 2 points.
+  - `scrape_interval: 5s` (line 68): the `docker-stats` job, which feeds the CPU and memory charts of the BR5 Resource use dashboard.
+- **Where:** `docker-compose.yml`, config `prometheus-yml`.
+- **Sample value:** `5s` for the default, or `2s` for `docker-stats` (each scrape takes about 0.06 s).
 - **Restart:** `prometheus`. Its stored metrics are kept.
-- **Confirm:** http://localhost:9090/config shows the new `scrape_interval`.
+- **Confirm:** http://localhost:9090/config shows the new `scrape_interval`. Data already collected is kept (for 90 days, `--storage.tsdb.retention.time`).
 
 ## How to run a fair comparison
 

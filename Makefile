@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -25,7 +25,8 @@ help:
 	@echo "  make br5-run          BR5: run the promotion analysis with the stored settings"
 	@echo "                        options: HOTEL=\"City Hotel\" COUNTRY=PRT ROOM=A PRESET=baseline"
 	@echo "  make br5-status       BR5: show what data is stored"
-	@echo "  make br5-test         BR5: unit tests (rules and settings)"
+	@echo "  make br5-test         BR5: unit tests (rules, settings, monitoring helpers)"
+	@echo "  make br5-check-dashboards  BR5: run every Grafana panel query, report errors"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"
@@ -53,6 +54,9 @@ br5-status:
 
 br5-test:
 	docker exec -i br5-app python3 -m unittest discover -s /opt/tests/br5 -v
+
+br5-check-dashboards:
+	python3 tests/br5/check_dashboards.py
 
 logs:
 	mkdir -p logs/demo

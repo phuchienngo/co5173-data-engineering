@@ -6,18 +6,57 @@ so the app and the CLI see the same busy lock; settings live in br5.settings.
 """
 
 import json
+import os
 import threading
+import urllib.parse
+import urllib.request
 import uuid
 from pathlib import Path
 
 import streamlit as st
 
+import compare_runs
 import launch
 import run_settings
 import runs
 from clickhouse_io import get_client
 
 WRITE_STEPS = {"write_raw": "raw_booking", "write_fact": "fact_booking"}
+
+# Opened by the user's browser, so host addresses (docker-compose.yml ports).
+GRAFANA_URL = os.environ.get("BR5_GRAFANA_URL", "http://localhost:3000")
+SPARK_HISTORY_URL = os.environ.get("BR5_SPARK_HISTORY_URL", "http://localhost:18080")
+SPARK_LIVE_URL = os.environ.get("BR5_SPARK_LIVE_URL", "http://localhost:4040")
+# Read by this container.
+PROMETHEUS_URL = os.environ.get("BR5_PROMETHEUS_URL", "http://prometheus:9090")
+DASHBOARDS = {
+    "Run performance": "br5-run-performance",
+    "Resource use": "br5-resource-use",
+    "Data and result": "br5-data-result",
+}
+CONTAINERS = ["spark-worker", "br5-app", "clickhouse"]
+
+
+def dashboard_url(name, run=None):
+    url = f"{GRAFANA_URL}/d/{DASHBOARDS[name]}"
+    if run and run.get("started_at") and run.get("finished_at"):
+        # The run's own time window, with a little margin.
+        start = int(run["started_at"].timestamp() * 1000) - 15_000
+        end = int(run["finished_at"].timestamp() * 1000) + 15_000
+        url += f"?from={start}&to={end}"
+    return url
+
+
+def spark_page_url(app_id):
+    return f"{SPARK_HISTORY_URL}/history/{app_id}/jobs/" if app_id else None
+
+
+def monitoring_links():
+    """Sidebar links shown on every page."""
+    st.sidebar.markdown("**Monitoring**")
+    for name in DASHBOARDS:
+        st.sidebar.link_button(f"Grafana: {name}", dashboard_url(name), width="stretch")
+    st.sidebar.link_button("Spark history", SPARK_HISTORY_URL, width="stretch")
 
 
 @st.cache_resource
@@ -194,3 +233,53 @@ def latest_attempt():
 def stored_import_id():
     import_id, _ = runs.stored_import(client())
     return import_id
+
+
+# --- Run History ------------------------------------------------------------
+
+HISTORY_COLUMNS = ("run_id, run_type, status, step, started_at, finished_at, duration_s, outside_steps_s, "
+                   "settings_from, engine, choice, variant, multiplier, rows_read, rows_used, rows_written, "
+                   "rows_excluded, step_durations, settings, criteria, resources, spark_app_id, import_id, "
+                   "result_count, result_summary, error")
+
+
+def run_history(limit=500):
+    """Imports and runs, newest first (view br5.run_history)."""
+    return list(client().query(
+        f"SELECT {HISTORY_COLUMNS} FROM br5.run_history ORDER BY started_at DESC LIMIT {int(limit)}"
+    ).named_results())
+
+
+def same_result(run_a, run_b):
+    """(problems, cards, months) from compare_runs."""
+    return compare_runs.differences(client(), run_a, run_b)
+
+
+def settings_diff(a, b):
+    return compare_runs.settings_diff(a, b)
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def container_figures(run_id, started_at, finished_at):
+    """CPU seconds and peak memory per container during a run, from Prometheus
+    (samples every 5 s, kept 90 days). {} when Prometheus has nothing."""
+    if not finished_at:
+        return {}
+    window = max(int((finished_at - started_at).total_seconds()) + 5, 10)
+    at = finished_at.timestamp() + 5
+    names = "|".join(CONTAINERS)
+    queries = {
+        "cpu_s": f'increase(container_cpu_usage_seconds_total{{name=~"{names}"}}[{window}s])',
+        "peak_memory_bytes": f'max_over_time(container_memory_working_set_bytes{{name=~"{names}"}}[{window}s])',
+    }
+    figures = {}
+    for figure, expr in queries.items():
+        url = f"{PROMETHEUS_URL}/api/v1/query?" + urllib.parse.urlencode({"query": expr, "time": at})
+        try:
+            with urllib.request.urlopen(url, timeout=5) as response:
+                result = json.loads(response.read())["data"]["result"]
+        except (OSError, KeyError, ValueError):
+            return {}
+        for series in result:
+            figures.setdefault(series["metric"]["name"], {})[figure] = float(series["value"][1])
+    return figures
