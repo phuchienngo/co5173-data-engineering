@@ -32,3 +32,11 @@ Each dashboard has a link back to the app, and the app has a link to Grafana and
 
 - Prometheus currently collects metrics from ClickHouse and the Spark master/worker only. Since each run is its own Spark application, getting the run's own memory/CPU figures into Prometheus needs a decision in the plan.
 - Run-history figures are the main evidence for the report's "performance of the data engineering solution" part, so they must be stored in a way that survives restarts.
+
+## 4. Decided (see [plan-monitoring.md](../../plan/br5/plan-monitoring.md))
+
+- **Resource use over time** comes from the containers (CPU and memory of the Spark worker, the app that runs the Spark driver, and ClickHouse), every 5 s, not from each run's Spark application. Prometheus keeps it for 90 days.
+- **Each run also stores exact resource figures** with its history row: Spark's CPU, GC, shuffle, spill and peak memory, in total and per step; ClickHouse's queries, CPU, peak memory and rows read and written. These survive restarts.
+- **Step-level detail:** a Spark history server keeps each run's Spark web page after the run ends. It needs Spark's event log, which is a setting (on by default).
+- **Dashboards** sit in their own BR5 folder. Run figures come from the run history in ClickHouse; resource time series from Prometheus.
+- **Run History** is a fourth screen of the app, with the side-by-side comparison of two runs.
