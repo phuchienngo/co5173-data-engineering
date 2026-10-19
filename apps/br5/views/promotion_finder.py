@@ -48,6 +48,17 @@ def country_label(code):
     return ALL if code == ALL else f"{countries.get(code, code)} ({code})"
 
 
+# ?run=<id>: an earlier run's result (links from Run History and the benchmark).
+# The choices start as that run's, so the page reads as one run.
+asked = st.query_params.get("run")
+asked_result = backend.latest_result(asked) if asked else None
+if asked_result and st.session_state.get("choices_from") != asked:
+    st.session_state.choices_from = asked
+    criteria = asked_result["run"]["criteria"]
+    for key, options in (("hotel", hotels), ("country", countries), ("room_type", rooms)):
+        value = criteria.get(key, ALL)
+        st.session_state[key] = value if value in options else ALL
+
 st.caption("Choose who you want to reach. **All** for country or room type ranks them for you.")
 c1, c2, c3 = st.columns(3)
 c1.selectbox("Hotel", [ALL, *hotels], key="hotel")
@@ -103,8 +114,13 @@ def run_panel():
 run_panel()
 
 attempt = backend.latest_attempt()
-result = backend.latest_result()
-if attempt and result and attempt["run_id"] != result["run"]["run_id"]:
+result = asked_result if asked else backend.latest_result()
+if asked:
+    if result is None:
+        st.error(f"No succeeded analysis run with id {asked}.")
+        st.stop()
+    st.info("Showing an earlier run's result. Open the Promotion Finder without a run in the link for the latest.")
+elif attempt and result and attempt["run_id"] != result["run"]["run_id"]:
     if attempt["status"] == "failed":
         st.error(f"The last run failed, so the result below is from an earlier run.\n\n{attempt['error']}")
     elif attempt["status"] == "running" and not (status["busy"] and status["busy"]["run_id"] == attempt["run_id"]):

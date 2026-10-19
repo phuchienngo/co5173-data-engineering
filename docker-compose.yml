@@ -224,7 +224,8 @@ services:
     container_name: spark-worker
     profiles: ["full"]
     mem_limit: 2500m
-    cpus: 2.0
+    # BR5_WORKER_CORES: the BR5 benchmark's start-up sizes (docs/plan/br5/plan-benchmark.md); default 2.
+    cpus: ${BR5_WORKER_CORES:-2}
     user: "0:0"
     depends_on:
       - spark-master
@@ -232,7 +233,7 @@ services:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_CORES=${BR5_WORKER_CORES:-2}
       - SPARK_DAEMON_MEMORY=256m
       - PYTHONPATH=/opt/jobs/common
     configs:

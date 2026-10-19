@@ -216,9 +216,18 @@ def choices(import_id, min_bookings, remove_duplicates):
     return hotels, dict(countries), [r[0] for r in rooms]
 
 
-def latest_result():
-    """The latest succeeded analysis run with its months and cards, or None."""
-    run = runs.latest_analysis(client())
+def latest_result(run_id=None):
+    """The latest succeeded analysis run with its months and cards, or None.
+    With run_id: that run, if it is a succeeded analysis run."""
+    if run_id:
+        try:
+            run = runs.get_run(client(), run_id)
+        except Exception:  # not a UUID
+            return None
+        if not run or run["run_type"] != "analysis" or run["status"] != "succeeded":
+            return None
+    else:
+        run = runs.latest_analysis(client())
     if run is None:
         return None
     months, cards = runs.result_rows(client(), str(run["run_id"]))

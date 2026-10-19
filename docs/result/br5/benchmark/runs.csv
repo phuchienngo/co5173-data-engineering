@@ -1,0 +1,4 @@
+block,cell,input,live,preset,repeat,run_id,status,duration_s,started_at,finished_at,spark_app_id,rows_read
+S3,I3-L3,I3,L3,bench-read4,warmup,d8ed696f-3708-4d74-9008-30944a364670,succeeded,24.055,2026-10-19 08:41:59.892,2026-10-19 08:42:23.948,app-20261019084203-0001,35360
+S3,I3-L3,I3,L3,bench-read4,1,311594d3-3811-4330-a547-836b3eb52623,succeeded,23.394,2026-10-19 08:42:32.804,2026-10-19 08:42:56.199,app-20261019084236-0002,35360
+S3,I3-L3,I3,L3,bench-read4,2,fec5cf9c-4666-4dec-baae-8d17db9b2d03,succeeded,23.722,2026-10-19 08:43:03.812,2026-10-19 08:43:27.534,app-20261019084306-0003,35360

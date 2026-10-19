@@ -37,6 +37,11 @@ if not history:
 by_id = {str(r["run_id"]): r for r in history}
 
 
+def all_rows(n):
+    """Height that shows n rows without scrolling (for reading and screenshots)."""
+    return 35 * (n + 1) + 3
+
+
 def seconds(value):
     return "–" if value is None else f"{value:,.1f} s"
 
@@ -92,9 +97,11 @@ st.subheader("Compare two runs")
 ids = [str(r["run_id"]) for r in shown] or list(by_id)
 asked = st.query_params.get("run")
 asked = next((i for i in ids if i.startswith(asked)), None) if asked else None
+asked_a = st.query_params.get("a")  # run A, for example the benchmark's reference run
+asked_a = next((i for i in ids if i.startswith(asked_a)), None) if asked_a else None
 default_b = asked or ids[0]
 same_type = [i for i in ids if i != default_b and by_id[i]["run_type"] == by_id[default_b]["run_type"]]
-default_a = same_type[0] if same_type else next((i for i in ids if i != default_b), default_b)
+default_a = asked_a or (same_type[0] if same_type else next((i for i in ids if i != default_b), default_b))
 
 left, right = st.columns(2)
 run_a = by_id[left.selectbox("Run A", ids, index=ids.index(default_a), format_func=lambda i: label(by_id[i]))]
@@ -141,7 +148,7 @@ if run_a["run_type"] == "analysis":
                 ("Cards", str(run_a["result_count"]), str(run_b["result_count"]), "")]
 else:
     summary.append(("Rows written", f"{run_a['rows_written']:,}", f"{run_b['rows_written']:,}", ""))
-st.dataframe(pd.DataFrame(summary, columns=["", "A", "B", "B vs A"]), hide_index=True)
+st.dataframe(pd.DataFrame(summary, columns=["", "A", "B", "B vs A"]), hide_index=True, height=all_rows(len(summary)))
 
 links = st.columns(4)
 for col, run, name in ((links[0], run_a, "A"), (links[1], run_b, "B")):
@@ -185,7 +192,8 @@ def setting_label(key):
 
 if diff:
     st.dataframe(pd.DataFrame([{"Setting": setting_label(k), "Key": k, "A": "–" if a is None else a,
-                                "B": "–" if b is None else b} for k, a, b in diff]), hide_index=True)
+                                "B": "–" if b is None else b} for k, a, b in diff]), hide_index=True,
+                 height=all_rows(len(diff)))
 else:
     st.caption("Both runs used the same settings, on the same cluster.")
 
@@ -214,7 +222,7 @@ for container in backend.CONTAINERS:
                          "–" if a is None else f"{a / divisor:,.{decimals}f}",
                          "–" if b is None else f"{b / divisor:,.{decimals}f}"))
 if rows:
-    st.dataframe(pd.DataFrame(rows, columns=["", "A", "B"]), hide_index=True)
+    st.dataframe(pd.DataFrame(rows, columns=["", "A", "B"]), hide_index=True, height=all_rows(len(rows)))
     st.caption("Spark and ClickHouse figures are exact and stored with each run. Spark CPU time counts the JVM "
                "task threads only, not the Python workers of the parallel reader. Container figures come from "
                "Prometheus (samples every 5 s), so a run of a few seconds may have none.")

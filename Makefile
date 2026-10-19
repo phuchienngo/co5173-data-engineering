@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -27,6 +27,8 @@ help:
 	@echo "  make br5-status       BR5: show what data is stored"
 	@echo "  make br5-test         BR5: unit tests (rules, settings, monitoring helpers)"
 	@echo "  make br5-check-dashboards  BR5: run every Grafana panel query, report errors"
+	@echo "  make br5-bench BLOCK=S2     BR5 benchmark: run a block (S1, S2, S3); options: CELLS=I3-L3 ARGS=--clickhouse"
+	@echo "  make br5-bench-screens BLOCK=S2  BR5 benchmark: screenshots of a block (needs Playwright)"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"
@@ -57,6 +59,14 @@ br5-test:
 
 br5-check-dashboards:
 	python3 tests/br5/check_dashboards.py
+
+BR5_CELLS_ARGS = $(if $(CELLS), --cells $(CELLS),)
+
+br5-bench:
+	python3 tests/br5/benchmark.py block $(BLOCK)$(BR5_CELLS_ARGS) $(ARGS)
+
+br5-bench-screens:
+	python3 tests/br5/benchmark.py screens $(BLOCK)$(BR5_CELLS_ARGS)
 
 logs:
 	mkdir -p logs/demo

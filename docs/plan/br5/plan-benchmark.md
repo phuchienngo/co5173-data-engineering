@@ -82,8 +82,8 @@ The benchmark script saves these presets, so they appear in the app and in Grafa
 |---|---|
 | `docker-compose.yml` | `spark-worker`: `SPARK_WORKER_CORES=${BR5_WORKER_CORES:-2}` and `cpus: ${BR5_WORKER_CORES:-2}` (D3). |
 | `tests/br5/benchmark.py` | The driver, with sub-commands below. Run from the host. |
-| `apps/br5/views/promotion_finder.py`, `backend.py` | `?run=<id>`: show that run's result with a note "an earlier run" (D10). |
-| `apps/br5/views/run_history.py` | `?a=<id>` for run A (D10). |
+| `apps/br5/views/promotion_finder.py`, `backend.py` | `?run=<id>`: show that run's result with a note "an earlier run", and set the three choices to that run's (D10). |
+| `apps/br5/views/run_history.py` | `?a=<id>` for run A (D10). The compare tables are as tall as their rows: they scrolled inside a fixed height, which cut rows off a screenshot. |
 | `Makefile` | `br5-bench BLOCK=S1` and `br5-bench-screens BLOCK=S1`. |
 | `docs/guide/br5/config-guide.md` | The `BR5_WORKER_CORES` variable in the restart guide. |
 
@@ -91,7 +91,7 @@ The benchmark script saves these presets, so they appear in the app and in Grafa
 - **`presets`:** saves the four presets of 3.3 and 3.4.
 - **`block S1|S2|S3`:**
   1. Restarts `spark-worker` with the block's cores if needed, and waits until the Spark master reports a worker with that many cores.
-  2. Runs one warm-up.
+  2. Runs one warm-up: the first selected cell, recorded as `warmup` and left out of the figures.
   3. Runs the cells interleaved (D8) through `scripts/br5.py run --preset ...`, and adds a third run where the two differ by more than 15%.
   4. Appends each run to the manifest `docs/result/br5/benchmark/runs.csv`: block, cell, input, preset, repeat, run id, status and run time.
   5. Ends with `--clickhouse` in S2 for C1.
@@ -122,7 +122,7 @@ Saved under `docs/result/br5/benchmark/<cell>/`, for example `S2-I1-L2/`. They c
 |---|---|---|---|
 | `finder.jpg` | Promotion Finder `?run=<id>`, run summary (R4) expanded | The cards, low season and the run's figures: run time, rows read and used, settings source | Every cell |
 | `compare.jpg` | Run History `?a=<reference>&run=<id>` | Run time and steps side by side, the settings that differ, resource figures, "same result: yes" | L1 and L3 against L2 of the same input and block. S1/S3 L2 against S2 L2. C1 against S2 L2 |
-| `resources.jpg` | Grafana BR5 Resource use (kiosk mode), from 10 s before the run to 10 s after | CPU and memory of `spark-worker`, `br5-app` and `clickhouse`, with the run shaded and the worker's CPU limit | Every Spark cell (ClickHouse runs are shorter than one 5 s sample) |
+| `resources.jpg` | Grafana BR5 Resource use (kiosk mode), from 2 s before the run to 2 s after (interleaved runs follow each other within seconds, so a wider window shows parts of the neighbours and inflates "CPU seconds used") | CPU and memory of `spark-worker`, `br5-app` and `clickhouse`, with the run shaded and the worker's CPU limit | Every Spark cell (ClickHouse runs are shorter than one 5 s sample) |
 | `spark.jpg` | Spark history, the application's Jobs page | Jobs named after the steps, with their durations | Every Spark cell |
 
 Summary screenshots in `docs/result/br5/benchmark/summary/`:
@@ -130,7 +130,7 @@ Summary screenshots in `docs/result/br5/benchmark/summary/`:
 - `startup.jpg`: Run performance with "Compare by setting" = `cluster.worker_cores`, filtered to `bench-default` and I1. Shows the median per worker size.
 - `history.jpg`: the Run History table with all benchmark runs.
 
-That is about 110 images. The script waits for each page to finish loading: the app's "Running" indicator gone, and Grafana panels without a loading state. It fails loudly instead of saving a half-drawn page.
+That is about 110 images. The script logs in to Grafana through its login API. It waits for each page to finish loading: the app's "Running" indicator gone, and Grafana panels without a loading state. It fails loudly instead of saving a half-drawn page.
 
 ## 7. Report tables (`benchmark.py report`)
 
@@ -152,7 +152,7 @@ That is about 110 images. The script waits for each page to finish loading: the 
 | # | Check | Pass when |
 |---|---|---|
 | 1 | Each run used its intended start-up configuration | The run's snapshot `cluster.worker_cores` equals the block's cores. Prometheus `container_spec_cpus` for `spark-worker` matches during the block |
-| 2 | Each run used its intended live settings | `launch.settings_from` is the cell's preset. For L1, Spark reports AQE off and broadcast -1. For L3, the parallel reader made 4 slices: ClickHouse rows read = 4 × rows read |
+| 2 | Each run used its intended live settings | `launch.settings_from` is the cell's preset. For L1, Spark reports AQE off and broadcast -1. For L3, the parallel reader sent 4 read queries whose rows add up to the rows read. ClickHouse's own "rows read" counts the rows it scanned, not the rows returned (the index granules matching the filter, once per slice), so it is not a simple multiple |
 | 3 | Inputs read what 3.1 says | Rows read per input equals the table (×10 counts) in every cell |
 | 4 | Same input, same result | For each input, all Spark cells and C1 give the same cards and month rows (`same_result`). The settings change speed, never the answer |
 | 5 | All runs succeeded; repeats are close | No failed run in the manifest (or the failure is reported as a finding, see R2). Each cell's runs are within 15%, or have a third run |
@@ -165,7 +165,7 @@ That is about 110 images. The script waits for each page to finish loading: the 
 - **R2 Driver reader at ×10.** The baseline pulls 1.19 M rows through the 512 MB driver. Step 1 tests this first. If it runs out of memory, that is a finding (the naive reader doesn't scale). In that case the plan is changed to give `bench-baseline` 1 GB of driver memory, so the other baseline cells still run, and this is noted.
 - **R3 S1 is slow.** The baseline on 1 core may take 3–4 min per run. It is included because it shows the start-up effect most strongly.
 - **R4 4 cores with 512 MB executor memory.** Four tasks share one small heap, so S3 may show more GC or spill. That is a real result: memory per core shrinks. GC and spill figures are recorded with each run.
-- **R5 Compose interpolation of `cpus`.** If Compose rejects a variable there, a small override file for the benchmark sets it instead (the plan is updated).
+- **R5 Compose interpolation of `cpus`.** Checked: Compose accepts `${BR5_WORKER_CORES:-2}` there.
 - **R6 Screenshot size.** About 110 JPEGs of about 200 KB each. If the total grows past about 40 MB, they move to Git LFS.
 
 ## 10. Not covered
@@ -173,3 +173,15 @@ That is about 110 images. The script waits for each page to finish loading: the 
 - ×1 and ×50: ×1 figures are in result-pipeline.md and result-monitoring.md; ×50 is left out (D1).
 - Import benchmarks: the writers are compared in result-data-import.md.
 - Single-setting studies for caching, the serializer, skew handling and shuffle partitions; several workers; table layouts (C9).
+
+## 11. Status
+
+**Trial cell (2026-10-19): S3-I3-L3**, to check the process before the full matrix:
+- **Process:** the worker restart to 4 cores, the warm-up and 2 measured runs all worked. The two runs were 23.4 and 23.7 s, so no third run was needed.
+- **Checks 1–4 passed:**
+  - The snapshot shows `cluster.worker_cores` 4, cores max 4 and read partitions 4.
+  - Prometheus shows a CPU limit of 4.
+  - There were 4 read queries, whose rows add up to 35,360.
+  - Same result: yes.
+- **Screenshots:** the 4 files are 150–300 KB each. A first version showed All / All / All above a run's result, cut rows in the compare tables and part of the next run in the Grafana window; all three are fixed (sections 4 and 6).
+- **Not yet built:** the `report` sub-command.

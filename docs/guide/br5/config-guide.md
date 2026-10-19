@@ -20,9 +20,9 @@ Most settings change live: edit them on the app's **Advanced Settings** page (ht
 
 | Setting | File and line | Restart |
 |---|---|---|
-| [Spark worker memory and cores](#spark-worker-memory-and-cores) | `docker-compose.yml` lines 234–235 | `spark-worker` |
+| [Spark worker memory and cores](#spark-worker-memory-and-cores) | `docker-compose.yml` lines 235–236 (cores: also `BR5_WORKER_CORES`) | `spark-worker` |
 | [Container memory and CPU limits](#container-memory-and-cpu-limits) | `docker-compose.yml`, `mem_limit` / `cpus` of each service | the changed service |
-| [Spark background memory](#spark-background-memory-spark_daemon_memory) | `docker-compose.yml` lines 208 and 236 | `spark-master`, `spark-worker` |
+| [Spark background memory](#spark-background-memory-spark_daemon_memory) | `docker-compose.yml` lines 208 and 237 | `spark-master`, `spark-worker` |
 | [ClickHouse server settings](#clickhouse-server-settings) | `docker-compose.yml` lines 27–32 and 149–150 | `clickhouse` |
 | [Prometheus scrape interval](#prometheus-scrape-interval) | `docker-compose.yml` lines 43 and 68 | `prometheus` |
 
@@ -33,11 +33,17 @@ Line numbers are those of the version this guide was written with. If they have 
 - **What it does:** the total memory and cores the Spark worker offers to runs. It is the ceiling for the per-run settings "Executor memory", "Cores per executor" and "Total cores". The Advanced Settings page blocks a run whose executor can never fit in it.
 - **Where:** `docker-compose.yml`, service `spark-worker`:
   ```yaml
-  - SPARK_WORKER_MEMORY=2G     # line 234
-  - SPARK_WORKER_CORES=2       # line 235
+  - SPARK_WORKER_MEMORY=2G                         # line 235
+  - SPARK_WORKER_CORES=${BR5_WORKER_CORES:-2}     # line 236
   ```
-  Keep the container limit above the worker memory: the same service's `mem_limit` (line 226, `2500m`) must cover the worker memory plus about 300 MB for the worker process itself. Keep `cpus` (line 227) at least equal to the cores.
-- **Sample value:** `SPARK_WORKER_MEMORY=3G`, `SPARK_WORKER_CORES=3`, with `mem_limit: 3500m` and `cpus: 3.0`. The laptop must have that much free memory.
+  Keep the container limit above the worker memory: the same service's `mem_limit` (line 226, `2500m`) must cover the worker memory plus about 300 MB for the worker process itself. `cpus` (line 228) follows the cores.
+
+  The cores can also be set without editing the file: the environment variable `BR5_WORKER_CORES` sets both `SPARK_WORKER_CORES` and `cpus` (default 2). The benchmark uses it ([plan-benchmark.md](../../plan/br5/plan-benchmark.md)):
+  ```bash
+  BR5_WORKER_CORES=4 docker compose --profile full up -d --no-deps spark-worker
+  ```
+  Run the same command without the variable to go back to 2 cores. `python tests/br5/benchmark.py restore` does that too.
+- **Sample value:** `SPARK_WORKER_MEMORY=3G`, `SPARK_WORKER_CORES=3`, with `mem_limit: 3500m` (cores: `BR5_WORKER_CORES=3`). The laptop must have that much free memory.
 - **Restart:** `spark-worker`.
 - **Confirm:**
   - The "Needs restart" section at the bottom of Advanced Settings shows the new worker memory and cores.
@@ -53,11 +59,11 @@ Line numbers are those of the version this guide was written with. If they have 
   | `clickhouse` | 130–131 | 1g, 1.0 |
   | `kafka` (not used by BR5) | 165–166 | 1g, 1.0 |
   | `spark-master` | 203–204 | 512m, 0.5 |
-  | `spark-worker` | 226–227 | 2500m, 2.0 |
-  | `spark-local` | 257–258 | 6g, 2.0 |
-  | `br5-app` (runs the Spark driver of every BR5 job) | 286–287 | 2g, 1.0 |
-  | `spark-history` (BR5 monitoring) | 329–330 | 512m, 0.5 |
-  | `docker-stats` (BR5 monitoring) | 359–360 | 128m, 0.25 |
+  | `spark-worker` | 226 and 228 | 2500m, `BR5_WORKER_CORES` (default 2) |
+  | `spark-local` | 258–259 | 6g, 2.0 |
+  | `br5-app` (runs the Spark driver of every BR5 job) | 287–288 | 2g, 1.0 |
+  | `spark-history` (BR5 monitoring) | 330–331 | 512m, 0.5 |
+  | `docker-stats` (BR5 monitoring) | 360–361 | 128m, 0.25 |
 
 - **Sample value:** `clickhouse` with `mem_limit: 2g` and `cpus: 2.0`.
 - **Restart:** the changed service. If you change `br5-app`, the app reloads; a job it started is stopped.
@@ -68,7 +74,7 @@ Line numbers are those of the version this guide was written with. If they have 
 ### Spark background memory (`SPARK_DAEMON_MEMORY`)
 
 - **What it does:** the memory of the Spark master and worker processes themselves, not of the runs. It only needs to grow with many workers or a long history of applications.
-- **Where:** `docker-compose.yml`, `SPARK_DAEMON_MEMORY=256m` in `spark-master` (line 208) and `spark-worker` (line 236). The `spark-history` service has its own (line 337).
+- **Where:** `docker-compose.yml`, `SPARK_DAEMON_MEMORY=256m` in `spark-master` (line 208) and `spark-worker` (line 237). The `spark-history` service has its own (line 338).
 - **Sample value:** `512m`. Raise the container's `mem_limit` by the same amount.
 - **Restart:** `spark-master` and `spark-worker` (restart the master first).
 - **Confirm:** `docker top spark-worker` shows the Java command line with `-Xmx512m`.
