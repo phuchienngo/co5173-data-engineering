@@ -1,12 +1,16 @@
 """Checks that two BR5 analysis runs gave the same answer.
 
 Used to verify the engines against each other (C13), determinism and the
-multiplier (plan-pipeline.md section 10). Figures are rounded to 2 decimals:
-floating-point sums can differ in the last digits between engines.
+multiplier (plan-pipeline.md section 10). Figures are equal within a relative
+1e-9: floating-point sums differ in their last bits when they are added in
+another order (another engine, or another number of read partitions).
+Rounding both to 2 decimals first is not enough: 102.08499999999998 and
+102.0850000000001 round to 102.08 and 102.09 (plan-benchmark.md, section 11).
 
     python3 compare_runs.py RUN_ID_A RUN_ID_B      (inside br5-app)
 """
 
+import math
 import sys
 
 import runs
@@ -15,10 +19,13 @@ SKIP = {"run_id"}
 
 
 def normalized(rows):
-    out = []
-    for row in rows:
-        out.append({k: round(v, 2) if isinstance(v, float) else v for k, v in row.items() if k not in SKIP})
-    return out
+    return [{k: v for k, v in row.items() if k not in SKIP} for row in rows]
+
+
+def same_value(a, b):
+    if isinstance(a, float) and isinstance(b, float):
+        return math.isclose(a, b, rel_tol=1e-9, abs_tol=1e-9)
+    return a == b
 
 
 def settings_diff(a, b):
@@ -41,7 +48,7 @@ def differences(client, run_a, run_b):
             continue
         for row_a, row_b in zip(a, b):
             for key in row_a:
-                if row_a[key] != row_b[key]:
+                if not same_value(row_a[key], row_b[key]):
                     where = f"rank {row_a['target_rank']}" + (f" month {row_a['month']}" if name == "month" else "")
                     problems.append(f"{name} {where} {key}: {row_a[key]!r} vs {row_b[key]!r}")
     return problems, len(cards_a), len(months_a)

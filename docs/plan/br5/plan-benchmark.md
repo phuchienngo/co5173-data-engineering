@@ -145,7 +145,7 @@ That is about 110 images. The script logs in to Grafana through its login API. I
   - ClickHouse rows read
 - **E. Results:** cards and low season per input, identical across all cells.
 
-`docs/result/br5/result-benchmark.md` gets these tables, the observations for the report, and the screenshot index.
+`docs/result/br5/result-benchmark.md` gets these tables, the observations for the report, and the screenshot index. It is updated after each block, not only at the end.
 
 ## 8. Verification (that the benchmark measured what it claims)
 
@@ -154,7 +154,7 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 | 1 | Each run used its intended start-up configuration | The run's snapshot `cluster.worker_cores` equals the block's cores. Prometheus `container_spec_cpus` for `spark-worker` matches during the block |
 | 2 | Each run used its intended live settings | `launch.settings_from` is the cell's preset. For L1, Spark reports AQE off and broadcast -1. For L3, the parallel reader sent 4 read queries whose rows add up to the rows read. ClickHouse's own "rows read" counts the rows it scanned, not the rows returned (the index granules matching the filter, once per slice), so it is not a simple multiple |
 | 3 | Inputs read what 3.1 says | Rows read per input equals the table (×10 counts) in every cell |
-| 4 | Same input, same result | For each input, all Spark cells and C1 give the same cards and month rows (`same_result`). The settings change speed, never the answer |
+| 4 | Same input, same result | For each input, all Spark cells and C1 give the same cards and month rows (`same_result`; numbers equal within a relative 1e-9, since sums added in another order differ in their last bits). The settings change speed, never the answer |
 | 5 | All runs succeeded; repeats are close | No failed run in the manifest (or the failure is reported as a finding, see R2). Each cell's runs are within 15%, or have a third run |
 | 6 | Screenshots complete and readable | One folder per cell with its files, and the summary set. I open a sample from each block to check that the figures are visible and match the manifest |
 | 7 | Stack restored | Worker back to 2 cores; `make br5-check-dashboards` passes |
@@ -176,20 +176,4 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 
 ## 11. Status
 
-**Trial cell (2026-10-19): S3-I3-L3**, to check the process before the full matrix:
-- **Process:** the worker restart to 4 cores, the warm-up and 2 measured runs all worked. The two runs were 23.4 and 23.7 s, so no third run was needed.
-- **Checks 1–4 passed:**
-  - The snapshot shows `cluster.worker_cores` 4, cores max 4 and read partitions 4.
-  - Prometheus shows a CPU limit of 4.
-  - There were 4 read queries, whose rows add up to 35,360.
-  - Same result: yes.
-- **Screenshots:** the 4 files are 150–300 KB each. A first version showed All / All / All above a run's result, cut rows in the compare tables and part of the next run in the Grafana window; all three are fixed (sections 4 and 6).
-- **Not yet built:** the `report` sub-command.
-
-**S3-L3 for the other two inputs (2026-10-19):** I1-L3 and I2-L3, after one warm-up (I1-L3, 27.7 s).
-- **Run times:** I1 27.1 and 27.2 s; I2 24.5 and 25.4 s. Each pair is within 4%.
-- **Checks 1–4 passed:**
-  - Every run used 4 cores, cores max 4 and 4 read partitions.
-  - Rows read were 1,193,900 (I1) and 309,600 (I2); each run's 4 read queries add up to these exactly.
-  - Same result within each cell: yes (10 cards / 132 month rows; 5 cards / 72 month rows).
-- **Screenshots:** the 4 files per cell are saved. The I1 result page is 7,841 px tall with its 10 cards, so the script's height limit was raised from 8,000 to 12,000 px.
+The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. Done so far: block S3. Still to run: S2 with C1, then S1. Not yet built: the `report` sub-command.

@@ -86,6 +86,13 @@ class SettingsDiff(unittest.TestCase):
         snap = {"spark.sql.adaptive.enabled": "true", "cluster.worker_cores": "2"}
         self.assertEqual(compare_runs.settings_diff(snap, dict(snap)), [])
 
+    def test_same_value_ignores_summation_order(self):
+        # Seen in the benchmark: 4 read partitions vs 2 (plan-benchmark.md, section 11).
+        self.assertTrue(compare_runs.same_value(102.08499999999998, 102.0850000000001))
+        self.assertTrue(compare_runs.same_value(0.0, 1e-12))
+        self.assertFalse(compare_runs.same_value(102.08, 102.09))
+        self.assertFalse(compare_runs.same_value("A", "B"))
+
     def test_differences_and_missing_keys_in_order(self):
         a = {"launch.settings_from": "current settings", "effective.spark.sql.adaptive.enabled": "true",
              "spark.sql.adaptive.enabled": "true", "pipeline.join": "late", "cluster.worker_cores": "2"}

@@ -242,4 +242,4 @@ else:
     if problems:
         st.error(f"Different: {len(problems)} differences. First ones:\n\n" + "\n".join(f"- {p}" for p in problems[:10]))
     else:
-        st.success(f"Yes: the {cards} cards and {months} month rows match (figures rounded to 2 decimals).")
+        st.success(f"Yes: the {cards} cards and {months} month rows match (figures equal to 9 significant digits).")
