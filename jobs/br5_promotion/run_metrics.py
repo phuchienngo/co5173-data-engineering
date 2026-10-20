@@ -70,9 +70,16 @@ def summarize_spark(executors, stages, jobs):
     return figures
 
 
-def _get(url, timeout):
-    with urllib.request.urlopen(url, timeout=timeout) as response:
-        return json.loads(response.read())
+def _get(url, timeout, attempts=2):
+    # The driver's page shares br5-app's one CPU with the app; under load it
+    # once took longer than 3 s to answer (plan-benchmark.md, section 11).
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as response:
+                return json.loads(response.read())
+        except OSError:
+            if attempt == attempts - 1:
+                raise
 
 
 def spark_ui(spark):
@@ -83,7 +90,7 @@ def spark_ui(spark):
     return sc.uiWebUrl, sc.applicationId
 
 
-def spark_figures(ui, timeout=3):
+def spark_figures(ui, timeout=10):
     url, app_id = ui
     if not url:  # spark.ui.enabled=false
         return {}

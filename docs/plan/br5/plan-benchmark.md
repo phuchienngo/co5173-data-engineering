@@ -176,4 +176,4 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 
 ## 11. Status
 
-The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. Done so far: block S3. Still to run: S2 with C1, then S1. Not yet built: the `report` sub-command.
+The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. Done so far: blocks S3, and S2 with C1. Still to run: S1. Not yet built: the `report` sub-command.
