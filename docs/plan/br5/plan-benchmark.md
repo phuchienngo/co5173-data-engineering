@@ -44,29 +44,68 @@ The choices are pushed down into the ClickHouse query, so the rows read really d
 
 ### 3.2 Start-up configurations (need a restart)
 
-| ID | Spark worker | Restart |
-|---|---|---|
-| S1 | 1 core, 2 GB | `spark-worker` only, done by the benchmark script |
-| S2 | 2 cores, 2 GB (the current setup) | – |
-| S3 | 4 cores, 2 GB | `spark-worker` only |
+Only the Spark worker's cores change. They are set by one environment variable, `BR5_WORKER_CORES`, which `docker-compose.yml` passes to two places (service `spark-worker`):
 
-ClickHouse (1 CPU, 1 GB) and the app container are the same in all three.
+| ID | `BR5_WORKER_CORES` | `SPARK_WORKER_CORES` (cores the worker offers Spark) | Container `cpus` (CPU limit of `spark-worker`) | What a run gets | Restart |
+|---|---|---|---|---|---|
+| S1 | 1 | 1 | 1 | 1 executor with 1 core | `spark-worker` only, done by the benchmark script |
+| S2 | unset (default 2) | 2 | 2 | 1 executor with 2 cores | – (the project's normal setup) |
+| S3 | 4 | 4 | 4 | 1 executor with 4 cores | `spark-worker` only |
+
+"What a run gets" follows from two live settings left at their defaults: `spark.executor.cores` is unset, so one executor takes all the worker's cores, and `spark.cores.max` is 4 in every Spark preset (3.3), so the worker's cores are the limit.
+
+The same in all three:
+
+| Container | Setting | Value |
+|---|---|---|
+| `spark-worker` | `SPARK_WORKER_MEMORY` (memory the worker offers Spark) / `mem_limit` | 2G / 2500m. A run's executor uses 512m plus 384m overhead, so memory is never the limit |
+| `spark-master` | `cpus` / `mem_limit` | 0.5 / 512m |
+| `br5-app` (Streamlit app and the Spark driver) | `cpus` / `mem_limit` | 1.0 / 2g; driver memory 512m |
+| `clickhouse` | `cpus` / `mem_limit` | 1.0 / 1g; server settings at ClickHouse's defaults |
 
 ### 3.3 Live settings (presets, applied per run)
 
-| ID | Preset | Settings |
-|---|---|---|
-| L1 | `bench-baseline` | The built-in `baseline` (driver reader, early join, no cache, broadcast off, AQE off) + cores max 4 |
-| L2 | `bench-default` | Defaults + cores max 4 |
-| L3 | `bench-read4` | Defaults + cores max 4 + read partitions 4 |
+A preset is a named set of values from the Advanced Settings page (`jobs/br5_promotion/run_settings.py`). The benchmark script saves these presets, so they appear in the app and in Grafana's "settings from" filter.
 
-The benchmark script saves these presets, so they appear in the app and in Grafana's "settings from" filter.
+| ID | Preset | Built from |
+|---|---|---|
+| L1 | `bench-baseline` | The built-in `baseline` preset (the naive variant) + `spark.cores.max=4` |
+| L2 | `bench-default` | All defaults + `spark.cores.max=4` |
+| L3 | `bench-read4` | All defaults + `spark.cores.max=4` + `pipeline.read_partitions=4` |
+
+**Every setting that differs between the presets or from the default** (bold = differs from the default):
+
+| Setting | What it controls | Default | L1 | L2 | L3 | C1 (3.4) |
+|---|---|---|---|---|---|---|
+| `spark.cores.max` | The most cores one run may take from the cluster | 2 | **4** | **4** | **4** | 2 (no Spark) |
+| `pipeline.engine` | `spark`: the Spark pipeline. `clickhouse`: the same totals as ClickHouse SQL, no Spark | spark | spark | spark | spark | **clickhouse** |
+| `pipeline.reader` | `parallel`: N Spark tasks each query their own slice (`source_row % N = i`) from ClickHouse. `driver`: one query on the driver, whose rows are then sent to the executor (`spark.createDataFrame`) | parallel | **driver** | parallel | parallel | – |
+| `pipeline.read_partitions` | N, the slices of the parallel reader | 2 | 2 (not used) | 2 | **4** | – |
+| `pipeline.join` | `late`: group on integer keys, attach names to the result rows only. `early`: join every booking with the 4 lookup tables (room, country, channel, date) before cleaning | late | **early** | late | late | – |
+| `pipeline.cache` | Keep the cleaned bookings (`persist`, level `MEMORY_AND_DISK`) for the clean, aggregate and profile steps. Off: each step recomputes them from the read | true | **false** | true | true | – |
+| `spark.sql.adaptive.enabled` | AQE: re-plan with real sizes; merges small shuffle partitions (into 64m targets) and splits skewed join partitions | true | **false** | true | true | – |
+| `spark.sql.autoBroadcastJoinThreshold` | Tables under this size are copied to every executor instead of shuffled. -1: never, so every join is a sort-merge join | 10m | **-1** | 10m | 10m | – |
+| `pipeline.writer` | How an import writes to ClickHouse. Part of the built-in `baseline`; **no effect on an analysis run** | partitions | pandas | partitions | partitions | partitions |
+
+"–" means the setting is ignored by that engine.
+
+**Left at their defaults in all four presets**, so they are the same in every run:
+- Resources: `spark.executor.memory` 512m, `spark.executor.cores` unset (one executor takes all the worker's cores), `spark.driver.memory` 512m.
+- Shuffle: `spark.sql.shuffle.partitions` 200. With AQE on, these are merged into a few (21–41 Spark tasks per run in total); with AQE off (L1), every shuffle runs 200 tasks (4,245–4,861 per run). `spark.shuffle.compress` true, `spark.io.compression.codec` lz4.
+- AQE details (used only when AQE is on): `coalescePartitions.enabled` true, `advisoryPartitionSizeInBytes` 64m, `skewJoin.enabled` true (factor 5, threshold 256m).
+- Memory: `spark.memory.fraction` 0.6, `spark.memory.storageFraction` 0.5, off-heap off.
+- `spark.serializer` java, `pipeline.storage_level` MEMORY_AND_DISK.
+- ClickHouse per-query limits: `clickhouse.max_threads` 0 and `clickhouse.max_memory_usage` 0 (both: the server's default).
+- `spark.eventLog.enabled` true (needed for the Spark screenshots).
+- All analysis rules (`rules.*`: low-season threshold 60%, minimum bookings 100, top 10 cards, …). They change the answer, not the performance, so the answer depends on the input only.
 
 ### 3.4 ClickHouse engine
 
 | ID | Preset | Runs |
 |---|---|---|
-| C1 | `bench-clickhouse`: defaults + engine `clickhouse` | I1, I2, I3 in the S2 block, 3 runs each (about 3 s per run) |
+| C1 | `bench-clickhouse`: all defaults + `pipeline.engine=clickhouse` (column C1 above) | I1, I2, I3 in the S2 block, 3 runs each (about 3 s per run) |
+
+The ClickHouse engine runs as a Python job in `br5-app` that sends 4 SQL queries to ClickHouse; no Spark session is created. So the Spark settings and the worker's cores don't apply to it. Its resources are ClickHouse's 1 CPU and 1 GB, plus `br5-app` for the Python side.
 
 ### 3.5 Counts
 
@@ -176,4 +215,4 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 
 ## 11. Status
 
-The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. Done so far: blocks S3, and S2 with C1. Still to run: S1. Not yet built: the `report` sub-command.
+The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. All blocks are done: S1, S2 with C1, and S3 (78 runs, all succeeded). Not built: the `report` sub-command and the summary screenshots (section 6); `result-benchmark.md` has the report tables instead.
