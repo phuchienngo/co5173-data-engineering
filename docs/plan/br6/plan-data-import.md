@@ -4,7 +4,7 @@ Implements [spec-data-import.md](../../spec/br6/spec-data-import.md) (D1–D14 a
 
 **Status:** implemented and tested end to end on 2026-10-23; figures in [result-data-import.md](../../result/br6/result-data-import.md).
 
-This plan follows [BR5's import plan](../br5/plan-data-import.md) step by step and says only where BR6 differs. It does not cover the Route Finder pipeline, the Advanced Settings screen or the Grafana dashboards; each will get its own plan. Two things built here are reused by them: the run history and settings tables, and the BR6 job modules.
+This plan follows [BR5's import plan](../br5/plan-data-import.md) step by step and says only where BR6 differs. It does not cover the Route Finder pipeline and the Advanced Settings screen ([plan-pipeline.md](plan-pipeline.md)), or the Grafana dashboards (monitoring plan). Two things built here are reused by them: the run history and settings tables, and the BR6 job modules.
 
 ## 1. Decisions taken in this plan
 

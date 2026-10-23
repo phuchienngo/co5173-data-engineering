@@ -33,13 +33,14 @@ Reached from the menu *Advanced Settings*, then the *Route Finder* panel (main s
 |---|---|---|
 | **Finding places near the route** | **Method:** compare every place of the city with the route (baseline), or first sort places into a grid of small squares and compare only the squares the route passes through (optimized) | How much work the route matching needs; the main speed-up for large cities |
 | | **Square size** (for the optimized method) | Too small: many squares to check; too large: little saved |
+| | **Distance function:** native Spark expressions (optimized), `pandas_udf`, or a plain Python UDF (baseline) | How costly each distance is. With native expressions the grid saves little at 49k places; with the Python UDF its saving shows |
 | **Place statistics** | Compute popularity and visitor habits at **every run** (baseline), or **once at import** and reuse them (optimized) | Run time vs. import time and freshness after a re-grouping of categories |
 | **Reading and writing** | Same as BR5: engine (Spark, or ClickHouse SQL as the alternative solution), parallel or single-path reading and writing, number of readers and writers, ClickHouse per-query limits | Where the work is done; speed of reading and writing |
 
 | ID | Requirement | Priority |
 |---|---|---|
 | C8 | Keep the simple, single-path write as a "baseline" choice next to the parallel one | Should |
-| C9 | Both place-matching methods give **exactly the same list** for the same choices; only speed differs | Must |
+| C9 | Both place-matching methods, and all three distance functions, give **exactly the same list** for the same choices; only speed differs | Must |
 | C10 | The ClickHouse SQL engine gives the same list as the Spark engine, so the two can be compared fairly | Could |
 | C11 | Selectable ClickHouse table layouts (sorting/partitioning), applied on the next import | Could |
 
@@ -52,8 +53,9 @@ These control **what the suggestions say**, not how fast they are produced. They
 | Maximum detour from the route | 1 km |
 | Number of suggestions shown | 10 |
 | Score weights: popularity / fit / closeness | 50% / 30% / 20% |
+| Score weights for General visitor: popularity / closeness | 70% / 30% |
 | Minimum different visitors for a place to be suggested | 3 |
-| Minimum check-ins for a visitor to be offered | 10 |
+| Minimum check-ins for a visitor to be offered (offered place types only) | 10 |
 | Distance from the city centre beyond which a check-in is excluded | 100 km |
 | Category → place type table | the file in the repository (see import spec D13) |
 

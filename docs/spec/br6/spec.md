@@ -58,7 +58,8 @@ BR6 has **no web app of its own**. It reuses the BR5 app (left menu: Promotion F
 | Q5 | **Place types** | one or more of the place groups in 3.4 | all | Must |
 | Q6 | **Visitor** | an existing visitor of the chosen city, or **General visitor** | General visitor | Must |
 
-- The place search shows name, category and address (when known), because many places share a name. Only places with a known location can be picked; private homes are not listed.
+- The place search shows name, category and address (when known), because many places share a name. Only places with a known location within the city limit (3.5) can be picked, of any type (a hotel or a station is a fair start); private homes (*Home (private)*) are not listed.
+- The start, the end and the stops are never suggested.
 - Choosing a **visitor** makes the ranking personal: the app uses that visitor's own past check-ins (see 3.3). Visitors are anonymous numbers; the list shows how many check-ins each has and their favourite place types. Only visitors with enough history are offered (see 3.5). **General visitor** ranks by popularity and closeness only.
 - How far off the route a place may be, how many suggestions to show and how the ranking is weighed are **team settings**, not user choices (see the config spec).
 - The button is disabled while a run is in progress; only one run at a time, with a clear "busy" message. A run started from the app can be stopped.
@@ -67,7 +68,7 @@ BR6 has **no web app of its own**. It reuses the BR5 app (left menu: Promotion F
 
 | ID | Result | Priority |
 |---|---|---|
-| R1 | **Route summary:** start → stops → end, route length in km, number of places found near the route and how many remain after the filters | Must |
+| R1 | **Route summary:** start → stops → end, route length in km, number of places found near the route (any type) and how many remain after the filters (chosen place types, minimum visitors) | Must |
 | R2 | **Suggestion list:** one card per place (below), ranked, top 10 by default | Must |
 | R3 | **Supporting figures:** the full list of places near the route with their scores, and the number of suggestions per place type | Should |
 | R4 | **Run summary:** run time, settings used, check-ins read, used and excluded with reasons (collapsed by default, mostly for the team) | Must |
@@ -88,18 +89,20 @@ If nothing is found, show "no places within the allowed detour for these choices
 
 ### 3.3 Definitions
 
-- **Route:** straight lines from the start through the stops to the end. The data has no road network, so the app does not know roads, travel time or traffic; all distances are straight-line distances in km. The app states this on the result page.
+- **Route:** straight lines from the start through the stops to the end. The data has no road network, so the app does not know roads, travel time or traffic; all distances are straight-line distances in km, measured on a flat map of the city around its centre (about 1% off at 100 km from the centre). The app states this on the result page.
 - **Detour** of a place = its straight-line distance to the nearest point of the route. A place is a **candidate** if its detour is within the maximum detour (default **1 km**).
 - **Position** = distance along the route from the start to the point nearest to the place.
 - **Visit** = one check-in. The whole period in the data is used (2012–2013 and 2017–2018); no year or month choice is asked.
 - **Popularity** of a place = number of **different visitors** who checked in there (check-ins as tie-breaker). **Frequency** of a visitor at a place = that visitor's check-ins there.
 - **Score** has three parts, each from 0 to 1, combined with team weights (default **50% popularity, 30% fit, 20% closeness**):
-  - *Popularity:* compared with the most popular candidate on this route.
-  - *Fit* (chosen visitor only): the visitor's share of check-ins in the place's type, raised when the visitor already visited this exact place. For **General visitor** this part is dropped and its weight split between the other two.
+  - *Popularity:* different visitors, compared with the most popular place on this route that passes the filters.
+  - *Fit* (chosen visitor only): the visitor's share of check-ins in the place's type, divided by their share in their favourite type, so the favourite type scores 1 (for example 50% Food & drink, 30% Shopping, 20% Sights & culture give 1.0, 0.6 and 0.4). Only check-ins at offered place types count. Earlier visits to this exact place are shown on the card but don't change the score.
   - *Closeness:* 1 at the route, falling to 0 at the maximum detour.
+  - For **General visitor** there is no fit part; it has its own weights (default **70% popularity, 30% closeness**).
+- **Order:** score, then different visitors, then check-ins, then place id.
 - **City** means the data set of that city. The "venue city" field inside the data (often a suburb) is not used for this.
 - Places and visitors are identified together with their city, because the data re-uses the same numbers in different cities.
-- Ties are broken by place id, so the same choices always give the same list.
+- Ties are broken by place id (see Order above), so the same choices always give the same list.
 
 ### 3.4 Place types
 
@@ -125,7 +128,9 @@ The data has about 760 categories (Shopping Mall, Coffee Shop, Museum, Road, ...
 | Check-ins in "Not offered" categories | Not used for suggestions or preferences, counted |
 | Duplicates | Not needed: the data has no exact duplicate rows |
 | **Minimum data (place)** | A place is suggested only with at least **3 different visitors** |
-| **Minimum data (visitor)** | A visitor is offered only with at least **10 check-ins** in the city |
+| **Minimum data (visitor)** | A visitor is offered only with at least **10 used check-ins** in the city (after the rules above, so only offered place types count). On this data: about 10,200 visitors in Istanbul, 19 in Beijing |
+
+A check-in is excluded for the first rule that applies to its place, in the order of the table (no location, far from the city, Not offered), so read = used + excluded holds exactly. A place's type is the type of its main category.
 
 On this data, places with at least 3 visitors range from 37 of 553 in Beijing and about 420 in Palembang to over 10,000 in Jakarta and Petaling Jaya, and 12,700 in New York. With the data multiplier, counts are divided by the multiplier first, so synthetic copies never change the answer.
 
@@ -154,12 +159,12 @@ Real maps or any external map service, road routing and travel time, opening hou
 
 ## 7. Open decisions (please confirm or change)
 
-1. **Scoring and defaults in 3.3 and 3.5** (weights 50/30/20, maximum detour 1 km, top 10, at least 3 visitors per place, at least 10 check-ins per visitor) are my starting proposal; please adjust.
+1. **Scoring and defaults in 3.3 and 3.5** (weights 50/30/20, maximum detour 1 km, top 10, at least 3 visitors per place, at least 10 check-ins per visitor) are my starting proposal; please adjust. *Decided so far:* the fit formula (no bonus for an earlier visit), General visitor weights 70/30, and visitor check-ins counted at offered place types only.
 2. **Place types in 3.4:** the five groups and what goes into "Not offered" (hotels and stations are left out as stops). The first version of the category table is drafted for review in `data/br6/category_place_type.csv` (summary and choices to check: [plan-data-model.md](../../plan/br6/plan-data-model.md), section 5).
 3. **Straight-line routes:** accepted as the price of having no map and no road data.
 4. **Visitor choice:** is picking an anonymous visitor from the data an acceptable stand-in for "the customer's history"?
 5. ~~Map on the result page~~ **Decided:** no map (list and figures only).
 6. ~~Own app for BR6~~ **Decided:** reuse the BR5 app with one new menu item and selection pages (section 2).
-7. **One Spark run per click** (each run starts its own Spark application, as in BR5; 15–30 s start-up) is proposed, not yet confirmed.
+7. ~~One Spark run per click~~ **Decided:** each run starts its own Spark application, as in BR5 (15–30 s start-up); see [plan-pipeline.md](../../plan/br6/plan-pipeline.md), F1.
 
 Items 1 and 2 are used as the defaults above and can be changed in Advanced Settings.
