@@ -155,7 +155,7 @@ Real maps or any external map service, road routing and travel time, opening hou
 ## 7. Open decisions (please confirm or change)
 
 1. **Scoring and defaults in 3.3 and 3.5** (weights 50/30/20, maximum detour 1 km, top 10, at least 3 visitors per place, at least 10 check-ins per visitor) are my starting proposal; please adjust.
-2. **Place types in 3.4:** the five groups and what goes into "Not offered" (hotels and stations are left out as stops). The first version of the category table is drafted in the plan for you to review.
+2. **Place types in 3.4:** the five groups and what goes into "Not offered" (hotels and stations are left out as stops). The first version of the category table is drafted for review in `data/br6/category_place_type.csv` (summary and choices to check: [plan-data-model.md](../../plan/br6/plan-data-model.md), section 5).
 3. **Straight-line routes:** accepted as the price of having no map and no road data.
 4. **Visitor choice:** is picking an anonymous visitor from the data an acceptable stand-in for "the customer's history"?
 5. ~~Map on the result page~~ **Decided:** no map (list and figures only).
