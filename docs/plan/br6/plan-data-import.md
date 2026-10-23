@@ -2,6 +2,8 @@
 
 Implements [spec-data-import.md](../../spec/br6/spec-data-import.md) (D1–D14 and the Data screen). It fills the tables designed in [plan-data-model.md](plan-data-model.md). The changes to the shared app that this stage needs (menu, selection pages, sidebar) are in [plan-shared-app.md](plan-shared-app.md).
 
+**Status:** implemented and tested end to end on 2026-10-23; figures in [result-data-import.md](../../result/br6/result-data-import.md).
+
 This plan follows [BR5's import plan](../br5/plan-data-import.md) step by step and says only where BR6 differs. It does not cover the Route Finder pipeline, the Advanced Settings screen or the Grafana dashboards; each will get its own plan. Two things built here are reused by them: the run history and settings tables, and the BR6 job modules.
 
 ## 1. Decisions taken in this plan
@@ -95,10 +97,10 @@ Steps (each is a recorded step with its duration):
    - **Row counts:** rows read per city must equal the file's line count minus the header (counted on the driver). The first and last row of each file must have `source_row` 1 and N.
    - **Place consistency:** a (city, venue) must have one name, one address and one position. 0 on this data; a later file that breaks it fails clearly instead of picking one value at random.
    - Categories missing from the grouping file are not an error. They are counted, logged and shown on the Data screen.
-4. **`derive`.** Type the columns, add `import_id`, cache the typed input and count it. With the multiplier, `crossJoin` a broadcast `range(N)` to get `copy_no` (fact only).
+4. **`derive`.** Type the columns, add `import_id`, the city key and the local date; cache the typed input and count it.
 5. **`write_raw`.** `raw_checkin` from the typed input (×1).
 6. **`write_dims`.** Build the dimensions as in the data model (keys, main category, city centre, dates, place types). The small tables are inserted from the driver; `dim_place` (339k rows) and `dim_visitor` (80k) go through the chosen writer.
-7. **`write_fact`.** Copies joined to the dimensions:
+7. **`write_fact`.** The original rows joined to the dimensions, then copied (*built:* the joins run once and a broadcast `range(N)` is cross-joined after them for `copy_no`, instead of joining every copy):
    - `dim_city`, `dim_category` and `dim_area` are broadcast.
    - `dim_place` and `dim_visitor` use Spark's choice, so the join strategy shows in `explain()` and changes with the threshold setting.
    - `date_key` is computed from `checkin_time` in the city's time zone.

@@ -59,6 +59,8 @@ MODE = "batch"   # or "stream" (the default when MODE is absent)
 - `scripts/topics.py`
 - `jobs/common` helpers: `get_client`, `get_producer`, `get_spark_session` (optional `conf` dict overrides its defaults, for per-run settings), and `write_partitions` (parallel ClickHouse writer: each Spark partition inserts its own rows). **Keep `toPandas()` → `insert_df` (`write_dataframe`) as the naive baseline for benchmarks.**
 - Grafana provisioning (add a new dashboard JSON per BR)
+- For a batch BR with its own database, run history and settings: `jobs/common/run_store.py` (run row, steps, heartbeat, busy lock, settings store), `job_launch.py` (spark-submit from the app container, stop), `spark_settings.py` (Spark settings catalog, checks, snapshot) and `run_figures.py` (Spark and ClickHouse figures per run). They were built from BR5's code; BR5 keeps its own copies.
+- BRs that share one app (BR5 and BR6 in `br5-app`) have all their job folders on one Python path, so **module names must not repeat across those BRs**.
 
 **Extend shared code** (`scripts/`, `jobs/common/`, compose). **Keep changes additive and don't break BR3/BR4.** Planned extensions:
 - A configurable Kafka partition count.

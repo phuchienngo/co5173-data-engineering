@@ -8,7 +8,7 @@ Implements section 2 of [spec.md](../../spec/br6/spec.md) (G1–G7). BR6 reuses 
 |---|---|---|
 | A1 | **BR5's pages keep their files and their addresses** (`/`, `/settings`, `/data`, `/run_history`) and are registered as **hidden pages** (`st.Page(..., visibility="hidden")`, Streamlit 1.66). The menu items *Advanced Settings*, *Data* and *Run History* point to **new selection pages**. | Every existing link (Grafana's `/run_history?run=…`, the benchmark script's `/?run=…` and `/run_history?a=…&run=…`, BR5's own `page_link`s) still opens BR5 content directly (G4). The BR5 page files stay unchanged (G2). |
 | A2 | **BR6 pages get their own addresses:** `/route_finder`, `/route_settings`, `/route_data`, `/route_run_history`. Only `/route_finder` is in the menu. | Direct links for BR6, in the same pattern as BR5's (G4). |
-| A3 | **BR6's app code lives in the same folder, `apps/br5/`,** as `route_backend.py` and `views/route_*.py` plus `views/choose_*.py`. | One Streamlit app has one main folder. The folder name is historical; renaming it would change BR5's compose service and scripts. |
+| A3 | **BR6's app code lives in the same folder, `apps/br5/`,** as `route_backend.py`, `choose.py` and `views/route_finder.py`, `views/br6_*.py` and `views/choose_*.py`. (The BR6 views are not called `route_settings.py` etc., because `jobs/br6_route/route_settings.py` is on the same Python path.) | One Streamlit app has one main folder. The folder name is historical; renaming it would change BR5's compose service and scripts. |
 | A4 | **The sidebar Monitoring block depends on the page's group:** BR5, BR6 or both (selection pages). | G6. BR5 pages render exactly today's block through the unchanged `backend.monitoring_links()`. |
 
 ## 2. Navigation
@@ -21,7 +21,7 @@ Implements section 2 of [spec.md](../../spec/br6/spec.md) (G1–G7). BR6 reuses 
 | Data | `views/choose_data.py` (new) | `/choose_data` | both |
 | Run History | `views/choose_run_history.py` (new) | `/choose_run_history` | both |
 | *(hidden)* | `views/settings.py`, `views/data.py`, `views/run_history.py` (unchanged) | `/settings`, `/data`, `/run_history` | BR5 |
-| *(hidden)* | `views/route_settings.py`, `views/route_data.py`, `views/route_run_history.py` (new) | `/route_…` | BR6 |
+| *(hidden)* | `views/br6_settings.py`, `views/br6_data.py`, `views/br6_run_history.py` (new) | `/route_settings`, `/route_data`, `/route_run_history` | BR6 |
 
 `app.py` is the only BR5 file that changes: the page list, and the call that draws the monitoring block for the page's group.
 

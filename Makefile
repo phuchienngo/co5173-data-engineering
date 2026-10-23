@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-status br6-test logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -13,6 +13,8 @@ COUNTRY ?= All
 ROOM ?= All
 BR5_PRESET_ARGS = $(if $(PRESET), --preset $(PRESET),)
 BR5_IMPORT_ARGS = --multiplier $(MULTIPLIER)$(if $(WRITER), --writer $(WRITER),)$(BR5_PRESET_ARGS)$(if $(YES), --yes,)
+CITIES ?=
+BR6_IMPORT_ARGS = --multiplier $(MULTIPLIER)$(if $(CITIES), --cities $(CITIES),)$(if $(WRITER), --writer $(WRITER),)$(BR5_PRESET_ARGS)$(if $(YES), --yes,)
 
 help:
 	@echo "Usage:"
@@ -29,6 +31,12 @@ help:
 	@echo "  make br5-check-dashboards  BR5: run every Grafana panel query, report errors"
 	@echo "  make br5-bench BLOCK=S2     BR5 benchmark: run a block (S1, S2, S3); options: CELLS=I3-L3 ARGS=--clickhouse"
 	@echo "  make br5-bench-screens BLOCK=S2  BR5 benchmark: screenshots of a block (needs Playwright)"
+	@echo "  make br6-up           BR6: start the stack and the shared app (stored data kept)"
+	@echo "  make br6-fresh        BR6: drop BR6 data, import, then start the app"
+	@echo "  make br6-import       BR6: import data (asks before replacing; YES=1 skips)"
+	@echo "                        options: CITIES=jakarta,tokyo MULTIPLIER=2 WRITER=partitions|pandas PRESET=name"
+	@echo "  make br6-status       BR6: show what data is stored"
+	@echo "  make br6-test         BR6: unit tests (settings, reference files, small dimensions)"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"
@@ -68,6 +76,22 @@ br5-bench:
 br5-bench-screens:
 	python3 tests/br5/benchmark.py screens $(BLOCK)$(BR5_CELLS_ARGS)
 
+br6-up:
+	python3 scripts/br6.py up
+
+br6-fresh:
+	python3 scripts/br6.py fresh $(BR6_IMPORT_ARGS)
+
+br6-import:
+	python3 scripts/br6.py import $(BR6_IMPORT_ARGS)
+
+br6-status:
+	python3 scripts/br6.py status
+
+# pyspark is on the path only under spark-submit, so the tests add Spark's own zips.
+br6-test:
+	docker exec -i -e PYTHONPATH=/opt/jobs/common:/opt/bitnami/spark/python/lib/pyspark.zip:/opt/bitnami/spark/python/lib/py4j.zip br5-app python3 -m unittest discover -s /opt/tests/br6 -v
+
 logs:
 	mkdir -p logs/demo
 	@if [ -n "$(SVC)" ]; then docker compose logs -f $(SVC); else tail -F logs/demo/*.log; fi
@@ -76,7 +100,7 @@ ps:
 	docker compose ps
 
 down:
-	docker compose --profile full --profile monitoring --profile br5 down
+	docker compose --profile full --profile monitoring --profile br5 --profile br6 down
 
 clean:
-	docker compose --profile full --profile monitoring --profile br5 down --remove-orphans
+	docker compose --profile full --profile monitoring --profile br5 --profile br6 down --remove-orphans
