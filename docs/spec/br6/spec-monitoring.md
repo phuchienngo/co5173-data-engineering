@@ -30,7 +30,7 @@ One folder for BR6, provisioned automatically with the stack (like the existing 
 
 | ID | Requirement | Priority |
 |---|---|---|
-| M9 | Grafana stays one instance. BR5's and BR6's dashboards sit in separate folders, so the folder list is the BR picker. A small start dashboard that links to each BR's folder is optional | Must (start dashboard: Could) |
+| M9 | Grafana stays one instance. BR5's and BR6's dashboards sit in separate folders, so the folder list is the BR picker. A small start dashboard that links to each BR's folder is optional (decided: not built, see [plan-monitoring.md](../../plan/br6/plan-monitoring.md) section 9) | Must (start dashboard: Could) |
 | M10 | The Spark history page stays one shared server. BR6's Spark applications are named with a "BR6" prefix, so the list can be searched by BR; a run's own page is opened directly from Run History. BR5's names and pages are not changed | Must |
 
 Each dashboard has a link back to the BR6 Run History in the app (a direct link, main spec G4), and the app has a link to Grafana and to the Spark web page for step-level detail (sidebar, main spec G6).
