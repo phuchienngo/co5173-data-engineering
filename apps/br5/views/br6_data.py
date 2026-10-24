@@ -18,6 +18,7 @@ STEP_LABELS = {
     "write_dims": "Writing the dimension tables",
     "write_fact": "Writing the check-in fact table",
     "verify": "Verifying the new data",
+    "place_stats": "Counting check-ins and visitors per place",
     "swap": "Switching to the new data",
 }
 
@@ -74,6 +75,12 @@ def show_stored(status):
         bottom[1].metric("Imported (UTC)", imported["started_at"].strftime("%d %b %H:%M"))
         bottom[2].metric("Import took", seconds(imported))
         st.caption(f"Source: {imported['source_file']}, {imported['source_bytes'] / 1e6:.1f} MB")
+    if status["place_stats_ready"]:
+        st.caption(f"Place statistics (check-ins and visitors per place, built at import): "
+                   f"{counts['place_stats']:,} places.")
+    else:
+        st.warning("Place statistics are missing (the data was imported before they existed): re-import, or set "
+                   "*Place statistics* to *run* in Advanced Settings.")
     if status["multiplier"] > 1:
         st.warning(f"Synthetic data: {multiplier_label(status['multiplier'])}. Each copy counts as other "
                    "visitors at the same places, so rankings stay the same.")

@@ -55,7 +55,7 @@ make br6-import / Data screen button (Route Finder panel)
 | `jobs/br6_route/checkin_source.py` | new | Reads the CSV files as text, checks headers and values, types the columns |
 | `jobs/br6_route/route_star.py` | new | Builds the dimensions and the fact |
 | `jobs/br6_route/route_runs.py` | new | BR6 names on top of `run_store` (database, table list), the data status, the busy check across BR5 and BR6 |
-| `jobs/br6_route/route_settings.py` | new | BR6 settings: the shared Spark settings plus writer and write partitions. Extended by the config plan |
+| `jobs/br6_route/route_settings.py` | new | BR6 settings: the shared Spark settings plus writer and write partitions. Extended by the pipeline plan |
 | `jobs/br6_route/route_launch.py` | new | Starts BR6 jobs with the stored settings; also a CLI (as BR5's `launch.py`) |
 | `jobs/br6_route/route_status.py` | new | Prints the data status (`make br6-status`) |
 | `scripts/br6.py` | new | Launcher: `up`, `fresh`, `import`, `status` (section 7) |

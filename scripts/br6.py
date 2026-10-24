@@ -3,12 +3,13 @@
     python3 scripts/br6.py up        start the stack and the shared app (data kept)
     python3 scripts/br6.py fresh     drop BR6 data, import, then start the app
     python3 scripts/br6.py import    import (replaces stored data after asking)
+    python3 scripts/br6.py run       one Route Finder run (--city, --start, --end venue ids, ...)
     python3 scripts/br6.py status    show what is stored
 
-Imports are started by jobs/br6_route/route_launch.py inside the br5-app
+Imports and runs are started by jobs/br6_route/route_launch.py inside the br5-app
 container (the app shared by BR5 and BR6), the same code the app's buttons
 use, with the stored settings (or --preset NAME).
-Plan: docs/plan/br6/plan-data-import.md. Kafka is not started: BR6 has no
+Plans: docs/plan/br6/plan-data-import.md, plan-pipeline.md. Kafka is not started: BR6 has no
 streaming input.
 """
 
@@ -40,6 +41,7 @@ DATA_TABLES = [
     "dim_date",
     "dim_place",
     "dim_visitor",
+    "place_stats",
     "raw_checkin",
     "fact_checkin",
 ]
@@ -176,6 +178,17 @@ def cmd_fresh(args):
     print_urls()
 
 
+def cmd_run(args):
+    refuse_if_busy()
+    start_services(with_app=True)
+    launch_args = ["run", "--city", args.city, "--start", str(args.start), "--end", str(args.end)]
+    for option in ("stops", "types", "visitor", "preset"):
+        value = getattr(args, option)
+        if value not in (None, ""):
+            launch_args += [f"--{option}", str(value)]
+    launch(launch_args)
+
+
 def cmd_status(args):
     run(["docker", "exec", "-i", APP_SERVICE, "python3", f"{JOBS}/route_status.py"])
 
@@ -185,7 +198,8 @@ def main():
         sys.stdout.reconfigure(errors="replace")
     parser = argparse.ArgumentParser(description="BR6 start-up modes and data import")
     sub = parser.add_subparsers(dest="command", required=True)
-    commands = (("up", cmd_up), ("fresh", cmd_fresh), ("import", cmd_import), ("status", cmd_status))
+    commands = (("up", cmd_up), ("fresh", cmd_fresh), ("import", cmd_import), ("run", cmd_run),
+                ("status", cmd_status))
     for name, func in commands:
         p = sub.add_parser(name)
         p.set_defaults(func=func)
@@ -196,6 +210,14 @@ def main():
             p.add_argument("--write-partitions", type=int, help="Default: the write partitions setting")
             p.add_argument("--preset", help="Use this settings preset instead of the current settings")
             p.add_argument("--yes", action="store_true", help="Replace stored data without asking")
+        if name == "run":
+            p.add_argument("--city", required=True, help="City code, e.g. jakarta")
+            p.add_argument("--start", type=int, required=True, help="venue_id of the start")
+            p.add_argument("--end", type=int, required=True, help="venue_id of the end")
+            p.add_argument("--stops", default="", help="Comma-separated venue_ids of up to 3 stops")
+            p.add_argument("--types", default="", help="Comma-separated place types; default: all")
+            p.add_argument("--visitor", type=int, help="user_id; default: General visitor")
+            p.add_argument("--preset", help="Use this settings preset instead of the current settings")
     args = parser.parse_args()
     args.func(args)
 

@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-status br6-test logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -35,8 +35,10 @@ help:
 	@echo "  make br6-fresh        BR6: drop BR6 data, import, then start the app"
 	@echo "  make br6-import       BR6: import data (asks before replacing; YES=1 skips)"
 	@echo "                        options: CITIES=jakarta,tokyo MULTIPLIER=2 WRITER=partitions|pandas PRESET=name"
+	@echo "  make br6-run CITY=jakarta START=<venue_id> END=<venue_id>  BR6: one Route Finder run"
+	@echo "                        options: STOPS=id,id TYPES='Food & drink,Shopping' VISITOR=<user_id> PRESET=name"
 	@echo "  make br6-status       BR6: show what data is stored"
-	@echo "  make br6-test         BR6: unit tests (settings, reference files, small dimensions)"
+	@echo "  make br6-test         BR6: unit tests (rules, settings, reference files, small dimensions)"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"
@@ -84,6 +86,11 @@ br6-fresh:
 
 br6-import:
 	python3 scripts/br6.py import $(BR6_IMPORT_ARGS)
+
+BR6_RUN_ARGS = $(if $(STOPS), --stops $(STOPS),)$(if $(TYPES), --types "$(TYPES)",)$(if $(VISITOR), --visitor $(VISITOR),)$(if $(PRESET), --preset $(PRESET),)
+
+br6-run:
+	python3 scripts/br6.py run --city $(CITY) --start $(START) --end $(END)$(BR6_RUN_ARGS)
 
 br6-status:
 	python3 scripts/br6.py status

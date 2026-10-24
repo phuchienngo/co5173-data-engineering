@@ -2,7 +2,12 @@
 
 Implements the run behind the Route Finder ([spec.md](../../spec/br6/spec.md) sections 3–4) and its settings ([spec-pipeline-config.md](../../spec/br6/spec-pipeline-config.md), C1–C14 except C11). It reads the star schema of [plan-data-model.md](plan-data-model.md), which [plan-data-import.md](plan-data-import.md) fills, and reuses that plan's run history, busy lock, shared job modules and app pages.
 
-**Status:** planned on 2026-10-23, not yet implemented. Decisions and readings confirmed; the spec was updated to match.
+**Status:** implemented and tested end to end on 2026-10-24; figures in [result-pipeline.md](../../result/br6/result-pipeline.md). Decisions and readings confirmed; the spec was updated to match.
+
+**As built, where it differs from below:**
+- The reference files moved to a new pyspark-free module, `route_reference.py` (section 4).
+- `docker-compose.yml` turns ClickHouse's `system.metric_log` off. Its merges took about 730 MiB of ClickHouse's 1 GB and made parallel inserts fail at random, which broke imports (result file, "ClickHouse memory").
+- F6 measured: the grid saves about 25% of the matching CPU with every distance function, but no wall-clock time at this data size. The Python UDF doubles the matching executor time without making the grid visible. Pre-computed place statistics (F4) are the optimization with a clear effect.
 
 This plan follows [BR5's pipeline plan](../br5/plan-pipeline.md) and says only where BR6 differs. Not covered: the Grafana dashboards and the Run History compare view (monitoring plan), and selectable table layouts (C11, Could). Testing here shows that the run is correct and that the settings take effect. The full benchmark matrix comes with the monitoring plan.
 
@@ -99,6 +104,7 @@ Detour = the smallest distance over the legs. When two legs are equally close, t
 | File | New/changed | Content |
 |---|---|---|
 | `jobs/br6_route/route_rules.py` | new | Pure Python: flat map, legs, detour and position, the route's squares, filters, fit, score, ordering, card texts, result summary |
+| `jobs/br6_route/route_reference.py` | new (*built*) | The reference files (cities, category grouping, place types) moved out of `route_star.py`, which imports pyspark, so the app and the ClickHouse engine can read them. `route_star.py` re-exports the names |
 | `jobs/br6_route/route_run.py` | new | Run entry point (arguments: `--city`, `--start`, `--end`, `--stops`, `--types`, `--visitor`, `--run-id`, `--settings-json`, `--settings-label`). Steps as in section 2; picks the engine |
 | `jobs/br6_route/route_spark.py` | new | Spark engine: read (place statistics or fact rows), clean, match (grid or every place; three distance functions), visitor habits. Logs `explain()` of the statistics and the matching |
 | `jobs/br6_route/route_sql.py` | new | ClickHouse engine (F7): the same outputs from SQL, every place compared, the same flat-map formula |
@@ -115,6 +121,7 @@ Detour = the smallest distance over the legs. When two legs are equally close, t
 | `apps/br5/views/br6_data.py` | small | Place statistics status line |
 | `apps/br5/views/br6_run_history.py` | small | Lists runs as well as imports until the monitoring plan builds the full screen |
 | `scripts/br6.py`, `Makefile` | additive | `run` subcommand and `br6-run` (variables `CITY`, `START`, `END`, `STOPS`, `TYPES`, `VISITOR`, `PRESET`); `PRESET` for `br6-import` |
+| `docker-compose.yml` | small (*built*) | Config `clickhouse-system-logs-xml` turns `system.metric_log` off (see the status note) |
 | `tests/br6/test_rules.py` | new | Geometry, grid (never loses a candidate), filters, fit, score, ties, general visitor, messages |
 | `tests/br6/test_import.py` | additive | Settings: new choices, weights check, presets valid |
 | `docs/guide/br6/config-guide.md` | new | Restart guide (section 10) |

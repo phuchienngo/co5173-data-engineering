@@ -191,3 +191,60 @@ CREATE TABLE IF NOT EXISTS br6.settings
 )
 ENGINE = ReplacingMergeTree(updated_at, is_deleted)
 ORDER BY name;
+
+-- Route Finder (docs/plan/br6/plan-pipeline.md, section 6) ------------------
+
+-- Check-ins and different visitors per place, counted in the original data
+-- (before the multiplier). Built by the import, swapped with the data tables.
+CREATE TABLE IF NOT EXISTS br6.place_stats
+(
+    city_key  UInt8,
+    place_key UInt32,
+    checkins  UInt32,
+    visitors  UInt32
+)
+ENGINE = MergeTree
+ORDER BY (city_key, place_key);
+
+-- The points of a run's route: start, stops, end.
+CREATE TABLE IF NOT EXISTS br6.run_point
+(
+    run_id        UUID,
+    seq           UInt8,                   -- 0 = start
+    role          LowCardinality(String),  -- start | stop | end
+    place_key     UInt32,
+    venue_id      UInt32,
+    name          String,
+    latitude      Float64,
+    longitude     Float64,
+    km_from_start Float64
+)
+ENGINE = MergeTree
+ORDER BY (run_id, seq);
+
+-- Every place a run found near its route, with its status and scores.
+CREATE TABLE IF NOT EXISTS br6.run_place
+(
+    run_id         UUID,
+    place_key      UInt32,
+    venue_id       UInt32,
+    name           String,
+    address        String,
+    category_name  String,
+    place_type     LowCardinality(String),
+    detour_km      Float64,
+    position_km    Float64,
+    leg            UInt8,                   -- 0 = from the start to the next point
+    visitors       UInt32,
+    checkins       UInt32,
+    visitor_visits UInt32,
+    type_share     Float64,
+    popularity     Float64,
+    fit            Float64,
+    closeness      Float64,
+    score          Float64,
+    rank           UInt16,                  -- 0 = not suggested
+    status         LowCardinality(String)   -- suggested | below the top N | few visitors | type not chosen | not offered
+)
+ENGINE = MergeTree
+ORDER BY (run_id, place_key);

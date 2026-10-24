@@ -21,6 +21,17 @@ configs:
           </prometheus>
       </clickhouse>
 
+  # system.metric_log has about 2,100 columns, and each of its background
+  # merges peaks at about 730 MiB, which with the 1g limit makes parallel
+  # inserts fail at random (docs/result/br6/result-pipeline.md). Nothing here
+  # reads it: Grafana scrapes the Prometheus endpoint above, run figures read
+  # system.query_log.
+  clickhouse-system-logs-xml:
+    content: |
+      <clickhouse>
+          <metric_log remove="1"/>
+      </clickhouse>
+
   # ClickHouse server-level settings (need a ClickHouse restart). To use:
   # uncomment this config and its entry under the clickhouse service's
   # `configs:`, then follow docs/guide/br5/config-guide.md.
@@ -146,6 +157,8 @@ services:
     configs:
       - source: clickhouse-prometheus-xml
         target: /etc/clickhouse-server/config.d/prometheus.xml
+      - source: clickhouse-system-logs-xml
+        target: /etc/clickhouse-server/config.d/system-logs.xml
       # - source: clickhouse-server-xml
       #   target: /etc/clickhouse-server/config.d/server-tuning.xml
     networks:

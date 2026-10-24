@@ -8,36 +8,16 @@ The small dimensions are built on the driver as plain rows.
 """
 
 import calendar
-import csv
 from datetime import timedelta
 
 from pyspark.sql import Window
 from pyspark.sql import functions as F
 
-CITIES_FILE = "/opt/data/br6/cities.csv"
-GROUPING_FILE = "/opt/data/br6/category_place_type.csv"
-NOT_OFFERED = "Not offered"
-PLACE_TYPES = ["Sights & culture", "Nature & outdoors", "Food & drink", "Shopping",
-               "Entertainment & nightlife", NOT_OFFERED]
-
-
-class ReferenceDataError(Exception):
-    pass
-
-
-def load_cities(path=CITIES_FILE):
-    with open(path, encoding="utf-8") as f:
-        return {row["city_code"]: row for row in csv.DictReader(f)}
-
-
-def load_grouping(path=GROUPING_FILE):
-    """{category_id: place type}. Unknown place types are an error."""
-    with open(path, encoding="utf-8") as f:
-        grouping = {row["category_id"]: row["place_type"].strip() for row in csv.DictReader(f)}
-    unknown = sorted({t for t in grouping.values() if t not in PLACE_TYPES})
-    if unknown:
-        raise ReferenceDataError(f"{path}: unknown place types {unknown}; allowed: {PLACE_TYPES}")
-    return grouping
+# The reference files are read by route_reference (no pyspark), re-exported here.
+from route_reference import (  # noqa: F401
+    CITIES_FILE, GROUPING_FILE, NOT_OFFERED, PLACE_TYPES, ReferenceDataError, load_cities, load_grouping,
+    place_type_rows,
+)
 
 
 def date_key(col):
@@ -77,21 +57,6 @@ def date_rows(first, last):
         })
         day += timedelta(days=1)
     return rows
-
-
-def place_type_rows(grouping, category_rows):
-    """(dim_place_type rows, category_place_type rows, categories not grouped)."""
-    types = [{"place_type_key": key, "place_type_name": name, "is_offered": int(name != NOT_OFFERED),
-              "sort_order": key} for key, name in enumerate(PLACE_TYPES, start=1)]
-    type_key = {t["place_type_name"]: t["place_type_key"] for t in types}
-    mapping, missing = [], []
-    for c in category_rows:
-        place_type = grouping.get(c["category_id"])
-        if place_type is None:
-            missing.append(c["category_name"])
-            place_type = NOT_OFFERED
-        mapping.append({"category_key": c["category_key"], "place_type_key": type_key[place_type]})
-    return types, mapping, missing
 
 
 def with_city(typed, cities):
@@ -151,6 +116,16 @@ def build_visitors(rows):
     visitors = rows.select("city_key", "user_id").distinct()
     counts = {r["city_key"]: r["n"] for r in visitors.groupBy("city_key").agg(F.count("*").alias("n")).collect()}
     return _keyed_per_city(visitors, "user_id", "visitor_key", counts).select("visitor_key", "city_key", "user_id")
+
+
+def build_place_stats(rows, places):
+    """place_stats: check-ins and different visitors per place, from the
+    original rows (before the multiplier), so the Route Finder needs no pass
+    over the fact table (docs/plan/br6/plan-pipeline.md, F4)."""
+    per_venue = rows.groupBy("city_key", "venue_id").agg(
+        F.count("*").alias("checkins"), F.countDistinct("user_id").alias("visitors"))
+    return per_venue.join(places.select("city_key", "venue_id", "place_key"), ["city_key", "venue_id"]).select(
+        "city_key", "place_key", "checkins", "visitors")
 
 
 def small_dimensions(rows, cities, grouping):

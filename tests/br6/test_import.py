@@ -37,9 +37,28 @@ class Settings(unittest.TestCase):
         errors, _ = catalog.validate(values, CLUSTER)
         self.assertIn("spark.executor.memory", errors)
 
-    def test_writer_options(self):
+    def test_baseline_options(self):
         options = route_settings.CATALOG.options(route_settings.CATALOG.resolve(preset="baseline"))
-        self.assertEqual(options["pipeline"], {"writer": "pandas", "write_partitions": 2})
+        pipeline = options["pipeline"]
+        self.assertEqual((pipeline["writer"], pipeline["write_partitions"]), ("pandas", 2))
+        self.assertEqual((pipeline["matching"], pipeline["distance"], pipeline["place_stats"], pipeline["reader"]),
+                         ("all", "python_udf", "run", "driver"))
+        self.assertFalse(pipeline["cache"])
+
+    def test_rules_are_fractions_and_numbers(self):
+        rules = route_settings.CATALOG.options(route_settings.CATALOG.defaults())["rules"]
+        self.assertEqual((rules["weight_popularity"], rules["weight_fit"], rules["weight_closeness"]), (0.5, 0.3, 0.2))
+        self.assertEqual((rules["general_weight_popularity"], rules["general_weight_closeness"]), (0.7, 0.3))
+        self.assertEqual((rules["max_detour_km"], rules["top_n"], rules["min_place_visitors"]), (1.0, 10, 3))
+
+    def test_weights_must_add_up(self):
+        catalog = route_settings.CATALOG
+        errors, _ = catalog.validate(catalog.resolve({"rules.weight_closeness": "30"}), CLUSTER)
+        self.assertIn("rules.weight_popularity", errors)
+        errors, _ = catalog.validate(catalog.resolve({"rules.general_weight_closeness": "40"}), CLUSTER)
+        self.assertIn("rules.general_weight_popularity", errors)
+        errors, _ = catalog.validate(catalog.resolve({"pipeline.storage_level": "OFF_HEAP"}), CLUSTER)
+        self.assertIn("pipeline.storage_level", errors)
 
 
 class ReferenceFiles(unittest.TestCase):

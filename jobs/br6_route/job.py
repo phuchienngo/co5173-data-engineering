@@ -181,6 +181,25 @@ def verify(client, rows_per_city, multiplier):
     return checks
 
 
+def verify_place_stats(client, rows_per_city):
+    """One row per place; the check-ins add up to the rows read, per city."""
+    s = runs.STAGING_DB
+    places, stats = (int(client.command(f"SELECT count() FROM {s}.{t}")) for t in ("dim_place", "place_stats"))
+    per_city = dict(client.query(
+        f"SELECT c.city_code, sum(p.checkins) FROM {s}.place_stats AS p "
+        f"INNER JOIN {s}.dim_city AS c USING (city_key) GROUP BY c.city_code"
+    ).result_rows)
+    problems = []
+    if stats != places:
+        problems.append(f"{stats} rows for {places} places")
+    wrong = [c for c, n in rows_per_city.items() if per_city.get(c) != n]
+    if wrong:
+        problems.append(f"check-ins don't add up to the rows read for {wrong}")
+    if problems:
+        raise RuntimeError("Place statistics checks failed: " + "; ".join(problems))
+    log(f"place statistics: {stats:,} places")
+
+
 def swap(client):
     for table in runs.DATA_TABLES:
         client.command(f"EXCHANGE TABLES {runs.DB}.{table} AND {runs.STAGING_DB}.{table}")
@@ -247,6 +266,10 @@ def import_data(spark, client, run, args, files):
             "ungrouped_categories": ungrouped,
             "places_several_categories": checks["places_several_categories"],
         }))
+
+    with run.step("place_stats"):
+        write(star.build_place_stats(rows, places), "place_stats", args.writer, args.write_partitions)
+        verify_place_stats(client, rows_per_city)
 
     with run.step("swap"):
         swap(client)

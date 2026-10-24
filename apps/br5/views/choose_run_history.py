@@ -18,8 +18,8 @@ def br5_status():
 
 
 def br6_status():
-    latest = route_backend.import_history(limit=1)
-    return describe({**latest[0], "run_type": "import"} if latest else None)
+    latest = route_backend.run_history(limit=1)
+    return describe(latest[0] if latest else None)
 
 
 choose.page(

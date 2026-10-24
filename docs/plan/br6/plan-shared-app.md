@@ -49,6 +49,8 @@ Grafana's BR5 and BR6 folders and the shared Spark history page (M9, M10) belong
 | BR6 Advanced Settings | Placeholder showing the settings an import uses (defaults until the config plan builds the screen) |
 | BR6 Run History | Placeholder listing BR6 imports (time, status, duration, cities, rows) until the monitoring plan builds the screen |
 
+*Since then:* [plan-pipeline.md](plan-pipeline.md) built the Route Finder and the BR6 Advanced Settings screen, and the Run History placeholder lists runs as well as imports.
+
 Each BR6 page shows the busy message when a BR5 job is running (G7). BR5 pages are not changed for this.
 
 `route_backend.py` is the BR6 counterpart of `backend.py`: the ClickHouse client, its own launcher state (so BR5's is not touched), the data status and the job start and stop calls from `route_launch.py`.
