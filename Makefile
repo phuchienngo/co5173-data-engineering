@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test br6-check-dashboards logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -39,6 +39,7 @@ help:
 	@echo "                        options: STOPS=id,id TYPES='Food & drink,Shopping' VISITOR=<user_id> PRESET=name"
 	@echo "  make br6-status       BR6: show what data is stored"
 	@echo "  make br6-test         BR6: unit tests (rules, settings, reference files, small dimensions)"
+	@echo "  make br6-check-dashboards  BR6: run every Grafana panel query, report errors"
 	@echo "  make logs             Tail demo logs; use SVC=grafana for container logs"
 	@echo "  make ps               Show containers"
 	@echo "  make down             Stop stack"
@@ -98,6 +99,9 @@ br6-status:
 # pyspark is on the path only under spark-submit, so the tests add Spark's own zips.
 br6-test:
 	docker exec -i -e PYTHONPATH=/opt/jobs/common:/opt/bitnami/spark/python/lib/pyspark.zip:/opt/bitnami/spark/python/lib/py4j.zip br5-app python3 -m unittest discover -s /opt/tests/br6 -v
+
+br6-check-dashboards:
+	python3 tests/br5/check_dashboards.py --br 6
 
 logs:
 	mkdir -p logs/demo

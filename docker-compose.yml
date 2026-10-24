@@ -129,6 +129,16 @@ configs:
           updateIntervalSeconds: 30
           options:
             path: /var/lib/grafana/dashboards-br5
+        # BR6 dashboards (docs/plan/br6/plan-monitoring.md, H3).
+        - name: BR6
+          orgId: 1
+          folder: BR6
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br6
 
 services:
 
@@ -430,6 +440,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       - ./grafana/dashboards-br5:/var/lib/grafana/dashboards-br5:ro
+      - ./grafana/dashboards-br6:/var/lib/grafana/dashboards-br6:ro
     ports:
       - "3000:3000"
     networks:

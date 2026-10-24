@@ -326,8 +326,12 @@ with st.expander("Run summary (for the team)"):
     steps = run["step_durations"]
     right.table({"Step": list(steps), "Seconds": [f"{ms / 1000:.1f}" for ms in steps.values()]})
     right.caption(f"Total {(run['duration_ms'] or 0) / 1000:.1f} s, Spark start-up included.")
+    buttons = st.columns(3)
     if run["spark_app_id"]:
-        st.link_button("Spark page of this run", backend.spark_page_url(run["spark_app_id"]))
+        buttons[0].link_button("Spark page of this run", backend.spark_page_url(run["spark_app_id"]), width="stretch")
+    buttons[1].link_button("Resource use during the run", backend.dashboard_url("Resource use", run), width="stretch")
+    buttons[2].page_link("views/br6_run_history.py", label="Compare with another run",
+                         query_params={"run": str(run["run_id"])})
     st.markdown(f"**Settings:** engine **{settings.get('pipeline.engine')}**, matching "
                 f"**{settings.get('pipeline.matching')}**, distance **{settings.get('pipeline.distance')}**, place "
                 f"statistics **{settings.get('pipeline.place_stats')}**; from "

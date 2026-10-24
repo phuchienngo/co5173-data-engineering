@@ -1,7 +1,8 @@
 """Checks that two BR6 Route Finder runs gave the same answer: the same places
 with the same status, rank, detour, position and scores, and the same cleaning
 counts. Used to show that the optimizations and the two engines only change the
-speed (spec C9, C10; plan-pipeline.md section 12).
+speed (spec C9, C10; plan-pipeline.md section 12). The app's Run History uses
+it too, with settings_diff (plan-monitoring.md H5).
 
     python3 route_compare.py RUN_ID_A RUN_ID_B
 """
@@ -18,6 +19,15 @@ DECIMALS = 6
 
 def comparable(row):
     return tuple(round(row[c], DECIMALS) if isinstance(row[c], float) else row[c] for c in COMPARED)
+
+
+def settings_diff(a, b):
+    """[(key, value in a, value in b)] for the snapshot keys that differ
+    (None = missing). Settings first, then Spark's effective values, the
+    cluster, the category grouping and where the settings came from."""
+    order = {"effective": 1, "cluster": 2, "grouping": 3, "launch": 4}
+    keys = sorted(set(a) | set(b), key=lambda k: (order.get(k.split(".", 1)[0], 0), k))
+    return [(k, a.get(k), b.get(k)) for k in keys if a.get(k) != b.get(k)]
 
 
 def differences(client, run_a, run_b):

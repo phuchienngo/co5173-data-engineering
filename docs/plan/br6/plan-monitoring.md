@@ -2,6 +2,8 @@
 
 Implements [spec-monitoring.md](../../spec/br6/spec-monitoring.md): M1–M10, the two-run comparison and the links (main spec G4–G6). It builds on what [plan-data-import.md](plan-data-import.md) and [plan-pipeline.md](plan-pipeline.md) already record in `br6.pipeline_runs`, and copies the design of [BR5's monitoring plan](../br5/plan-monitoring.md).
 
+**Status:** implemented and tested on 2026-10-24. Figures and checks: [result-monitoring.md](../../result/br6/result-monitoring.md). How to use it: [monitoring-guide.md](../../guide/br6/monitoring-guide.md).
+
 Not covered: the benchmark (repeated runs for medians, routes B and C per option, the baseline at ×5 with the parallel reader). It gets its own plan, as in BR5, and uses what this plan builds.
 
 ## 1. Where we start
@@ -84,16 +86,16 @@ Variables shared by all three: time range, run type (import / run), status, engi
 | File | New/changed | Content |
 |---|---|---|
 | `sql/clickhouse/ddl_br6.sql` | additive | View `br6.run_history` (H2) |
-| `jobs/br6_route/route_runs.py` | additive | `run_history(client, filters)` and `run_pair(client, a, b)` read the view |
+| `jobs/br6_route/route_runs.py` | additive | `run_history(client, limit, run_type)` reads the view. *As built:* no `run_pair`; the page takes both runs from the history it has already read |
 | `jobs/br6_route/route_compare.py` | additive | `settings_diff(a, b)` |
-| `grafana/dashboards-br6/br6-run-performance.json`, `br6-resource-use.json`, `br6-data-result.json` | new | Section 3 |
+| `grafana/dashboards-br6/br6-run-performance.json`, `br6-resource-use.json`, `br6-data-result.json` | new | Section 3. *As built:* adapted from BR5's JSON (same layout and panel styles). The *Import status* and *Imported at* stats read every field (`reduceOptions.fields = "/.*/"`): with BR5's setting they show "No data", because a stat panel reads only numbers by default. BR5's own dashboard had the same problem from the start: with the ClickHouse plugin of mid-October (4.22.1) it showed "No data" too, so it wasn't caused by a plugin update. It was never noticed because no BR5 screenshot shows that dashboard and the dashboard check counts rows only. Fixed in BR5's file the same way |
 | `docker-compose.yml` | additive | Grafana provider `BR6` (folder BR6) and the mount of `grafana/dashboards-br6` |
-| `apps/br5/route_backend.py` | small | `DASHBOARDS`; history and pair reads through the view |
+| `apps/br5/route_backend.py` | small | `DASHBOARDS` and `dashboard_url(name, run)` (the run's time window); history through the view; `same_result`, `settings_diff`. *As built:* container CPU and memory per run reuse BR5's app helper `backend.container_figures` (same containers, same Prometheus) |
 | `apps/br5/views/br6_run_history.py` | rebuilt | Section 4 |
-| `apps/br5/views/route_finder.py` | small | Link from a result to its Run History row |
+| `apps/br5/views/route_finder.py` | small | A result links to Run History ("Compare with another run") and to Resource use for its time window |
 | `tests/br5/check_dashboards.py` | additive | `--br 6` (H7) |
-| `tests/br6/test_compare.py` | new | `settings_diff` and the view's summary parsing on sample rows |
-| `scripts/br6.py`, `Makefile` | small | `status` prints the BR6 dashboard URLs; `make br6-check-dashboards` |
+| `tests/br6/test_compare.py` | new | `settings_diff`. *As built:* the view's parsing needs ClickHouse, so it was checked by query instead (result file, row 1) |
+| `scripts/br6.py`, `Makefile` | small | `status` (and `up`) print the app, Run History and BR6 dashboard URLs; `make br6-check-dashboards` |
 | `docs/guide/br6/monitoring-guide.md` | new | URLs, what each dashboard shows, comparing by a setting, the Spark history page, the H8 note |
 | `docs/plan/br6/plan-shared-app.md` | small | Section 3 and 4 status lines |
 
@@ -134,4 +136,5 @@ The result file records the three runs' figures from row 3, and the peak memory 
 
 ## 10. Notes
 
+- **Spark history search:** the history server has no address parameter for its search box, so the dashboards link to its start page and the guide says to type "BR6".
 - **Python work isn't in Spark's CPU figures** (BR5 plan, section 9). This matters more for BR6: the parallel reader and the UDF variants of the match step run in Python workers. The container CPU in M7 includes them, and the guide says so.

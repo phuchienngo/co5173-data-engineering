@@ -50,7 +50,11 @@ LAUNCH = ["docker", "exec", "-i", APP_SERVICE, "python3", f"{JOBS}/route_launch.
 URLS = {
     "Route Finder": "http://localhost:8501/route_finder",
     "BR6 Data": "http://localhost:8501/route_data",
+    "BR6 Run History": "http://localhost:8501/route_run_history",
     "Grafana": "http://localhost:3000",
+    "  Run performance": "http://localhost:3000/d/br6-run-performance",
+    "  Resource use": "http://localhost:3000/d/br6-resource-use",
+    "  Data and result": "http://localhost:3000/d/br6-data-result",
     "Spark master UI": "http://localhost:8082",
     "Spark history": "http://localhost:18080",
     "Prometheus": "http://localhost:9090",
@@ -149,14 +153,13 @@ def confirm_replace(args):
 def print_urls():
     print()
     for name, url in URLS.items():
-        print(f"{name:16} {url}")
+        print(f"{name:18} {url}")
 
 
 def cmd_up(args):
     refuse_if_busy()
     start_services(with_app=True)
     cmd_status(args)
-    print_urls()
 
 
 def cmd_import(args):
@@ -191,6 +194,7 @@ def cmd_run(args):
 
 def cmd_status(args):
     run(["docker", "exec", "-i", APP_SERVICE, "python3", f"{JOBS}/route_status.py"])
+    print_urls()
 
 
 def main():

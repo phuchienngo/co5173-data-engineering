@@ -248,3 +248,57 @@ CREATE TABLE IF NOT EXISTS br6.run_place
 )
 ENGINE = MergeTree
 ORDER BY (run_id, place_key);
+
+-- Monitoring (docs/plan/br6/plan-monitoring.md, H2) -------------------------
+
+-- One flat row per import and run, for the Grafana dashboards and the app's
+-- Run History. Reads pipeline_runs only, so it works while an import swaps the
+-- data tables. For imports, city and visitor are '(import)', so the dashboards'
+-- "All" filters keep them.
+CREATE OR REPLACE VIEW br6.run_history AS
+SELECT
+    run_id,
+    run_type,
+    status,
+    step,
+    started_at,
+    finished_at,
+    duration_ms / 1000 AS duration_s,
+    -- Spark start-up and other time outside the recorded steps.
+    greatest(duration_ms - arraySum(mapValues(step_durations)), 0) / 1000 AS outside_steps_s,
+    if(settings['launch.settings_from'] = '', 'unknown', settings['launch.settings_from']) AS settings_from,
+    if(settings['pipeline.engine'] = '' OR run_type = 'import', 'spark', settings['pipeline.engine']) AS engine,
+    concat(settings_from, if(run_type = 'run', concat(' · ', engine), '')) AS variant,
+    if(run_type = 'run', criteria['city'], '(import)') AS city,
+    if(run_type = 'run', if(criteria['visitor'] = '', 'general', 'chosen'), '(import)') AS visitor_kind,
+    if(run_type = 'run', if(criteria['visitor'] = '', 'general', criteria['visitor']), '') AS visitor,
+    criteria['types'] AS types,
+    JSONExtract(result_summary, 'points', 'Array(String)') AS points,
+    multiIf(run_type = 'import', if(criteria['cities'] = '', 'import', concat('import: ', criteria['cities'])),
+            notEmpty(points), arrayStringConcat(points, ' → '),
+            concat('venue ', arrayStringConcat(arrayFilter(x -> x != '',
+                [criteria['start'], criteria['stops'], criteria['end']]), ' → '))) AS route,
+    if(run_type = 'run', concat(city, ' · ', route, ' · visitor ', visitor), route) AS choice,
+    multiplier,
+    rows_read,
+    rows_used,
+    rows_written,
+    rows_excluded,
+    step_durations,
+    settings,
+    criteria,
+    resources,
+    spark_app_id,
+    import_id,
+    result_count,
+    result_summary,
+    JSONExtractFloat(result_summary, 'route_km') AS route_km,
+    JSONExtractUInt(result_summary, 'found') AS found,
+    JSONExtractUInt(result_summary, 'after_filters') AS after_filters,
+    JSONExtractUInt(result_summary, 'status_counts', 'suggested') AS suggested,
+    JSONExtractUInt(result_summary, 'status_counts', 'below the top N') AS below_top_n,
+    JSONExtractUInt(result_summary, 'status_counts', 'few visitors') AS few_visitors,
+    JSONExtractUInt(result_summary, 'status_counts', 'type not chosen') AS type_not_chosen,
+    JSONExtractUInt(result_summary, 'status_counts', 'not offered') AS not_offered,
+    error
+FROM br6.pipeline_runs FINAL;

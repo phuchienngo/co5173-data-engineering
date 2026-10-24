@@ -6,6 +6,7 @@ this script does: each variable takes its default, and "All" becomes every
 value its own query returns. Run from the host with the stack up:
 
     python tests/br5/check_dashboards.py [--from now-30d]   (default: each dashboard's time range)
+    python tests/br5/check_dashboards.py --br 6               (BR6's dashboards, docs/plan/br6/plan-monitoring.md H7)
 
 Exit code 1 when a query fails. Empty results are listed but don't fail:
 some panels are only filled after certain runs (for example a failed run).
@@ -21,6 +22,7 @@ import urllib.request
 GRAFANA = "http://localhost:3000"
 AUTH = "Basic " + base64.b64encode(b"admin:admin").decode()
 DASHBOARDS = ["br5-run-performance", "br5-resource-use", "br5-data-result"]
+BR_DASHBOARDS = {"5": DASHBOARDS, "6": ["br6-run-performance", "br6-resource-use", "br6-data-result"]}
 
 
 def call(path, body=None):
@@ -95,10 +97,11 @@ def interpolate_target(target, values):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--from", dest="time_from", help="Default: each dashboard's own time range")
+    parser.add_argument("--br", choices=sorted(BR_DASHBOARDS), default="5", help="Whose dashboards (default: 5)")
     args = parser.parse_args()
 
     failures, empty, checked = [], [], 0
-    for uid in DASHBOARDS:
+    for uid in BR_DASHBOARDS[args.br]:
         found = call(f"/api/dashboards/uid/{uid}")
         if "dashboard" not in found:
             failures.append(f"{uid}: dashboard not provisioned ({found.get('message')})")

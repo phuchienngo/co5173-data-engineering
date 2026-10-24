@@ -83,3 +83,5 @@ Container figures during the same runs (from Prometheus, 5 s samples; CPU second
 
 - Repeated runs per variant, ×10 and ×50, reader / cache / skew variants (benchmark plan).
 - Container figures over short windows include anything else the container did at the time: Grafana's own queries to ClickHouse while a dashboard is open, background merges, the app itself. Fair resource comparisons need a quiet machine and repeated runs.
+
+*Fixed on 2026-10-24 (during BR6 monitoring):* the Data and result dashboard's *Import status* and *Imported at* stats showed "No data", because a stat panel reads only number fields by default. They now read every field. The dashboard check didn't catch it, because it counts the rows a query returns, not what the panel shows.

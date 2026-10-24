@@ -194,3 +194,19 @@ def run_places(client, run_id):
         "ORDER BY rank = 0, rank, score DESC, visitors DESC, checkins DESC, place_key",
         parameters={"r": run_id},
     ).named_results())
+
+
+HISTORY_COLUMNS = ("run_id, run_type, status, step, started_at, finished_at, duration_s, outside_steps_s, "
+                   "settings_from, engine, variant, city, visitor_kind, visitor, types, route, choice, multiplier, "
+                   "rows_read, rows_used, rows_written, rows_excluded, step_durations, settings, criteria, resources, "
+                   "spark_app_id, import_id, result_count, route_km, found, after_filters, suggested, below_top_n, "
+                   "few_visitors, type_not_chosen, not_offered, error")
+
+
+def run_history(client, limit=500, run_type=None):
+    """Imports and runs, newest first (view br6.run_history, plan-monitoring.md H2)."""
+    where = "WHERE run_type = {t:String}" if run_type else ""
+    return list(client.query(
+        f"SELECT {HISTORY_COLUMNS} FROM {DB}.run_history {where} ORDER BY started_at DESC LIMIT {int(limit)}",
+        parameters={"t": run_type} if run_type else None,
+    ).named_results())

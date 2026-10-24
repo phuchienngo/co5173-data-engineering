@@ -26,7 +26,7 @@
 - **Spark** 4.0 (`bitnamilegacy/spark:4.0`) standalone cluster: 1 master and 1 worker (2 cores, 2G). Jobs are submitted from the `spark-local` container (client mode), which mounts `/opt/jobs`, `/opt/data`, `/opt/ingestion` and `/opt/logs`.
 - **ClickHouse** `26.8`, login `default` / `clickhouse`, ports 8123 and 9000. 1 GB container; `system.metric_log` is turned off, because its merges took about 730 MiB and made parallel inserts fail.
 - **Prometheus** scrapes ClickHouse and Spark, and (profile `br5`) CPU and memory per container from `docker-stats` (`docker/docker-stats/exporter.py`; cAdvisor can't identify containers on this Docker host). It keeps 90 days.
-- **Grafana** `13.2` at `:3000` (admin/admin). Dashboards are provisioned from `grafana/dashboards/*.json` (folder CO5173). A BR with its own folder uses its own directory and provider (BR5: `grafana/dashboards-br5/`), because a provider reads its directory recursively.
+- **Grafana** `13.2` at `:3000` (admin/admin). Dashboards are provisioned from `grafana/dashboards/*.json` (folder CO5173). A BR with its own folder uses its own directory and provider (BR5: `grafana/dashboards-br5/`, BR6: `grafana/dashboards-br6/`), because a provider reads its directory recursively.
 - Run everything with `make demo` or `make demo-br BR=3,4`, which call `scripts/start.py`. Logs go to `logs/demo/brN-*.log`. The Makefile and `start.py` use `python3`, `bash` and `tail`; the dev machine is Windows.
 
 ## BR plug-in convention (discovered by filename)

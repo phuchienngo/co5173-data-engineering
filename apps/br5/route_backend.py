@@ -16,6 +16,8 @@ from pathlib import Path
 
 import streamlit as st
 
+import backend as br5_backend
+import route_compare
 import route_launch
 import route_reference as reference
 import route_rules as rules
@@ -33,12 +35,22 @@ SPARK_LIVE_URL = os.environ.get("BR6_SPARK_LIVE_URL", "http://localhost:4040")
 CATALOG = route_launch.CATALOG
 # Not offered as a start, stop or end (spec 3.1).
 PRIVATE_CATEGORIES = ("Home (private)",)
-# Added by the monitoring plan (docs/plan/br6, M6-M8).
-DASHBOARDS = {}
+# Grafana folder BR6 (docs/plan/br6/plan-monitoring.md, section 3).
+DASHBOARDS = {
+    "Run performance": "br6-run-performance",
+    "Resource use": "br6-resource-use",
+    "Data and result": "br6-data-result",
+}
 
 
-def dashboard_url(name):
-    return f"{GRAFANA_URL}/d/{DASHBOARDS[name]}"
+def dashboard_url(name, run=None):
+    url = f"{GRAFANA_URL}/d/{DASHBOARDS[name]}"
+    if run and run.get("started_at") and run.get("finished_at"):
+        # The run's own time window, with a little margin.
+        start = int(run["started_at"].timestamp() * 1000) - 15_000
+        end = int(run["finished_at"].timestamp() * 1000) + 15_000
+        url += f"?from={start}&to={end}"
+    return url
 
 
 def monitoring_buttons():
@@ -92,17 +104,25 @@ def current_values():
     return route_launch.CATALOG.resolve(runs.load_settings(client(), runs.CURRENT))
 
 
-def import_history(limit=200):
-    return run_history(limit, "import")
+def run_history(limit=500, run_type=None):
+    """Imports and runs, newest first (view br6.run_history)."""
+    return runs.run_history(client(), limit, run_type)
 
 
-def run_history(limit=200, run_type=None):
-    where = f"WHERE run_type = '{run_type}'" if run_type else ""
-    return list(client().query(
-        "SELECT run_id, run_type, status, step, started_at, duration_ms, multiplier, writer, criteria, rows_read, "
-        "rows_written, rows_used, result_count, step_durations, spark_app_id, error, settings "
-        f"FROM {runs.DB}.pipeline_runs FINAL {where} ORDER BY started_at DESC LIMIT {int(limit)}"
-    ).named_results())
+def same_result(run_a, run_b):
+    """Differences between two runs' results ([] = the same), route_compare."""
+    return route_compare.differences(client(), run_a, run_b)
+
+
+def settings_diff(a, b):
+    return route_compare.settings_diff(a, b)
+
+
+def container_figures(run):
+    """CPU seconds and peak memory per container during a run, from Prometheus.
+    The containers are BR5's (spark-worker, br5-app, clickhouse), so this is
+    BR5's app helper."""
+    return br5_backend.container_figures(str(run["run_id"]), run["started_at"], run["finished_at"])
 
 
 def spark_page_url(app_id):
