@@ -91,17 +91,31 @@ class SparkEngine:
         if pipeline["join"] == "early":
             # Baseline: every booking joined with the lookup tables first. The
             # broadcast threshold decides broadcast vs sort-merge join.
+            # Salting (salt_buckets > 1): each booking gets a random bucket and
+            # each lookup row is copied once per bucket, so a frequent key is
+            # split over several join partitions. Every booking still matches
+            # exactly one copy.
             d = ctx.dims
-            rooms = dim_frame(self.spark, [(k, v) for k, v in d.rooms.items()], "reserved_room_type_key int, room string")
-            countries = dim_frame(self.spark, [(k, v[0]) for k, v in d.countries.items()],
-                                  "country_key int, country string")
-            channels = dim_frame(self.spark, [(k, v) for k, v in d.channels.items()], "channel_key int, segment string")
-            dates = dim_frame(self.spark, d.date_months, "arrival_date_key int, month int")
+            buckets = pipeline["salt_buckets"]
+
+            def lookup(rows, schema):
+                if buckets == 1:
+                    return dim_frame(self.spark, rows, schema)
+                return dim_frame(self.spark, [(*r, s) for r in rows for s in range(buckets)], schema + ", salt int")
+
+            rooms = lookup([(k, v) for k, v in d.rooms.items()], "reserved_room_type_key int, room string")
+            countries = lookup([(k, v[0]) for k, v in d.countries.items()], "country_key int, country string")
+            channels = lookup([(k, v) for k, v in d.channels.items()], "channel_key int, segment string")
+            dates = lookup(d.date_months, "arrival_date_key int, month int")
+            salt = []
+            if buckets > 1:
+                source = source.withColumn("salt", F.floor(F.rand() * buckets).cast("int"))
+                salt = ["salt"]
             prepared = (
-                source.join(rooms, "reserved_room_type_key")
-                .join(countries, "country_key")
-                .join(channels, "channel_key")
-                .join(dates, "arrival_date_key")
+                source.join(rooms, ["reserved_room_type_key", *salt])
+                .join(countries, ["country_key", *salt])
+                .join(channels, ["channel_key", *salt])
+                .join(dates, ["arrival_date_key", *salt])
             )
         else:
             # Integer keys only; names are attached to the few result rows.

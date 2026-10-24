@@ -4,6 +4,7 @@ with the stack up (`make br5-up`) and the data imported at x10:
     python tests/br5/benchmark.py presets                 save the benchmark presets
     python tests/br5/benchmark.py block S2 [--clickhouse] run a block's cells (restarts the worker if needed)
     python tests/br5/benchmark.py screens S2              screenshots of a block's cells
+    python tests/br5/benchmark.py stages X                skew figures per shuffle stage (block X)
     python tests/br5/benchmark.py restore                 worker back to 2 cores
 
 `--cells I3-L3,I1-L2` limits a block or its screenshots to some cells.
@@ -50,7 +51,8 @@ INPUTS = {
     "I3": ("Resort Hotel", "GBR", "A"),
 }
 # 3.2 start-up configurations: Spark worker cores
-BLOCKS = {"S1": 1, "S2": 2, "S3": 4}
+# X: block X (plan 3.6), shuffle partitions and salting from the baseline, on 4 cores
+BLOCKS = {"S1": 1, "S2": 2, "S3": 4, "X": 4}
 # 3.3 / 3.4 presets: (name, built-in preset to start from, overrides)
 ALL_CORES = {"spark.cores.max": "4"}  # D4: a run takes whatever the worker has
 LIVE = {
@@ -58,8 +60,12 @@ LIVE = {
     "L2": ("bench-default", None, ALL_CORES),
     "L3": ("bench-read4", None, {**ALL_CORES, "pipeline.read_partitions": "4"}),
     "C1": ("bench-clickhouse", None, {"pipeline.engine": "clickhouse"}),
+    "P1": ("bench-baseline-shuffle8", "baseline", {**ALL_CORES, "spark.sql.shuffle.partitions": "8"}),
+    "K1": ("bench-baseline-salt8", "baseline", {**ALL_CORES, "pipeline.salt_buckets": "8"}),
 }
 SPARK_LIVE = ["L1", "L2", "L3"]
+BLOCK_LIVE = {"X": ["L1", "P1", "K1"]}
+BLOCK_REPEATS = {"X": 3}  # D13
 THIRD_RUN_SPREAD = 1.15  # D7
 
 
@@ -165,7 +171,8 @@ def run_cell(block, cell, repeat):
 
 
 def cmd_block(args):
-    cells = args.cells or [f"{i}-{l}" for i in INPUTS for l in SPARK_LIVE]
+    cells = args.cells or [f"{i}-{l}" for i in INPUTS for l in BLOCK_LIVE.get(args.block, SPARK_LIVE)]
+    args.repeats = args.repeats or BLOCK_REPEATS.get(args.block, 2)
     set_worker(BLOCKS[args.block])
     if not args.no_warmup:
         run_cell(args.block, cells[0], "warmup")
@@ -173,7 +180,7 @@ def cmd_block(args):
     for repeat in range(1, args.repeats + 1):  # D8: interleaved
         for cell in cells:
             measured[cell].append(run_cell(args.block, cell, repeat))
-    for cell, rows in measured.items():  # D7: a third run when two disagree
+    for cell, rows in measured.items() if args.repeats < 3 else ():  # D7: a third run when two disagree
         times = [float(r["duration_s"]) for r in rows if r["status"] == "succeeded"]
         if len(times) >= 2 and max(times) / min(times) > THIRD_RUN_SPREAD:
             print(f"{cell}: runs differ by more than {THIRD_RUN_SPREAD - 1:.0%}; a third run.")
@@ -186,6 +193,62 @@ def cmd_block(args):
     for row in [r for r in read_manifest() if r["block"] == args.block]:
         print(f"  {row['cell']:7} {row['repeat']:7} {row['status']:9} {float(row['duration_s'] or 0):6.1f} s  "
               f"{row['run_id']}")
+
+
+# --- Block X: skew per stage (plan 3.6, table F) ----------------------------
+
+def history_json(path):
+    with urllib.request.urlopen(f"{SPARK_HISTORY}/api/v1/applications/{path}", timeout=30) as response:
+        return json.load(response)
+
+
+def shuffle_stages(app_id):
+    """Every completed stage that reads shuffle data, with its tasks, rows
+    read, the largest task's share of those rows and its run time against the
+    median task's."""
+    stages = []
+    for st in sorted(history_json(f"{app_id}/stages?status=complete"), key=lambda s: s["stageId"]):
+        if st["numTasks"] < 2 or not st["shuffleReadRecords"]:
+            continue
+        summary = history_json(f"{app_id}/stages/{st['stageId']}/{st['attemptId']}/taskSummary?quantiles=0.5,1.0")
+        rows, run_time = summary["shuffleReadMetrics"]["readRecords"], summary["executorRunTime"]
+        stages.append({"stage": st["stageId"], "attempt": st["attemptId"], "tasks": st["numTasks"],
+                       "rows": st["shuffleReadRecords"], "max_share": rows[1] / st["shuffleReadRecords"],
+                       "median_ms": run_time[0], "max_ms": run_time[1]})
+    return stages
+
+
+def room_join(stages, rows_read):
+    """The first join: the first shuffle stage that reads every booking. It is
+    the room-type join, the most skewed key (72% room A)."""
+    return next((s for s in stages if s["rows"] >= 0.9 * int(rows_read)), None)
+
+
+SKEWED_SHARE = 0.25  # a stage counts as skewed when one task reads this share of its rows
+
+
+def cmd_stages(args):
+    """Writes stages-<block>.csv (one row per shuffle stage of each measured
+    run) and prints each run's room join and its skewed stages."""
+    rows = [r for r in read_manifest() if r["block"] == args.block and r["repeat"] != "warmup"
+            and r["status"] == "succeeded" and r["spark_app_id"]]
+    path = OUT / f"stages-{args.block}.csv"
+    fields = ["cell", "repeat", "spark_app_id", "stage", "attempt", "tasks", "rows", "max_share", "median_ms", "max_ms"]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            stages = shuffle_stages(row["spark_app_id"])
+            for st in stages:
+                writer.writerow({"cell": row["cell"], "repeat": row["repeat"], "spark_app_id": row["spark_app_id"],
+                                 **st, "max_share": f"{st['max_share']:.4f}"})
+            join = room_join(stages, row["rows_read"])
+            skewed = [s for s in stages if s["max_share"] >= SKEWED_SHARE and s["tasks"] > 1 / SKEWED_SHARE]
+            print(f"{row['cell']:6} {row['repeat']}  room join: "
+                  + (f"{join['tasks']} tasks, largest {join['max_share']:.0%} of rows, "
+                     f"{join['max_ms']} ms vs median {join['median_ms']} ms" if join else "not found")
+                  + f"; skewed stages {len(skewed)}, their largest tasks {sum(s['max_ms'] for s in skewed) / 1000:.1f} s")
+    print(f"Saved {path.relative_to(REPO)}")
 
 
 # --- Screenshots (section 6) ------------------------------------------------
@@ -202,11 +265,15 @@ def first_runs(block, cells=None):
 
 def reference_run(block, cell, row):
     """Run A of compare.jpg: L1/L3 against L2 of the same input and block, L2
-    of S1/S3 and C1 against S2's L2. Falls back to another run of the same
+    of S1/S3 and C1 against S2's L2, block X's P1 and K1 against its L1. Falls back to another run of the same
     cell (a measured one) while the reference cell hasn't run yet. None for
     S2's L2."""
     input_id, live = cell.split("-")
-    if live in ("L1", "L3"):
+    if block == "X":  # P1 and K1 against the baseline of the same block
+        if live == "L1":
+            return None, None
+        ref = ("X", f"{input_id}-L1")
+    elif live in ("L1", "L3"):
         ref = (block, f"{input_id}-L2")
     elif live == "C1" or block != "S2":
         ref = ("S2", f"{input_id}-L2")
@@ -304,6 +371,23 @@ def spark_shot(page, row, folder):
     shoot(page, folder / "spark.jpg")
 
 
+def stages_shot(page, row, folder):
+    """Block X: the room join's stage page, top part (summary metrics; the
+    200-row task table below is left out)."""
+    join = room_join(shuffle_stages(row["spark_app_id"]), row["rows_read"])
+    if not join:
+        print(f"    no room-join stage found for {row['spark_app_id']}")
+        return
+    page.set_viewport_size({"width": 1600, "height": 1300})
+    page.goto(f"{SPARK_HISTORY}/history/{row['spark_app_id']}/stages/stage/?id={join['stage']}&attempt={join['attempt']}")
+    page.get_by_text("Summary Metrics").first.wait_for(timeout=60_000)
+    page.wait_for_timeout(3000)
+    path = folder / "stages.jpg"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    page.screenshot(path=str(path), type="jpeg", quality=80)
+    print(f"    saved {path.relative_to(REPO)} ({path.stat().st_size // 1024} KB)")
+
+
 def cmd_screens(args):
     from playwright.sync_api import sync_playwright
 
@@ -325,6 +409,8 @@ def cmd_screens(args):
             if not cell.endswith("C1"):
                 resources_shot(page, row, folder)
                 spark_shot(page, row, folder)
+                if args.block == "X":
+                    stages_shot(page, row, folder)
         browser.close()
 
 
@@ -335,12 +421,12 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("presets")
     sub.add_parser("restore")
-    for name in ("block", "screens"):
+    for name in ("block", "screens", "stages"):
         p = sub.add_parser(name)
         p.add_argument("block", choices=list(BLOCKS))
         p.add_argument("--cells", type=lambda s: s.split(","), help="For example I3-L3,I1-L2")
         if name == "block":
-            p.add_argument("--repeats", type=int, default=2)
+            p.add_argument("--repeats", type=int, help="Default 2, 3 for block X")
             p.add_argument("--no-warmup", action="store_true")
             p.add_argument("--clickhouse", action="store_true", help="Also the ClickHouse engine (C1) cells")
     args = parser.parse_args()
@@ -350,6 +436,8 @@ def main():
         set_worker(BLOCKS["S2"])
     elif args.command == "block":
         cmd_block(args)
+    elif args.command == "stages":
+        cmd_stages(args)
     else:
         cmd_screens(args)
 

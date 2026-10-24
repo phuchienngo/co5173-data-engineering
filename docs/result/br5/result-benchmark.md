@@ -9,8 +9,9 @@ Measured results of [plan-benchmark.md](../../plan/br5/plan-benchmark.md). **Thi
 | S3 | 4 cores | **Done** (2026-10-19 and 2026-10-20) | 3 warm-ups + 23 measured, all succeeded |
 | S2 + C1 | 2 cores; ClickHouse engine | **Done** (2026-10-20) | 1 warm-up + 19 Spark + 9 ClickHouse measured, all succeeded |
 | S1 | 1 core | **Done** (2026-10-21) | 1 warm-up + 22 measured, all succeeded |
+| X | 4 cores; shuffle partitions and salting from the baseline | **Done** (2026-10-24) | 1 warm-up + 27 measured, all succeeded |
 
-All blocks are done: 78 runs, of which 5 warm-ups.
+All blocks are done: 106 runs, of which 6 warm-ups.
 
 ## Setup
 
@@ -223,6 +224,80 @@ The ClickHouse column counts the rows it **scanned** (index granules matching th
   - Both engines give exactly the same cards and monthly figures.
 - **The baseline's driver reader loads the driver:** `br5-app` used 54–68 CPU-seconds against 21–29 with the parallel reader. Its driver memory (512 MB) was enough at ×10 (plan risk R2).
 
+## Block X: shuffle partitions and data skew
+
+Added for the presentation (Memory management & Data skew handling); plan section 3.6. All cells run on 4 cores and start from the baseline L1, the only configuration where both effects exist: AQE is off, so the shuffles keep exactly the partitions they are given, and the 4 lookup joins are sort-merge joins on skewed keys. Each variant changes one setting:
+
+| Cell | Preset | Change from L1 |
+|---|---|---|
+| L1 | `bench-baseline` | – (measured again in this block) |
+| P1 | `bench-baseline-shuffle8` | `spark.sql.shuffle.partitions` 200 → **8** |
+| K1 | `bench-baseline-salt8` | `pipeline.salt_buckets` 1 → **8** (salting) |
+
+Salting is done in the Spark job at join time: each booking gets a random bucket 0–7, each lookup row is copied once per bucket, and the joins match on (key, bucket). The imported data is unchanged.
+
+### Run time (seconds, median of 3)
+
+| Input | L1 baseline | P1 8 partitions | K1 salting | P1 vs L1 | K1 vs L1 |
+|---|---|---|---|---|---|
+| I1 (100%) | 74.8 | 50.0 | 87.2 | **−24.8 s (−33%)** | +12.4 s (+17%) |
+| I2 (26%) | 75.9 | 42.3 | 73.4 | **−33.6 s (−44%)** | −2.5 s (−3%) |
+| I3 (3%) | 64.2 | 36.8 | 63.6 | **−27.4 s (−43%)** | −0.6 s (−1%) |
+
+### Steps and work (median)
+
+| Cell | Read / clean / aggregate / profile (s) | Spark tasks | Spark CPU (s) | GC (s) | Shuffle (MB) | Spilled, in memory (MB) | Executor peak heap (MB) |
+|---|---|---|---|---|---|---|---|
+| I1-L1 | 3.2 / 23.0 / 13.5 / 25.0 | 4,861 | 64.5 | 5.0 | 35.3 | 216 | 348 |
+| I1-P1 | 3.2 / 16.3 / 6.7 / 13.4 | 829 | 30.9 | 2.0 | 30.2 | 146 | 357 |
+| I1-K1 | 3.0 / 24.4 / 16.0 / 33.8 | 4,861 | 112.1 | 9.0 | 136.2 | 0 | 432 |
+| I2-L1 | 5.2 / 22.4 / 12.0 / 22.5 | 4,289 | 34.5 | 4.0 | 5.2 | 26 | 192 |
+| I2-P1 | 4.7 / 12.9 / 4.7 / 10.1 | 257 | 11.7 | 0.8 | 4.4 | 0 | 177 |
+| I2-K1 | 4.3 / 23.3 / 12.5 / 23.0 | 4,289 | 46.7 | 3.9 | 20.3 | 0 | 255 |
+| I3-L1 | 3.4 / 18.9 / 10.5 / 20.1 | 4,289 | 25.5 | 3.9 | 1.5 | 0 | 238 |
+| I3-P1 | 4.0 / 9.9 / 4.5 / 7.7 | 257 | 8.0 | 1.1 | 1.1 | 0 | 122 |
+| I3-K1 | 3.6 / 20.1 / 10.5 / 19.5 | 4,289 | 33.5 | 3.3 | 6.4 | 0 | 281 |
+
+The disk part of the spill was small (at most 6 MB). The steps add up to about 10 s less than the run time: that is the Spark session start-up.
+
+### Skew inside Spark (median of 3; figures in [benchmark/stages-X.csv](benchmark/stages-X.csv))
+
+"Room join" is the first join, by room type: it reads every booking. A stage counts as skewed when one task reads at least 25% of its rows. Each run has 21 stages that read shuffle data.
+
+| Cell | Room join: tasks | Largest task's share of the rows | Largest task / median task | Skewed stages | Time of their largest tasks (s) |
+|---|---|---|---|---|---|
+| I1-L1 | 200 | 72% | 2.9 s / 9 ms | 12 | 8.5 |
+| I1-P1 | 8 | 75% | 2.1 s / 0.7 s | 13 | 6.9 |
+| I1-K1 | 200 | **9%** | 1.2 s / 9 ms | **0** | 0 |
+| I2-L1 | 200 | 90% | 1.5 s / 12 ms | 13 | 3.4 |
+| I2-P1 | 8 | 91% | 1.0 s / 0.3 s | 13 | 2.9 |
+| I2-K1 | 200 | **11%** | 0.7 s / 10 ms | **1** | 0.0 |
+| I3-L1 | 200 | 100% | 0.5 s / 10 ms | 13 | 1.5 |
+| I3-P1 | 8 | 100% | 0.7 s / 0.3 s | 16 | 2.9 |
+| I3-K1 | 200 | **13%** | 0.4 s / 10 ms | **1** | 0.1 |
+
+The `stages.jpg` screenshots show the room join of I1. In L1 one task reads 859,941 of the 1,193,910 rows and spills 81 MiB. In K1 the largest task reads 107,855 rows and nothing spills.
+
+### Observations
+
+- **Shuffle partitions: 8 instead of 200 makes the baseline 33–44% faster (25–34 s), on every input.**
+  - With AQE off, every shuffle keeps the configured partition count. At 200, most tasks have almost nothing to do: the room join's median task reads 0 rows and runs about 10 ms. Scheduling and running 4,289–4,861 tiny tasks is the cost.
+  - At 8 partitions, 2 per core, the run needs 257–829 tasks. Spark CPU halves or better (I1: 64.5 → 30.9 s), and GC time falls (I1: 5.0 → 2.0 s).
+  - Clean, aggregate and profile, the steps that shuffle, account for the whole gain. The read step is unchanged.
+  - **Memory:** bigger partitions did not cost memory here. The executor's peak heap is about the same (348 / 357 MB on I1), and the spill went down (216 → 146 MB on I1, 26 → 0 on I2). At ×10 the data is small, so 8 partitions are still small enough. On a much larger input, fewer partitions would mean more data per task and more spill: the partition count trades task overhead against memory per task.
+  - Fewer partitions do not fix skew: the room join's largest task still reads 75% of the rows (I1), and 12–16 stages stay skewed.
+  - The same effect is what AQE does automatically: L2 and L3, with AQE on, merge the 200 partitions into a few by size and run 21–41 tasks.
+- **Salting removes the skew, but at this size it doesn't make the run faster.**
+  - Inside Spark it works as intended. The room join's largest task drops from 72% of the rows to 9% (I1), from 90% to 11% (I2) and from 100% to 13% (I3), 1/8 of the hot key plus a little. The skewed stages go from 12–13 to 0–1. All spill disappears (I1: 216 MB → 0), because no single task has to sort most of the data any more.
+  - The total doesn't improve: I1 is 12.4 s (17%) slower, I2 and I3 are within the noise (−2.5 and −0.6 s).
+  - **The cost:** the shuffled data grows 4× for the same rows (I1: 35 → 136 MB; the room join alone: 2.9 → 11.1 MiB for 1,193,910 rows). Spark CPU rises by 31–74% (I1: 64.5 → 112.1 s), and the executor's peak heap by 18–33%. The likely reason: without salting, the rows that land in one partition are near-copies of each other and compress extremely well (2.5 bytes a row in the room join). A random bucket in every row breaks those repeats.
+  - **The gain is small at this size:** the skewed tasks lasted 8.5 s in total on I1, and while they ran, the other 3 cores still had thousands of small tasks to do. So balancing saved less time than the extra shuffle work cost. On I2 and I3, the skewed tasks lasted only 1.5–3.4 s in total.
+  - When salting pays: when one hot key's task takes most of a stage's time and the other cores sit idle. That needs much more data per key than ×10 gives, or a task that runs out of memory. Salting turns spill or out-of-memory into balanced work, at the price of more shuffle data and replicated lookup rows.
+- **For the presentation:**
+  - The cheapest answer to skew is not to shuffle by the skewed key at all. The default pipeline broadcasts the lookup tables and groups on integer keys before attaching names (L2/L3), and it is 2.3–3.4× faster than the baseline.
+  - The next answer is AQE (on by default), which merges small partitions and can split skewed ones.
+  - Manual salting is the last resort, and it has a measurable cost.
+
 ## Noise
 
 - **S3:** the second set of runs on 2026-10-20 was slower across the board, so 5 of the 6 L1/L2 cells needed a third run.
@@ -234,6 +309,7 @@ The ClickHouse column counts the rows it **scanned** (index granules matching th
   - I1-L1's Spark CPU time for the same tasks rose from 31.7 s (run 1) to 43.2 s (run 2), again pointing to the host's CPU.
   - In the default cells the read step grew: I2-L2 took 10.6 s in run 1 and 13.8–14.5 s in runs 2 and 3. Two of I2-L2's and I2-L3's three runs are slow ones, so their medians lean high. That is why S1 against S2 for I2 with the defaults (+30%) is larger than for I1 and I3.
   - The I3 cells were within 4% in both sets.
+- **X:** all 9 cells had 3 runs within 11% of each other (D13 of the plan: no third-run rule needed). The I1-L1 runs (74.2–78.0 s) were close to the earlier S3 ones (60.3–81.2 s).
 
 The medians are robust to one slow run, but differences under about 10% between cells measured at different times should not be over-read.
 
@@ -244,10 +320,12 @@ The medians are robust to one slow run, but differences under about 10% between 
 | 1 | Start-up configuration | Every run recorded the block's `cluster.worker_cores`: 1 for all 23 S1 runs, 2 for all 29 S2 runs, 4 for all 26 S3 runs. During S3, Prometheus showed the `spark-worker` CPU limit at 4. In S1, Grafana shows the worker at 1 core, with its CPU close to the 1.0 limit through the baseline runs |
 | 2 | Live settings | Each run's "settings from" is its cell's preset. For L1, Spark itself reports AQE off and broadcast -1. Every L2 and L3 run sent 2 or 4 read queries whose rows add up exactly to the rows read. L1 (driver reader) and C1 send one query or their own SQL instead |
 | 3 | Rows read per input | 1,193,900 / 309,600 / 35,360 in every run, as planned |
-| 4 | Same input, same result | All 78 runs agree per input, Spark (all three worker sizes, all live settings) and the ClickHouse engine: 10 cards and 132 month rows; 5 and 72; 1 and 24. Each S1 run was compared with S2's L2 reference run. This needed a fix to the check (below) |
+| 4 | Same input, same result | All 106 runs agree per input (block X: each run compared with S2's L2 reference, including salting), Spark (all three worker sizes, all live settings) and the ClickHouse engine: 10 cards and 132 month rows; 5 and 72; 1 and 24. Each S1 run was compared with S2's L2 reference run. This needed a fix to the check (below) |
 | 5 | All succeeded; repeats close | All succeeded, and every run has its Spark figures. Third runs: 5 cells in S3, 1 in S2, 4 in S1 (see Noise) |
 | 6 | Screenshots | 36 files for S1, 39 for S2 and 36 for S3. A sample from each live setting and the engine comparison was checked by eye |
-| 7 | Stack restored | Worker back to 2 cores after S3 and after S1; `make br5-check-dashboards` passes (37 queries, 0 failed, 0 empty) |
+| 7 | Stack restored | Worker back to 2 cores after S3, S1 and X; `make br5-check-dashboards` passes (37 queries, 0 failed, 0 empty) |
+| 8 | Block X settings | All 28 block X runs recorded 4 worker cores, AQE off and broadcast -1, as Spark itself reports. P1 recorded `spark.sql.shuffle.partitions` 8 and K1 `pipeline.salt_buckets` 8. The plans of all three show only `SortMergeJoin` (18 in each run), no `BroadcastHashJoin`. K1's joins have `salt` in their keys |
+| 9 | Salting really happened | See the skew table: the largest task's share of the room join drops to 9–13% in K1, against 72–100% in L1 and P1 |
 
 ## Issues found and fixed
 
@@ -270,7 +348,7 @@ The medians are robust to one slow run, but differences under about 10% between 
 
 ## Screenshots
 
-In [benchmark/](benchmark/), one folder per cell (for example `S2-I1-L1/`), from the cell's first measured run:
+In [benchmark/](benchmark/), one folder per cell (for example `S2-I1-L1/`), from the cell's first measured run. The JPEGs are stored with Git LFS (153 files, 42 MB; plan risk R6):
 
 | File | Shows |
 |---|---|
@@ -278,12 +356,14 @@ In [benchmark/](benchmark/), one folder per cell (for example `S2-I1-L1/`), from
 | `compare.jpg` | Run History against the reference run: run time, steps, settings that differ, resources, same result |
 | `resources.jpg` | Grafana Resource use during the run: CPU and memory per container (Spark cells only) |
 | `spark.jpg` | The run's Spark jobs page, jobs named after the steps (Spark cells only) |
+| `stages.jpg` | Block X only: the room join's stage page, with min / median / max per task of the duration, the rows read and the spill |
 
 References in `compare.jpg`:
 - L1 and L3 are compared with L2 of the same input and block.
 - L2 of S1 and S3 is compared with S2's L2: the only setting that differs is the worker's cores.
 - C1 is compared with S2's L2: Spark against the ClickHouse engine.
 - S2's L2 cells are the references, so they have no `compare.jpg`.
+- Block X: P1 and K1 are compared with L1 of the same input in block X, which has no `compare.jpg`.
 
 ## Appendix: every run (seconds, in order)
 
@@ -303,3 +383,11 @@ References in `compare.jpg`:
 | I3-C1 | | 1.9, 1.7, 1.9 | |
 
 Warm-ups (not counted): S1 112.7 (I1-L1); S2 80.8 (I1-L1); S3 24.1 (I3-L3), 27.7 (I1-L3), 59.9 (I1-L1).
+
+Block X (4 cores):
+
+| Cell | L1 | P1 | K1 |
+|---|---|---|---|
+| I1 | 78.0, 74.8, 74.2 (warm-up 76.1) | 50.0, 49.6, 50.6 | 83.9, 88.6, 87.2 |
+| I2 | 71.0, 76.7, 75.9 | 43.2, 41.8, 42.3 | 73.4, 73.3, 74.5 |
+| I3 | 65.6, 62.2, 64.2 | 39.5, 36.8, 35.6 | 67.0, 63.5, 63.6 |

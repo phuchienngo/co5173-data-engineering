@@ -144,7 +144,7 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
 
 **Why these values:**
 - **P1, 8 partitions.** About 200 tasks per run instead of 4,245–4,861, so much less scheduling and per-task overhead. Each task then holds about 25 times more data, so the spill and GC figures (memory) are part of the result. L1 spilled 229 MB on I1 with 200 partitions. Fewer partitions don't fix the skew: the hot key still lands in one partition.
-- **K1, 8 buckets.** 2 buckets per core spread a hot key over all 4 cores. The lookup tables are small (the largest, the dates, has under a thousand rows), so copying them 8 times costs nothing measurable.
+- **K1, 8 buckets.** 2 buckets per core spread a hot key over all 4 cores. The lookup tables are small (the largest, the dates, has 1,583 rows; 12,664 after copying), so copying them 8 times costs nothing measurable.
 
 **Salting in the code** (`pipeline.salt_buckets`, D11): only used with the early join, and ignored with the late join.
 - In `pipeline_spark.py`, the bookings get a column `salt = floor(rand() * N)`.
@@ -169,7 +169,6 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
 | `docs/guide/br5/config-guide.md` | The `BR5_WORKER_CORES` variable in the restart guide. |
 | `jobs/br5_promotion/run_settings.py`, `pipeline_spark.py` | Block X: the `pipeline.salt_buckets` setting and salting in the early join (3.6). |
 | `tests/br5/benchmark.py` | Block X: the presets P1 and K1, block `X` (S3 cores, cells L1, P1, K1, 3 runs each), and the figures of table F. These are read from the Spark history server's REST API (`/api/v1/applications/<app>/stages`, task summary with quantiles 0.5 and 1.0), so no new dependency is needed. |
-| `tests/br5/` | A unit test: salting gives the same rows as no salting on a small skewed frame. |
 
 `benchmark.py` sub-commands:
 - **`presets`:** saves the four presets of 3.3 and 3.4, and the four new ones of 3.6.
@@ -181,6 +180,7 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
   5. Ends with `--clickhouse` in S2 for C1.
 - **`screens S1|S2|S3`:** takes the screenshots of section 6 for every cell of the block.
 - **`report`:** reads the manifest and `br5.run_history` and writes `docs/result/br5/benchmark/tables.md`, with the tables of section 7. It also checks section 8 and prints any failure.
+- **`stages X`:** block X's skew figures (table F) for every measured run, from the Spark history server: one row per shuffle stage in `docs/result/br5/benchmark/stages-X.csv`, and per run the room join and the skewed stages.
 - **`restore`:** puts the worker back to 2 cores.
 
 ## 5. Procedure and time
@@ -269,4 +269,4 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 
 ## 11. Status
 
-The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. The blocks S1, S2 with C1, and S3 are done (78 runs, all succeeded). Block X (3.6, shuffle partitions and skew) is planned and not built yet. Not built: the `report` sub-command and the summary screenshots (section 6); `result-benchmark.md` has the report tables instead.
+The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. All blocks are done: S1, S2 with C1, S3, and block X (3.6, shuffle partitions and skew, 2026-10-24); 106 runs, all succeeded. Not built: the `report` sub-command and the summary screenshots (section 6); `result-benchmark.md` has the report tables instead.

@@ -124,6 +124,10 @@ SETTINGS = [
        "late: total on integer keys, then attach names to the few result rows. "
        "early: join every booking with the lookup tables first (the broadcast and skew settings matter here).",
        "choice", "late", "pipeline", choices=("late", "early")),
+    _s("pipeline.salt_buckets", "Joins", "Salt buckets",
+       "Early join only: spread each lookup key over this many buckets (salting), so one frequent key "
+       "(room A, Portugal) is joined by several tasks. 1: off.",
+       "int", "1", "pipeline", min=1, max=64),
     # Serialization
     _s("spark.serializer", "Serialization", "Serializer",
        "How Spark packs objects. DataFrames mostly use their own format, so expect a small effect.",
