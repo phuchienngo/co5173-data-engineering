@@ -124,3 +124,7 @@ logs/
 
 # BR8 source snapshots, prepared visits, and streaming checkpoints
 data/br8/
+
+# Personal BR8 notes (not for commit)
+NOTES_BR8.md
+RUNBOOK_BR8.md

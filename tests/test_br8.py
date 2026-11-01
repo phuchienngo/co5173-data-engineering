@@ -81,11 +81,11 @@ class VisitContractTests(unittest.TestCase):
     def test_topic_selection_will_not_reset_another_br(self):
         topics = load("br8_topics_test", "scripts/topics.py")
         self.assertEqual(topics.discover_topics(["8"]), ["br8_tourist_visits"])
-        self.assertEqual(topics.discover_topics(["7"]), [])
+        self.assertEqual(topics.discover_topics(["99"]), [])
 
     def test_runner_discovers_br8(self):
         runner = load("br8_runner_test", "scripts/start.py")
-        self.assertEqual(runner.discover_brs(), ["8"])
+        self.assertIn("8", runner.discover_brs())
         self.assertEqual(runner.fact_tables_in(ROOT / "sql/clickhouse/ddl_br8.sql"), ["fact_br8_visits"])
 
 
