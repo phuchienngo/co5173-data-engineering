@@ -1,70 +1,63 @@
-"""Replay the last 30 days of six core tourist sites into Kafka in event-time order."""
+"""Replay cleaned TLC drop-offs in tourist zones into Kafka in event-time order."""
 
 import argparse
 import csv
-import sys
+import json
+import os
 import time
-import warnings
-from datetime import datetime, timedelta
 from pathlib import Path
 
-from br7_sites import CORE_SITES, HOLDOUT_DAYS
-from kafka_io import get_producer
+from br7_rules import normalize_event
 
-SOURCE_PATH = Path(__file__).resolve().parents[2] / "data" / "br7" / "frequentation_par_heure.csv"
-TOPIC = "tourist_arrivals"
+TOPIC = "br7_taxi_dropoffs"
+SOURCE = Path(os.environ.get("BR7_DATA_DIR", "/opt/data/br7")) / "prepared" / "replay"
 
 
-def replay_rows():
-    if not SOURCE_PATH.exists():
-        sys.exit(f"{SOURCE_PATH} is missing; run scripts/prepare_br7.py")
-    rows = []
-    with SOURCE_PATH.open(encoding="utf-8-sig", newline="") as source:
-        for row in csv.DictReader(source):
-            if row.get("site") not in CORE_SITES:
-                continue
-            try:
-                event_time = datetime.fromisoformat(row["horodatage"])
-                entries = int(row["entrees"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if entries < 0:
-                continue
-            rows.append((event_time, row["site"], entries))
-    if not rows:
-        sys.exit("No valid core-site records in BR7 source")
-    cutoff = max(row[0] for row in rows) - timedelta(days=HOLDOUT_DAYS)
-    selected = sorted(row for row in rows if row[0] >= cutoff)
-    print(f"Replaying {len(selected)} records from {cutoff.isoformat()} onward", flush=True)
-    for event_time, site, entries in selected:
-        yield {"site": site, "horodatage": event_time.isoformat(), "entrees": entries}
+def events(source=SOURCE):
+    files = sorted(source.glob("part-*.csv"))
+    if len(files) != 1:
+        raise ValueError(f"Expected one sorted replay CSV in {source}; run scripts/prepare_br7.py")
+    with files[0].open(encoding="utf-8", newline="") as stream:
+        for row in csv.DictReader(stream):
+            yield normalize_event(row)
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--interval", type=float, default=0)
-    parser.add_argument("--loop", action="store_true")
-    parser.add_argument("--limit", type=int)
-    args = parser.parse_args()
-    warnings.filterwarnings("ignore", message=".*value_serializer.*", category=DeprecationWarning)
+    from kafka import KafkaProducer
 
-    producer = get_producer()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interval", type=float, default=0, help="Seconds between events")
+    parser.add_argument("--limit", type=int, help="Stop after this many events")
+    parser.add_argument("--loop", action="store_true", help="Replay again after the end")
+    args = parser.parse_args()
+    if args.interval < 0 or (args.limit is not None and args.limit < 1):
+        parser.error("interval must be nonnegative and limit must be positive")
+
+    producer = KafkaProducer(
+        bootstrap_servers=os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"),
+        acks="all", retries=5, max_in_flight_requests_per_connection=1,
+        linger_ms=20, batch_size=256 * 1024,
+        key_serializer=lambda value: str(value).encode("utf-8"),
+        value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+    )
     sent = 0
-    while True:
-        for row in replay_rows():
-            producer.send(TOPIC, row)
-            sent += 1
-            if sent % 500 == 0:
-                print(f"sent {sent} tourist arrival hours (last: {row['site']})", flush=True)
-            if args.limit and sent >= args.limit:
-                producer.flush()
-                print(f"finished sending {sent} tourist arrival hours")
-                return
-            time.sleep(args.interval)
-        if not args.loop:
-            break
-    producer.flush()
-    print(f"finished sending {sent} tourist arrival hours")
+    try:
+        while True:
+            for event in events():
+                producer.send(TOPIC, key=event["dropoff_zone_id"], value=event)
+                sent += 1
+                if sent % 50000 == 0:
+                    print(f"BR7 sent {sent} drop-offs (event time {event['dropoff_time']})", flush=True)
+                if args.interval:
+                    time.sleep(args.interval)
+                if args.limit is not None and sent >= args.limit:
+                    break
+            producer.flush(timeout=120)
+            print(f"BR7 delivered {sent} drop-off events to {TOPIC}", flush=True)
+            if not args.loop or (args.limit is not None and sent >= args.limit):
+                break
+    finally:
+        producer.close(timeout=60)
 
 
 if __name__ == "__main__":

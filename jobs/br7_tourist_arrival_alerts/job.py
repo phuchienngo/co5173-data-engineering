@@ -1,123 +1,141 @@
-"""Forecast next-hour entries and flag unusual arrivals for six Orléans sites."""
+"""BR7 streaming: hourly taxi arrivals per tourist zone and next-hour warnings.
 
+Kafka (one message per drop-off) -> 1-hour event-time windows with watermark
+-> when a window closes, forecast the next hour against the zone's baseline
+-> ClickHouse fact_br7_zone_hourly (idempotent on zone + hour).
+"""
+
+import csv
+import glob
 import os
-from datetime import timedelta
+import shutil
+import uuid
+from datetime import datetime, timezone
 
+import clickhouse_connect
 from pyspark.sql import functions as F
 from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 
-from br7_sites import CORE_SITES, HOLDOUT_DAYS, PARTIAL_SITES
-from clickhouse_io import truncate_table, write_dataframe
+from br7_rules import TOURIST_ZONES, forecast_rows
 from spark_session import get_spark_session
 
-SOURCE_PATH = "/opt/data/br7/frequentation_par_heure.csv"
-EVENT_SCHEMA = StructType(
-    [
-        StructField("site", StringType()),
-        StructField("horodatage", StringType()),
-        StructField("entrees", IntegerType()),
-    ]
-)
+DATA = os.environ.get("BR7_DATA_DIR", "/opt/data/br7")
+TOPIC = "br7_taxi_dropoffs"
+WATERMARK = "15 minutes"
+EVENT_SCHEMA = StructType([
+    StructField("event_id", StringType()),
+    StructField("dropoff_zone_id", IntegerType()),
+    StructField("pickup_zone_id", IntegerType()),
+    StructField("dropoff_time", StringType()),
+    StructField("passenger_count", IntegerType()),
+])
+FACT_COLUMNS = [
+    "zone_id", "observed_hour", "target_hour", "observed_arrivals", "observed_passengers",
+    "usual_arrivals", "predicted_arrivals", "warning_threshold", "alert_level",
+]
 
-spark = get_spark_session("br7_tourist_arrival_alerts")
-spark.sparkContext.setLogLevel("WARN")
-spark.conf.set("spark.sql.session.timeZone", "UTC")
 
-source = spark.read.option("header", True).option("encoding", "UTF-8").csv(SOURCE_PATH)
-source = source.toDF(*(column.lstrip("\ufeff") for column in source.columns))
-history = (
-    source.select(
-        F.col("site").alias("site_id"),
-        F.to_timestamp("horodatage").alias("observed_hour"),
-        F.col("entrees").cast("int").alias("observed_entries"),
+def clickhouse():
+    return clickhouse_connect.get_client(
+        host=os.environ.get("CLICKHOUSE_HOST", "clickhouse"),
+        port=int(os.environ.get("CLICKHOUSE_HTTP_PORT", "8123")),
+        username=os.environ.get("CLICKHOUSE_USER", "default"),
+        password=os.environ.get("CLICKHOUSE_PASSWORD", "clickhouse"),
+        database=os.environ.get("CLICKHOUSE_DB", "default"),
     )
-    .filter(F.col("site_id").isin(*CORE_SITES))
-    .filter(F.col("observed_hour").isNotNull())
-    .filter(F.col("observed_entries") >= 0)
-)
-latest_hour = history.agg(F.max("observed_hour")).first()[0]
-if latest_hour is None:
-    raise ValueError("No valid core-site hourly observations in BR7 source")
-cutoff = latest_hour - timedelta(days=HOLDOUT_DAYS)
 
 
-def hour_of_week(column):
-    # Monday = 0, Sunday = 6, in the UTC timezone used by the source.
-    return ((F.dayofweek(column) + F.lit(5)) % F.lit(7)) * F.lit(24) + F.hour(column)
+def read_csv(name):
+    files = glob.glob(f"{DATA}/prepared/{name}/part-*.csv")
+    if len(files) != 1:
+        raise ValueError(f"Expected one prepared {name} CSV; run scripts/prepare_br7.py")
+    with open(files[0], newline="") as stream:
+        return list(csv.DictReader(stream))
 
 
-baseline = (
-    history.filter(F.col("observed_hour") < F.lit(cutoff))
-    .withColumn("hour_of_week", hour_of_week(F.col("observed_hour")))
-    .groupBy("site_id", "hour_of_week")
-    .agg(
-        F.avg("observed_entries").alias("mean_entries"),
-        F.percentile_approx("observed_entries", 0.9).cast("double").alias("p90_entries"),
-        F.count("*").alias("training_hours"),
+def load_dimensions():
+    zones = [[int(r["zone_id"]), r["zone_name"], r["borough"], r["landmark"]] for r in read_csv("zones")]
+    baseline_rows = read_csv("baseline")
+    baseline = {
+        (int(r["zone_id"]), int(r["hour_of_week"])): (float(r["mean_arrivals"]), float(r["p90_arrivals"]))
+        for r in baseline_rows
+    }
+    client = clickhouse()
+    try:
+        client.command("TRUNCATE TABLE dim_br7_zones")
+        client.insert("dim_br7_zones", zones, column_names=["zone_id", "zone_name", "borough", "landmark"])
+        client.command("TRUNCATE TABLE dim_br7_zone_hour_baseline")
+        client.insert(
+            "dim_br7_zone_hour_baseline",
+            [[int(r["zone_id"]), int(r["hour_of_week"]), float(r["mean_arrivals"]),
+              float(r["p90_arrivals"]), int(r["training_hours"])] for r in baseline_rows],
+            column_names=["zone_id", "hour_of_week", "mean_arrivals", "p90_arrivals", "training_hours"],
+        )
+    finally:
+        client.close()
+    return baseline
+
+
+def reset_checkpoints():
+    # Every demo run resets the topic and fact table, so old offsets are useless.
+    # State-store commits chmod their files, which the Windows/WSL bind mount
+    # under /opt/data rejects, so checkpoints live on the containers' own disk.
+    # With one Spark worker, executors always reread their own state.
+    root = os.environ.get("BR7_CHECKPOINT_ROOT", "/tmp/br7-checkpoints")
+    shutil.rmtree(root, ignore_errors=True)
+    return f"{root}/run-{uuid.uuid4().hex}"
+
+
+def main():
+    spark = get_spark_session("br7_tourist_arrival_alerts")
+    spark.sparkContext.setLogLevel("WARN")
+    spark.conf.set("spark.sql.session.timeZone", "UTC")
+    baseline = load_dimensions()
+
+    raw = (
+        spark.readStream.format("kafka")
+        .option("kafka.bootstrap.servers", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"))
+        .option("subscribe", TOPIC)
+        .option("startingOffsets", "earliest")
+        .option("maxOffsetsPerTrigger", os.environ.get("BR7_MAX_OFFSETS_PER_TRIGGER", "50000"))
+        .load()
     )
-    .filter(F.col("training_hours") >= 10)
-    .cache()
-)
-if baseline.isEmpty():
-    raise ValueError("No BR7 baseline with at least 10 historical matching hours")
-
-dim_site = spark.createDataFrame(
-    [(site, 1) for site in CORE_SITES] + [(site, 0) for site in PARTIAL_SITES],
-    ["site_id", "is_core"],
-)
-truncate_table("dim_tourist_site")
-write_dataframe(dim_site.toPandas(), "dim_tourist_site")
-truncate_table("dim_site_hour_baseline")
-write_dataframe(baseline.toPandas(), "dim_site_hour_baseline")
-
-raw = (
-    spark.readStream.format("kafka")
-    .option("kafka.bootstrap.servers", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"))
-    .option("subscribe", "tourist_arrivals")
-    .option("startingOffsets", "earliest")
-    .option("maxOffsetsPerTrigger", "500")
-    .load()
-)
-observed = (
-    raw.select(F.from_json(F.col("value").cast("string"), EVENT_SCHEMA).alias("data"))
-    .select(
-        F.col("data.site").alias("site_id"),
-        F.to_timestamp(F.col("data.horodatage")).alias("observed_hour"),
-        F.col("data.entrees").alias("observed_entries"),
+    events = (
+        raw.select(F.from_json(F.col("value").cast("string"), EVENT_SCHEMA).alias("e")).select("e.*")
+        .withColumn("event_time", F.to_timestamp("dropoff_time"))
+        .filter(F.col("event_time").isNotNull() & F.col("event_id").isNotNull())
+        .filter(F.col("dropoff_zone_id").isin(*TOURIST_ZONES))
     )
-    .filter(F.col("site_id").isin(*CORE_SITES))
-    .filter(F.col("observed_hour").isNotNull())
-    .filter(F.col("observed_entries") >= 0)
-    .withColumn("target_hour", F.col("observed_hour") + F.expr("INTERVAL 1 HOUR"))
-    .withColumn("hour_of_week", hour_of_week(F.col("target_hour")))
-)
-
-forecast = (
-    observed.join(F.broadcast(baseline), ["site_id", "hour_of_week"], "inner")
-    .withColumn(
-        "predicted_entries",
-        F.round((F.col("observed_entries") + F.col("mean_entries")) / 2, 2),
+    hourly = (
+        events.withWatermark("event_time", WATERMARK)
+        .groupBy(F.window("event_time", "1 hour"), F.col("dropoff_zone_id").alias("zone_id"))
+        .agg(F.count("*").alias("arrivals"),
+             F.sum(F.coalesce("passenger_count", F.lit(0))).alias("passengers"))
+        .select("zone_id", F.col("window.start").cast("long").alias("observed_epoch"), "arrivals", "passengers")
     )
-    .withColumn("warning_threshold", F.col("p90_entries"))
-    .withColumn(
-        "alert_level",
-        F.when(F.col("predicted_entries") > F.col("warning_threshold"), "warning").otherwise("normal"),
+
+    def write_batch(batch, batch_id):
+        # Closed windows only (append mode): at most zones x hours per batch.
+        rows = [
+            (r["zone_id"], datetime.fromtimestamp(r["observed_epoch"], timezone.utc), int(r["arrivals"]), int(r["passengers"]))
+            for r in batch.collect()
+        ]
+        if rows:
+            client = clickhouse()
+            try:
+                client.insert("fact_br7_zone_hourly", forecast_rows(rows, baseline), column_names=FACT_COLUMNS)
+            finally:
+                client.close()
+        print(f"BR7_BATCH_COMMITTED {batch_id} closed_hours={len(rows)}", flush=True)
+
+    query = (
+        hourly.writeStream.outputMode("append").foreachBatch(write_batch)
+        .option("checkpointLocation", reset_checkpoints())
+        .trigger(processingTime="5 seconds").start()
     )
-    .select(
-        "site_id",
-        "observed_hour",
-        "target_hour",
-        "observed_entries",
-        "predicted_entries",
-        "warning_threshold",
-        "alert_level",
-    )
-)
+    print("BR7_STREAM_READY", flush=True)
+    query.awaitTermination()
 
 
-def write_batch(batch_df, batch_id):
-    if not batch_df.isEmpty():
-        write_dataframe(batch_df.toPandas(), "fact_tourist_arrivals")
-
-
-forecast.writeStream.foreachBatch(write_batch).trigger(processingTime="5 seconds").start().awaitTermination()
+if __name__ == "__main__":
+    main()

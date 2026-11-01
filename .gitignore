@@ -122,5 +122,10 @@ venv/
 # Per-BR datasets (everyone prepares their own, see README "Preparing data")
 logs/
 
-# Downloaded BR7 source data; scripts/prepare_br7.py recreates it.
-data/br7/*.csv
+# BR7 TLC source files, prepared replay data and checkpoints
+data/br7/
+
+# Personal notes and runbooks (not for commit)
+NOTES_BR8.md
+RUNBOOK_BR8.md
+RUNBOOK_BR7.md

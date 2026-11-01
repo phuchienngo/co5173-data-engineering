@@ -120,8 +120,9 @@ def start_stack():
     run(["docker", "compose", "--profile", "full", "--profile", "monitoring", "up", "-d", *services])
 
 
-def create_topics():
-    run(["python3", "scripts/topics.py", "--reset"])
+def create_topics(selected):
+    # Only the selected BRs' topics are reset, so other BRs keep their data.
+    run([sys.executable, "scripts/topics.py", "--reset", "--br", *selected])
 
 
 def fact_tables_in(ddl):
@@ -242,7 +243,9 @@ def wait_for_spark_ready(name, proc, log_file, timeout=180):
         if proc.poll() is not None:
             report_exited([(name, proc, log_file)], "Spark job")
             return False
-        if "ResolveWriteToStream" in tail_file(log_file, lines=80):
+        tail = tail_file(log_file, lines=80)
+        # Jobs may print "<BRn>_STREAM_READY"; jobs without a checkpoint log ResolveWriteToStream.
+        if f"{name}_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
             print(f"{name} Spark job is ready.")
             return True
         time.sleep(1)
@@ -265,9 +268,6 @@ def main():
     start_stack()
     wait_healthy(["clickhouse", "kafka"])
 
-    print("\n=== 2. Creating Kafka topics ===")
-    create_topics()
-
     brs = discover_brs()
     if not brs:
         sys.exit("No BR found (sql/clickhouse/ddl_br*.sql is empty).")
@@ -283,9 +283,12 @@ def main():
         print("\nNo BR selected — infra is ready, stopping here.")
         return
 
-    print("\n=== Preparing selected BR datasets ===")
+    print("\n=== 2. Preparing selected BR datasets ===")
     for n in selected:
         prepare_data(n)
+
+    print(f"\n=== Creating Kafka topics for {', '.join('BR' + n for n in selected)} ===")
+    create_topics(selected)
 
     print(f"\n=== 3. Creating ClickHouse tables for {', '.join('BR' + n for n in selected)} ===")
     for n in selected:
