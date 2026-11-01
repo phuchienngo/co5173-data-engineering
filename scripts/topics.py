@@ -88,7 +88,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true", help="Print discovered topics without creating them")
     parser.add_argument("--reset", action="store_true", help="Delete discovered topics before creating them")
-    parser.add_argument("--br", nargs="+", help="Only operate on the selected BRs")
+    parser.add_argument("--br", nargs="+", help="Only operate on these BR numbers")
     args = parser.parse_args()
 
     topics = discover_topics(args.br)

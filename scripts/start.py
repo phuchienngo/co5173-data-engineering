@@ -120,6 +120,7 @@ def start_stack():
 
 
 def create_topics(selected):
+    # Only the selected BRs' topics are reset, so other BRs keep their data.
     run([sys.executable, "scripts/topics.py", "--reset", "--br", *selected])
 
 
@@ -189,7 +190,8 @@ def spark_submit_cmd(br, spark_master):
         "exec",
         "-i",
         "-e",
-        f"BR8_CHECKPOINT_DIR=/opt/data/br8/checkpoints/demo-{uuid.uuid4().hex}",
+        # A fresh checkpoint per run: topics and fact tables are reset every run.
+        f"BR{br}_CHECKPOINT_DIR=/opt/data/br{br}/checkpoints/demo-{uuid.uuid4().hex}",
         "spark-local",
         "spark-submit",
         "--master",
@@ -241,7 +243,8 @@ def wait_for_spark_ready(name, proc, log_file, timeout=180):
             report_exited([(name, proc, log_file)], "Spark job")
             return False
         tail = tail_file(log_file, lines=80)
-        if "BR8_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
+        # Jobs print "BR<n>_STREAM_READY"; jobs without a checkpoint log ResolveWriteToStream.
+        if f"{name}_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
             print(f"{name} Spark job is ready.")
             return True
         time.sleep(1)
@@ -252,7 +255,7 @@ def wait_for_spark_ready(name, proc, log_file, timeout=180):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 8 or all")
+    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 7, 3,7 or all")
     parser.add_argument("--events", type=int, help="Events to produce per BR; omit to send the full CSV once")
     parser.add_argument("--interval", type=float, default=0, help="Seconds between producer events")
     parser.add_argument("--loop-producers", action="store_true", help="Keep producers running forever")
@@ -282,7 +285,7 @@ def main():
     start_stack()
     wait_healthy(["clickhouse", "kafka"])
 
-    print("\n=== Preparing selected BR datasets ===")
+    print("\n=== Preparing selected BR datasets (scripts/prepare_br<n>.py) ===")
     for n in selected:
         prepare_data(n)
 

@@ -122,9 +122,11 @@ venv/
 # Per-BR datasets (everyone prepares their own, see README "Preparing data")
 logs/
 
-# BR8 source snapshots, prepared visits, and streaming checkpoints
+# Downloaded BR source data, prepared files and checkpoints (recreated by scripts/prepare_br<n>.py)
+data/br7/
 data/br8/
 
-# Personal BR8 notes (not for commit)
+# Personal notes and runbooks (not for commit)
 NOTES_BR8.md
+RUNBOOK_BR7.md
 RUNBOOK_BR8.md
