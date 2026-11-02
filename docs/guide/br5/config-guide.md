@@ -56,7 +56,7 @@ Line numbers are those of the version this guide was written with. If they have 
 
   | Service | Lines | Current |
   |---|---|---|
-  | `clickhouse` | 130–131 | 1g, 1.0 |
+  | `clickhouse` | 151–153 | 1g, `BR5_CLICKHOUSE_CPUS` (default 1) |
   | `kafka` (not used by BR5) | 165–166 | 1g, 1.0 |
   | `spark-master` | 203–204 | 512m, 0.5 |
   | `spark-worker` | 226 and 228 | 2500m, `BR5_WORKER_CORES` (default 2) |
@@ -65,7 +65,7 @@ Line numbers are those of the version this guide was written with. If they have 
   | `spark-history` (BR5 monitoring) | 330–331 | 512m, 0.5 |
   | `docker-stats` (BR5 monitoring) | 360–361 | 128m, 0.25 |
 
-- **Sample value:** `clickhouse` with `mem_limit: 2g` and `cpus: 2.0`.
+- **Sample value:** `clickhouse` with `mem_limit: 2g` and `cpus: 2.0`. ClickHouse's CPUs can also be set without editing the file, with the environment variable `BR5_CLICKHOUSE_CPUS` (default 1), as the benchmark does: `BR5_CLICKHOUSE_CPUS=4 docker compose --profile full up -d --no-deps clickhouse`. ClickHouse then uses that many threads per query by default (`SELECT value FROM system.settings WHERE name = 'max_threads'` shows `auto(4)`).
 - **Restart:** the changed service. If you change `br5-app`, the app reloads; a job it started is stopped.
 - **Confirm:**
   - Run `docker stats --no-stream` and check the MEM LIMIT column. For the CPU limit, `docker inspect --format "{{.HostConfig.NanoCpus}}" clickhouse` prints the CPU count × 10⁹.

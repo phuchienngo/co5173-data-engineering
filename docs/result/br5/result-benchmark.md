@@ -10,8 +10,9 @@ Measured results of [plan-benchmark.md](../../plan/br5/plan-benchmark.md). **Thi
 | S2 + C1 | 2 cores; ClickHouse engine | **Done** (2026-10-20) | 1 warm-up + 19 Spark + 9 ClickHouse measured, all succeeded |
 | S1 | 1 core | **Done** (2026-10-21) | 1 warm-up + 22 measured, all succeeded |
 | X | 4 cores; shuffle partitions and salting from the baseline | **Done** (2026-10-24) | 1 warm-up + 27 measured, all succeeded |
+| H1–H3 | ClickHouse engine on 1 / 2 / 4 ClickHouse CPUs | **Done** (2026-11-02) | 6 warm-ups + 135 measured, all succeeded |
 
-All blocks are done: 106 runs, of which 6 warm-ups.
+All blocks are done: 247 runs, of which 12 warm-ups.
 
 ## Setup
 
@@ -298,6 +299,64 @@ The `stages.jpg` screenshots show the room join of I1. In L1 one task reads 859,
   - The next answer is AQE (on by default), which merges small partitions and can split skewed ones.
   - Manual salting is the last resort, and it has a measurable cost.
 
+## ClickHouse blocks (H1–H3): the alternative solution on its own matrix
+
+Plan section 3.4.2. The ClickHouse engine (4 SQL queries from a Python job, no Spark) on the same 3 inputs, with ClickHouse's container at 1, 2 and 4 CPUs (`BR5_CLICKHOUSE_CPUS`; memory 1 GB in all three), and 3 live settings, 5 runs per cell:
+
+| Live | Preset | Change from the defaults |
+|---|---|---|
+| HL1 | `bench-clickhouse` (C1's preset) | – (`max_threads` = the server's `auto(N)`) |
+| HL2 | `bench-clickhouse-1thread` | `clickhouse.max_threads` = 1 |
+| HL3 | `bench-clickhouse-nomemlimit` (added during the test, see below) | `clickhouse.limit_threads_by_memory` = false, which sends `max_threads_min_free_memory_per_thread = 0` |
+
+### The finding that changed the test: ClickHouse used one thread whatever its CPUs
+
+With the defaults (HL1), ClickHouse reported `max_threads` = `auto(2)` and `auto(4)` on 2 and 4 CPUs, as planned. Yet 55–56 of each block's 60 queries ran on **one thread**, and the query times did not change with the CPUs.
+
+The cause is a ClickHouse 26.8 setting, `max_threads_min_free_memory_per_thread`, with a default of 1 GiB. ClickHouse lowers a query's thread count unless each thread has that much free memory. Our container has 1 GiB in total, so every query is cut to one thread. The query plan shows it:
+- with the default, the fact table's 5 parts are read one after another (`Concat 5 → 1`, one stream);
+- with the setting at 0, 4 parallel streams (`MergeTreeSelect … × 4`).
+
+Lowering the read-splitting thresholds (`merge_tree_min_rows/bytes_for_concurrent_read`) changed nothing. A synthetic 30-million-row table was also read in one stream until this setting was turned off.
+
+This is a memory-management effect, not a CPU one: ClickHouse protects itself from running out of memory by giving up parallelism. HL3 was added to measure what the extra CPUs give once that limit is lifted. The new setting is in the registry, so it is also on the Advanced Settings page.
+
+### Run time and query figures (median of 5)
+
+"Inside the steps" leaves out starting Python and connecting (1.3–1.5 s in every run). Query time, CPU, threads and memory are ClickHouse's own figures from `system.query_log`, for the run's 4 queries.
+
+| Input | Cell | Run time (s): H1 / H2 / H3 | Inside the steps (s) | Query time (ms) | ClickHouse CPU (ms) | Peak threads | Peak query memory (MB) |
+|---|---|---|---|---|---|---|---|
+| I1 (100%) | HL1 defaults | 1.86 / 1.97 / 1.91 | 0.47 / 0.52 / 0.49 | 260 / 289 / 267 | 251 / 283 / 264 | 1 / 1 / 1 | 10.9 |
+| | HL2 1 thread | 1.88 / 1.85 / 1.86 | 0.47 / 0.48 / 0.46 | 254 / 278 / 255 | 249 / 271 / 249 | 1 / 1 / 1 | 10.9 |
+| | HL3 no memory limit | 2.03 / 1.91 / **1.78** | 0.57 / 0.46 / **0.40** | 358 / 233 / **187** | 341 / 379 / 468 | 1 / 3 / 5 | 10.9 / 14.6 / 16.6 |
+| I2 (26%) | HL1 | 1.72 / 1.80 / 1.68 | 0.30 / 0.36 / 0.31 | 102 / 159 / 99 | 96 / 145 / 95 | 1 / 1 / 1 | 6.1 |
+| | HL2 | 1.71 / 1.74 / 1.73 | 0.29 / 0.30 / 0.31 | 93 / 101 / 110 | 87 / 97 / 105 | 1 / 1 / 1 | 6.1 |
+| | HL3 | 1.79 / 1.80 / 1.77 | 0.33 / 0.28 / 0.29 | 122 / 87 / 86 | 115 / 130 / 179 | 1 / 3 / 5 | 6.1 / 8.7 / 10.2 |
+| I3 (3%) | HL1 | 1.61 / 1.62 / 1.60 | 0.25 / 0.26 / 0.26 | 44 / 50 / 57 | 42 / 46 / 47 | 1 / 1 / 1 | 5.2 |
+| | HL2 | 1.60 / 1.66 / 1.60 | 0.25 / 0.24 / 0.24 | 50 / 46 / 41 | 39 / 44 / 36 | 1 / 1 / 1 | 5.2 |
+| | HL3 | 1.74 / 1.64 / 1.74 | 0.26 / 0.25 / 0.25 | 56 / 45 / 45 | 56 / 56 / 79 | 1 / 3 / 5 | 5.2 / 6.6 / 7.3 |
+
+Peak threads include the query's own thread, so 5 means 4 reading threads. Rows scanned are the same in every cell of an input: 4,775,774 / 1,377,732 / 323,582.
+
+### Observations
+
+- **With the defaults, more CPUs change nothing.** HL1's query time on I1 is 260 / 289 / 267 ms on 1 / 2 / 4 CPUs, and HL2 (forced to 1 thread) is the same as HL1 in every block, because HL1 is also on one thread (see the finding above).
+- **With the memory limit lifted (HL3), the CPUs are used.**
+  - I1's query time falls from 358 ms (1 CPU) to 233 ms (2) and 187 ms (4): 1.9× faster on 4 CPUs. Against HL1 on the same 4 CPUs: 267 → 187 ms (−30%). I2 gains 99 → 86 ms on 4 CPUs; I3 (35,360 rows) gains nothing measurable.
+  - Parallel work costs more CPU in total: 264 → 468 ms of ClickHouse CPU on I1 (4 threads), and the peak query memory grows with the threads (10.9 → 16.6 MB). That is the memory the default limit protects.
+  - **The run time barely moves:** 1.91 → 1.78 s on I1. The queries are only 0.2–0.5 s of a 1.6–2.0 s run; the rest is starting the Python job and connecting, which no ClickHouse setting changes.
+- **Spark against ClickHouse at the same CPUs** (Spark's default L2 and best L3 against ClickHouse's defaults HL1; Spark ran with ClickHouse at 1 CPU, which only served the reader):
+
+  | Input | 1 CPU: Spark L2 / ClickHouse | 2 CPUs: Spark L2 / ClickHouse | 4 CPUs: Spark L3 (best) / ClickHouse | ClickHouse faster by (1 / 2 / 4 CPUs) |
+  |---|---|---|---|---|
+  | I1 | 38.3 / 1.86 s | 32.0 / 1.97 s | 27.2 / 1.91 s | 20.6× / 16.2× / 14.2× |
+  | I2 | 38.0 / 1.72 s | 29.2 / 1.80 s | 25.0 / 1.68 s | 22.1× / 16.2× / 14.9× |
+  | I3 | 29.7 / 1.61 s | 27.7 / 1.62 s | 23.6 / 1.60 s | 18.4× / 17.1× / 14.8× |
+
+  Inside the steps the gap is larger: on 4 CPUs, 18.5 / 16.3 / 15.1 s for Spark's best against 0.49 / 0.31 / 0.26 s. More CPUs narrow the gap only because Spark gains from them and ClickHouse, at this size, does not need them.
+- **For the presentation (memory management):** both engines trade speed for memory safety by default. Spark spills to disk when a task's data doesn't fit (block X). ClickHouse runs fewer threads when memory is short. In a 1 GB container that means one thread, and lifting the limit buys 30% on the queries at the cost of 77% more CPU and 50% more memory per query.
+
 ## Noise
 
 - **S3:** the second set of runs on 2026-10-20 was slower across the board, so 5 of the 6 L1/L2 cells needed a third run.
@@ -309,6 +368,7 @@ The `stages.jpg` screenshots show the room join of I1. In L1 one task reads 859,
   - I1-L1's Spark CPU time for the same tasks rose from 31.7 s (run 1) to 43.2 s (run 2), again pointing to the host's CPU.
   - In the default cells the read step grew: I2-L2 took 10.6 s in run 1 and 13.8–14.5 s in runs 2 and 3. Two of I2-L2's and I2-L3's three runs are slow ones, so their medians lean high. That is why S1 against S2 for I2 with the defaults (+30%) is larger than for I1 and I3.
   - The I3 cells were within 4% in both sets.
+- **H1–H3:** the ClickHouse runs varied by 0.1–0.35 s within a cell (5 runs). The HL3 cells were run 4–13 minutes after HL1 and HL2. H1's HL3 cell, which is the same work as HL1 on 1 CPU (one thread in both), was 0.07–0.17 s slower in total and up to 100 ms slower in query time: differences of that size between the HL3 and HL1 rows are noise. The HL3 rows among themselves (H1 → H3) were run within 3 minutes.
 - **X:** all 9 cells had 3 runs within 11% of each other (D13 of the plan: no third-run rule needed). The I1-L1 runs (74.2–78.0 s) were close to the earlier S3 ones (60.3–81.2 s).
 
 The medians are robust to one slow run, but differences under about 10% between cells measured at different times should not be over-read.
@@ -320,12 +380,14 @@ The medians are robust to one slow run, but differences under about 10% between 
 | 1 | Start-up configuration | Every run recorded the block's `cluster.worker_cores`: 1 for all 23 S1 runs, 2 for all 29 S2 runs, 4 for all 26 S3 runs. During S3, Prometheus showed the `spark-worker` CPU limit at 4. In S1, Grafana shows the worker at 1 core, with its CPU close to the 1.0 limit through the baseline runs |
 | 2 | Live settings | Each run's "settings from" is its cell's preset. For L1, Spark itself reports AQE off and broadcast -1. Every L2 and L3 run sent 2 or 4 read queries whose rows add up exactly to the rows read. L1 (driver reader) and C1 send one query or their own SQL instead |
 | 3 | Rows read per input | 1,193,900 / 309,600 / 35,360 in every run, as planned |
-| 4 | Same input, same result | All 106 runs agree per input (block X: each run compared with S2's L2 reference, including salting), Spark (all three worker sizes, all live settings) and the ClickHouse engine: 10 cards and 132 month rows; 5 and 72; 1 and 24. Each S1 run was compared with S2's L2 reference run. This needed a fix to the check (below) |
+| 4 | Same input, same result | All 247 runs agree per input (blocks X and H1–H3: each run compared with S2's L2 reference, including salting and every ClickHouse setting), Spark (all three worker sizes, all live settings) and the ClickHouse engine: 10 cards and 132 month rows; 5 and 72; 1 and 24. Each S1 run was compared with S2's L2 reference run. This needed a fix to the check (below) |
 | 5 | All succeeded; repeats close | All succeeded, and every run has its Spark figures. Third runs: 5 cells in S3, 1 in S2, 4 in S1 (see Noise) |
 | 6 | Screenshots | 36 files for S1, 39 for S2 and 36 for S3. A sample from each live setting and the engine comparison was checked by eye |
-| 7 | Stack restored | Worker back to 2 cores after S3, S1 and X; `make br5-check-dashboards` passes (37 queries, 0 failed, 0 empty) |
+| 7 | Stack restored | Worker back to 2 cores after S3, S1 and X; ClickHouse back to 1 CPU (`auto(1)`) after H1–H3; `make br5-check-dashboards` passes (37 queries, 0 failed, 0 empty). After H1–H3: 0 failed, 2 empty ("Import steps" and "Spark task time per step"), because the dashboard shows the last 7 days and the last import and Spark run were older |
 | 8 | Block X settings | All 28 block X runs recorded 4 worker cores, AQE off and broadcast -1, as Spark itself reports. P1 recorded `spark.sql.shuffle.partitions` 8 and K1 `pipeline.salt_buckets` 8. The plans of all three show only `SortMergeJoin` (18 in each run), no `BroadcastHashJoin`. K1's joins have `salt` in their keys |
 | 9 | Salting really happened | See the skew table: the largest task's share of the room join drops to 9–13% in K1, against 72–100% in L1 and P1 |
+| 10 | ClickHouse start-up configuration | At the start and end of each block, the container's CPU limit and `max_threads` were `1` / `auto(1)`, `2` / `auto(2)`, `4` / `auto(4)`; every run's snapshot has the same `cluster.clickhouse_max_threads` |
+| 11 | ClickHouse live settings, no cache | Every query: `query_cache_usage` = `None` (the cache was not used). HL3 queries carry `max_threads_min_free_memory_per_thread` = 0; HL2 queries `max_threads` = 1 (on H1 the setting equals the server's `auto(1)`, so ClickHouse doesn't log it as changed). Threads: HL2 used 1 thread in all 180 queries; HL1 1 thread in 55–56 of 60 per block (the rest, joins, 2–5); HL3 on 2 and 4 CPUs used more than one thread in all 120 (3 and 5 at the median). The plan expected HL1 to use N threads on N CPUs: see the finding above |
 
 ## Issues found and fixed
 
@@ -344,11 +406,16 @@ The medians are robust to one slow run, but differences under about 10% between 
 
   All three were fixed before the blocks ran (plan sections 4 and 6).
 - **The script's screenshot height limit** was raised from 8,000 to 12,000 px: I1's result page is 7,841 px tall with its 10 cards.
+- **ClickHouse failed a query right after its first restart** (before the H blocks, in a smoke run): "memory limit exceeded: would use 921.67 MiB".
+  - Cause: a background merge of old `system.metric_log` parts (29,470 rows written up to 2026-10-24, although the log is turned off) needed about 728 MiB, failed on the 1 GB limit, and was retried every 1–2 s, at about 90% CPU. This is the merge for which the project turned `metric_log` off.
+  - The retries also ran on 2026-10-23 and early 2026-10-24, but not during any benchmark block (checked in `system.part_log`).
+  - Fix: `TRUNCATE TABLE system.metric_log`. ClickHouse then used 118 MiB instead of 847 MiB and had no merges. All H runs were made after this.
+- **The ClickHouse compare screenshots were 10,795 px tall,** mostly empty below the page. They were trimmed to the content (about 2,650 px).
 - **The plan's check for 4 read slices was wrong:** ClickHouse counts scanned rows, not returned rows. It now counts the read queries and their rows.
 
 ## Screenshots
 
-In [benchmark/](benchmark/), one folder per cell (for example `S2-I1-L1/`), from the cell's first measured run. The JPEGs are stored with Git LFS (153 files, 42 MB; plan risk R6):
+In [benchmark/](benchmark/), one folder per cell (for example `S2-I1-L1/`), from the cell's first measured run. The JPEGs are stored with Git LFS (204 files, 62 MB; plan risk R6):
 
 | File | Shows |
 |---|---|
@@ -364,6 +431,7 @@ References in `compare.jpg`:
 - C1 is compared with S2's L2: Spark against the ClickHouse engine.
 - S2's L2 cells are the references, so they have no `compare.jpg`.
 - Block X: P1 and K1 are compared with L1 of the same input in block X, which has no `compare.jpg`.
+- ClickHouse blocks (`H1-I1-HL1/` and so on, `finder.jpg` and `compare.jpg` only): HL2 and HL3 are compared with HL1 of the same input and block; HL1 of H2 and H3 with H1's HL1. Run History's compare page shows ClickHouse's queries, rows read, CPU, peak memory and peak threads.
 
 ## Appendix: every run (seconds, in order)
 
@@ -391,3 +459,17 @@ Block X (4 cores):
 | I1 | 78.0, 74.8, 74.2 (warm-up 76.1) | 50.0, 49.6, 50.6 | 83.9, 88.6, 87.2 |
 | I2 | 71.0, 76.7, 75.9 | 43.2, 41.8, 42.3 | 73.4, 73.3, 74.5 |
 | I3 | 65.6, 62.2, 64.2 | 39.5, 36.8, 35.6 | 67.0, 63.5, 63.6 |
+
+ClickHouse blocks (5 runs each; the warm-ups after each restart were I1-HL1, then I1-HL3 when HL3 was added: 2.20 / 1.99 / 1.87 s on H1 / H2 / H3):
+
+| Cell | H1 (1 CPU) | H2 (2 CPUs) | H3 (4 CPUs) |
+|---|---|---|---|
+| I1-HL1 | 1.91, 1.83, 1.94, 1.79, 1.86 | 1.82, 1.97, 2.17, 2.08, 1.94 | 2.04, 1.91, 1.78, 1.76, 1.93 |
+| I1-HL2 | 1.91, 1.82, 1.88, 1.90, 1.88 | 1.79, 2.01, 1.85, 1.85, 1.95 | 1.77, 1.88, 1.92, 1.76, 1.86 |
+| I1-HL3 | 2.18, 2.03, 2.05, 1.97, 1.89 | 1.85, 1.91, 2.06, 1.95, 1.89 | 1.94, 1.99, 1.76, 1.75, 1.78 |
+| I2-HL1 | 1.68, 1.72, 1.64, 1.72, 1.78 | 1.87, 2.00, 1.80, 1.62, 1.65 | 1.85, 1.65, 1.68, 1.78, 1.64 |
+| I2-HL2 | 1.72, 1.72, 1.71, 1.63, 1.68 | 1.65, 1.81, 1.75, 1.74, 1.63 | 1.75, 1.70, 1.66, 1.76, 1.73 |
+| I2-HL3 | 1.73, 1.67, 1.85, 1.79, 1.84 | 1.71, 1.67, 1.80, 1.89, 1.82 | 1.72, 1.83, 1.75, 1.80, 1.77 |
+| I3-HL1 | 1.61, 1.65, 1.60, 1.65, 1.60 | 1.75, 1.61, 1.59, 1.72, 1.62 | 1.60, 1.63, 1.59, 1.56, 1.72 |
+| I3-HL2 | 1.60, 1.54, 1.60, 1.75, 1.68 | 1.78, 1.85, 1.60, 1.64, 1.66 | 1.57, 1.61, 1.66, 1.60, 1.57 |
+| I3-HL3 | 1.99, 1.97, 1.62, 1.62, 1.74 | 1.87, 1.80, 1.64, 1.61, 1.63 | 1.69, 1.57, 1.76, 1.74, 1.75 |

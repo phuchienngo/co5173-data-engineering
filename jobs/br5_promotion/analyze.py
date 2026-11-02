@@ -277,6 +277,10 @@ def main():
     )
     opts = run_settings.options(values)
     engine_name = opts["pipeline"]["engine"]
+    if engine_name == "clickhouse":
+        # ClickHouse's own size: its default threads per query, "auto(N)" for N CPUs.
+        threads = client.command("SELECT value FROM system.settings WHERE name = 'max_threads'")
+        cluster = {**(cluster or {}), "clickhouse_max_threads": str(threads).strip("'")}
 
     run = runs.Run(get_client(autogenerate_session_id=False), "analysis", run_id=args.run_id, criteria=criteria,
                    settings=run_settings.snapshot(values, cluster, label=args.settings_label),

@@ -164,6 +164,11 @@ SETTINGS = [
     _s("clickhouse.max_memory_usage", "Reading and writing", "ClickHouse max_memory_usage",
        "Memory limit per ClickHouse query. 0: the server's default.",
        "size", "0", "clickhouse", min=0, max=8192 * MB),
+    _s("clickhouse.limit_threads_by_memory", "Reading and writing", "ClickHouse: threads need free memory",
+       "On (the server's default): ClickHouse runs a query on fewer threads unless each thread has 1 GB of "
+       "free memory, so in a 1 GB container every query runs on one thread. Off: no such limit "
+       "(max_threads_min_free_memory_per_thread = 0).",
+       "bool", "true", "clickhouse"),
     # Analysis rules (team settings)
     _s("rules.low_season_threshold", "Analysis rules", "Low-season threshold (% of peak)",
        "Months with demand below this share of the peak month are low season.",
@@ -392,7 +397,11 @@ def options(values):
 
 def clickhouse_query_settings(values):
     opts = options(values)["clickhouse"]
-    return {k: v for k, v in opts.items() if v}
+    limit_threads = opts.pop("limit_threads_by_memory")
+    settings = {k: v for k, v in opts.items() if v}
+    if not limit_threads:
+        settings["max_threads_min_free_memory_per_thread"] = 0
+    return settings
 
 
 def changed(values):

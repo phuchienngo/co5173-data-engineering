@@ -121,6 +121,8 @@ class Resolve(unittest.TestCase):
         self.assertEqual(opts["pipeline"]["read_partitions"], 4)
         self.assertEqual(sorted(rs.changed(values)), ["pipeline.read_partitions", "rules.low_season_threshold"])
         self.assertEqual(rs.clickhouse_query_settings(rs.defaults()), {})
+        off = {**rs.defaults(), "clickhouse.limit_threads_by_memory": "false", "clickhouse.max_threads": "4"}
+        self.assertEqual(rs.clickhouse_query_settings(off), {"max_threads": 4, "max_threads_min_free_memory_per_thread": 0})
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ RUN_FIGURES = [
     ("ClickHouse rows written", "clickhouse.written_rows", 1, 0),
     ("ClickHouse CPU time (s)", "clickhouse.cpu_ms", 1000, 2),
     ("ClickHouse peak query memory (MB)", "clickhouse.peak_memory_bytes", MB, 0),
+    ("ClickHouse peak threads", "clickhouse.peak_threads", 1, 0),
 ]
 
 st.title("Run History")

@@ -3,9 +3,10 @@ with the stack up (`make br5-up`) and the data imported at x10:
 
     python tests/br5/benchmark.py presets                 save the benchmark presets
     python tests/br5/benchmark.py block S2 [--clickhouse] run a block's cells (restarts the worker if needed)
+    python tests/br5/benchmark.py block H2                ClickHouse block (restarts ClickHouse if needed)
     python tests/br5/benchmark.py screens S2              screenshots of a block's cells
     python tests/br5/benchmark.py stages X                skew figures per shuffle stage (block X)
-    python tests/br5/benchmark.py restore                 worker back to 2 cores
+    python tests/br5/benchmark.py restore                 worker back to 2 cores, ClickHouse to 1 CPU
 
 `--cells I3-L3,I1-L2` limits a block or its screenshots to some cells.
 Runs go through scripts/br5.py run, the same launcher as the app. Each run is
@@ -53,6 +54,8 @@ INPUTS = {
 # 3.2 start-up configurations: Spark worker cores
 # X: block X (plan 3.6), shuffle partitions and salting from the baseline, on 4 cores
 BLOCKS = {"S1": 1, "S2": 2, "S3": 4, "X": 4}
+# 3.4.2 ClickHouse blocks: the clickhouse container's CPUs
+CLICKHOUSE_BLOCKS = {"H1": 1, "H2": 2, "H3": 4}
 # 3.3 / 3.4 presets: (name, built-in preset to start from, overrides)
 ALL_CORES = {"spark.cores.max": "4"}  # D4: a run takes whatever the worker has
 LIVE = {
@@ -62,10 +65,15 @@ LIVE = {
     "C1": ("bench-clickhouse", None, {"pipeline.engine": "clickhouse"}),
     "P1": ("bench-baseline-shuffle8", "baseline", {**ALL_CORES, "spark.sql.shuffle.partitions": "8"}),
     "K1": ("bench-baseline-salt8", "baseline", {**ALL_CORES, "pipeline.salt_buckets": "8"}),
+    "HL1": ("bench-clickhouse", None, {"pipeline.engine": "clickhouse"}),  # = C1
+    "HL2": ("bench-clickhouse-1thread", None, {"pipeline.engine": "clickhouse", "clickhouse.max_threads": "1"}),
+    "HL3": ("bench-clickhouse-nomemlimit", None,
+            {"pipeline.engine": "clickhouse", "clickhouse.limit_threads_by_memory": "false"}),
 }
+CLICKHOUSE_LIVE = ["C1", "HL1", "HL2", "HL3"]
 SPARK_LIVE = ["L1", "L2", "L3"]
-BLOCK_LIVE = {"X": ["L1", "P1", "K1"]}
-BLOCK_REPEATS = {"X": 3}  # D13
+BLOCK_LIVE = {"X": ["L1", "P1", "K1"], **{b: ["HL1", "HL2", "HL3"] for b in CLICKHOUSE_BLOCKS}}
+BLOCK_REPEATS = {"X": 3, **{b: 5 for b in CLICKHOUSE_BLOCKS}}  # D13, D14
 THIRD_RUN_SPREAD = 1.15  # D7
 
 
@@ -113,12 +121,57 @@ def set_worker(cores):
     sys.exit(f"The Spark master doesn't show one worker with {cores} cores after 2 minutes.")
 
 
+def clickhouse_size():
+    """(container CPUs, ClickHouse's default max_threads), or (None, None)
+    while ClickHouse doesn't answer."""
+    try:
+        nano = subprocess.run(["docker", "inspect", "--format", "{{.HostConfig.NanoCpus}}", "clickhouse"],
+                              capture_output=True, text=True, check=True).stdout.strip()
+        threads = clickhouse("SELECT value FROM system.settings WHERE name = 'max_threads' FORMAT JSONEachRow")
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return None, None
+    return int(nano) / 1e9, threads[0]["value"].strip("'")
+
+
+def set_clickhouse(cpus):
+    """Recreates clickhouse with `cpus` CPUs (BR5_CLICKHOUSE_CPUS in
+    docker-compose.yml), waits until it answers and checks that it uses that
+    many threads per query by default (plan check 10)."""
+    if clickhouse_size() == (cpus, f"auto({cpus})"):
+        print(f"ClickHouse already has {cpus} CPUs (max_threads auto({cpus})).")
+        return
+    busy = clickhouse("SELECT run_id FROM br5.pipeline_runs FINAL WHERE status = 'running' "
+                      "AND heartbeat_at > now64(3) - toIntervalSecond(30) FORMAT JSONEachRow")
+    if busy:
+        sys.exit(f"A BR5 run is in progress ({busy[0]['run_id']}); not restarting ClickHouse.")
+    print(f"Restarting ClickHouse with {cpus} CPUs ...")
+    env = {**os.environ, "BR5_CLICKHOUSE_CPUS": str(cpus)}
+    subprocess.run(["docker", "compose", "--profile", "full", "up", "-d", "--no-deps", "clickhouse"],
+                   cwd=REPO, env=env, check=True)
+    for _ in range(60):
+        time.sleep(2)
+        size = clickhouse_size()
+        if size[1] is not None:
+            break
+    else:
+        sys.exit("ClickHouse doesn't answer after 2 minutes.")
+    check_clickhouse(cpus)
+
+
+def check_clickhouse(cpus):
+    size = clickhouse_size()
+    if size != (cpus, f"auto({cpus})"):
+        sys.exit(f"ClickHouse has CPU limit {size[0]} and max_threads {size[1]}; expected {cpus} and auto({cpus}) "
+                 "(plan 3.4.2: set clickhouse.max_threads in the presets instead).")
+    print(f"ClickHouse has {cpus} CPUs, max_threads auto({cpus}).")
+
+
 # --- Presets and runs -------------------------------------------------------
 
 def save_presets():
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     rows = []
-    for name, base, overrides in LIVE.values():
+    for name, base, overrides in {v[0]: v for v in LIVE.values()}.values():  # C1 and HL1 share a preset
         values = run_settings.resolve(preset=base)
         values.update(overrides)
         rows.append(json.dumps({"name": name, "setting_values": values, "is_deleted": 0, "updated_at": now}))
@@ -173,7 +226,10 @@ def run_cell(block, cell, repeat):
 def cmd_block(args):
     cells = args.cells or [f"{i}-{l}" for i in INPUTS for l in BLOCK_LIVE.get(args.block, SPARK_LIVE)]
     args.repeats = args.repeats or BLOCK_REPEATS.get(args.block, 2)
-    set_worker(BLOCKS[args.block])
+    if args.block in CLICKHOUSE_BLOCKS:
+        set_clickhouse(CLICKHOUSE_BLOCKS[args.block])
+    else:
+        set_worker(BLOCKS[args.block])
     if not args.no_warmup:
         run_cell(args.block, cells[0], "warmup")
     measured = {cell: [] for cell in cells}
@@ -189,6 +245,8 @@ def cmd_block(args):
         for input_id in INPUTS:
             for repeat in range(1, 4):
                 run_cell(args.block, f"{input_id}-C1", repeat)
+    if args.block in CLICKHOUSE_BLOCKS:
+        check_clickhouse(CLICKHOUSE_BLOCKS[args.block])  # still the same size at the end
     print("\nBlock done.")
     for row in [r for r in read_manifest() if r["block"] == args.block]:
         print(f"  {row['cell']:7} {row['repeat']:7} {row['status']:9} {float(row['duration_s'] or 0):6.1f} s  "
@@ -269,7 +327,11 @@ def reference_run(block, cell, row):
     cell (a measured one) while the reference cell hasn't run yet. None for
     S2's L2."""
     input_id, live = cell.split("-")
-    if block == "X":  # P1 and K1 against the baseline of the same block
+    if block in CLICKHOUSE_BLOCKS:  # HL2 against HL1 of the block; HL1 against H1's
+        if live == "HL1" and block == "H1":
+            return None, None
+        ref = (block, f"{input_id}-HL1") if live in ("HL2", "HL3") else ("H1", f"{input_id}-HL1")
+    elif block == "X":  # P1 and K1 against the baseline of the same block
         if live == "L1":
             return None, None
         ref = ("X", f"{input_id}-L1")
@@ -406,7 +468,7 @@ def cmd_screens(args):
             if ref_id:
                 print(f"    compared with {ref_label}")
                 compare_shot(page, row, ref_id, folder)
-            if not cell.endswith("C1"):
+            if cell.split("-")[1] not in CLICKHOUSE_LIVE:
                 resources_shot(page, row, folder)
                 spark_shot(page, row, folder)
                 if args.block == "X":
@@ -423,7 +485,7 @@ def main():
     sub.add_parser("restore")
     for name in ("block", "screens", "stages"):
         p = sub.add_parser(name)
-        p.add_argument("block", choices=list(BLOCKS))
+        p.add_argument("block", choices=[*BLOCKS, *CLICKHOUSE_BLOCKS])
         p.add_argument("--cells", type=lambda s: s.split(","), help="For example I3-L3,I1-L2")
         if name == "block":
             p.add_argument("--repeats", type=int, help="Default 2, 3 for block X")
@@ -434,6 +496,7 @@ def main():
         save_presets()
     elif args.command == "restore":
         set_worker(BLOCKS["S2"])
+        set_clickhouse(CLICKHOUSE_BLOCKS["H1"])
     elif args.command == "block":
         cmd_block(args)
     elif args.command == "stages":

@@ -149,7 +149,8 @@ services:
     image: clickhouse/clickhouse-server:26.8
     container_name: clickhouse
     mem_limit: 1g
-    cpus: 1.0
+    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
+    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
     ulimits:
       nofile:
         soft: 262144
@@ -186,7 +187,8 @@ services:
     image: confluentinc/cp-kafka:8.3.1
     container_name: kafka
     mem_limit: 1g
-    cpus: 1.0
+    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
+    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
     ports:
       - "9092:9092"       # host access
       - "29092:29092"     # inter-container access
@@ -308,7 +310,8 @@ services:
     hostname: br5-app
     profiles: ["br5", "br6"]
     mem_limit: 2g
-    cpus: 1.0
+    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
+    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
     user: "0:0"
     depends_on:
       - clickhouse
