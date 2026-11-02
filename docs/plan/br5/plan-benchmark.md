@@ -11,8 +11,8 @@ The test runs on the dev laptop only, so it is kept to **just enough runs to sho
 | 1 | 2–3 inputs: different choices read different amounts of data, so they give different results | 3 inputs, from 100% down to 3% of the data (section 3.1) |
 | 2 | For each input, 2–3 start-up configurations: they change performance | 3 Spark worker sizes, set at start-up (3.2) |
 | 3 | For each input and start-up configuration, 2–3 live settings: the same input and cluster still give different run times | 3 settings presets, applied per run (3.3) |
-| 4 | The ClickHouse engine with 1–2 setups, as the optimized alternative to compare with | 1 setup, on each input (3.4) |
-| 5 | Little time and machine load | 27 Spark cells × 2 runs and 3 ClickHouse cells, about 1 h 40 min of machine time in 3 blocks that can run on different days (section 5) |
+| 4 | The ClickHouse engine with 1–2 setups, as the optimized alternative to compare with. It is the project's chosen alternative solution, so it gets its own start-up configurations and live settings, like Spark | C1 on each input (3.4.1, done), then the ClickHouse blocks H1–H3: 3 ClickHouse sizes × 2 live settings × 3 inputs (3.4.2–3.4.5) |
+| 5 | Little time and machine load | 27 Spark cells × 2 runs and 3 ClickHouse cells, about 1 h 40 min of machine time in 3 blocks that can run on different days (section 5). The ClickHouse blocks add about 20 min: a ClickHouse run takes about 2 s |
 | 6 | Screenshots of each test, with the real figures, for the report | Saved for every cell by a script (section 6) |
 | 7 | Added for the presentation (Memory management & Data skew handling): one variant that changes only `spark.sql.shuffle.partitions` | Block X, cell P1: the baseline L1 with 8 shuffle partitions (section 3.6) |
 | 8 | Added for the presentation: the salting technique against data skew, measured like the other variants | Block X, cell K1: the baseline L1 with salting (section 3.6). Salting is applied in Spark when joining, so the imported data stays as it is (D11) |
@@ -26,7 +26,7 @@ The test runs on the dev laptop only, so it is kept to **just enough runs to sho
 | D3 | **The worker's cores come from an environment variable** `BR5_WORKER_CORES` (default 2) in `docker-compose.yml`, used for both `SPARK_WORKER_CORES` and the container's `cpus`. | The benchmark script can restart the worker with another size, and nothing changes when the variable isn't set (BR3/BR4 unaffected). |
 | D4 | **Every live preset sets `spark.cores.max` to 4.** | The default is 2, which would cap the 4-core worker at 2 cores and hide the start-up effect. With 4, a run takes whatever the worker has (1, 2 or 4): on the current 2-core worker, `bench-default` behaves exactly like the default settings. |
 | D5 | **The third live setting changes one thing from the default: 4 read partitions instead of 2.** | The read is the longest step (10–13 s). One change keeps the cause clear. It should help on 4 cores and may hurt on 1, where 4 slices run one after the other and each scans the fact table in ClickHouse. That shows that the best live setting depends on the start-up configuration. |
-| D6 | **The ClickHouse engine gets one setup** (default settings, `engine = clickhouse`), run on the 2-core block only. | It doesn't use the Spark worker, so the worker's size can't change it. Its whole run uses about 0.13 s of ClickHouse CPU (result-monitoring.md), so giving ClickHouse more cores couldn't show either. |
+| D6 | **The ClickHouse engine first got one setup** (C1: default settings, `engine = clickhouse`), run in the S2 block. **It now also gets its own blocks H1–H3** (3.4.2), decided after the Spark blocks, when ClickHouse was chosen as the alternative solution. | The Spark worker's size can't change the ClickHouse engine, so its start-up configuration is the ClickHouse container's CPUs instead, and its live settings are ClickHouse query settings. Its whole run uses about 0.4 s of ClickHouse CPU at ×10, so the differences will be small in seconds: the blocks rely on ClickHouse's own exact query figures (D14). |
 | D7 | **2 measured runs per Spark cell, plus a third when the two differ by more than 15%.** One warm-up run after each worker restart is not counted. | Two identical runs differed by up to 30% earlier (23.3 vs 32.2 s). One run per cell could show a "difference" that is only noise. 3 runs everywhere would add about 45 min. |
 | D8 | **Runs within a block are interleaved** (repeat 1 of every cell, then repeat 2), not run cell by cell. | Background load or heat on the laptop then spreads over all cells instead of hitting one. |
 | D9 | **Screenshots are taken by a script after each block, not during runs.** It uses Playwright for Python with the Chrome already installed (`channel="chrome"`, no browser download), headless, and saves JPEGs. | My browser tool returns screenshots to me only and can't save them to files. Taking them after the runs keeps Grafana's and the app's queries off the machine while it is measured. JPEG keeps the whole set to about 20–30 MB in git. I check a sample of the images myself. |
@@ -34,6 +34,8 @@ The test runs on the dev laptop only, so it is kept to **just enough runs to sho
 | D11 | **Salting is done in the Spark job at join time, not in the stored data.** It is a new live setting, `pipeline.salt_buckets`; the import and `br5.fact_booking` are unchanged. | Salting adds a random bucket number (0..N−1) to each row of the big side and copies each row of the small side N times, once per bucket. The join then runs on (key, bucket), so one hot key is spread over N partitions. Both columns exist only inside the run. Storing a salt would only matter if ClickHouse itself had to spread a hot key, and it doesn't here. |
 | D12 | **Block X starts from the baseline, L1** (`bench-baseline`), not from the best setting, and runs on S3 (4 cores). It measures L1 again in the same block. | Both effects need a configuration where they exist. The best setting (L3) has AQE on, which already merges the 200 shuffle partitions into a few, so changing their number does little. L3 also groups on integer keys and broadcasts the lookup tables, so it never moves bookings by a skewed key. Avoiding the skewed join is the first answer to skew, and the presentation can say so. L1 has AQE off, so every shuffle keeps exactly the configured partitions (4,245–4,861 tasks per run). It also has the skewed sort-merge joins. The earlier S3 L1 runs were made on another day, so the reference is measured next to the variants. Skew needs parallel tasks to show: on 4 cores, one task holding 72% of the rows leaves 3 cores idle. |
 | D13 | **Block X takes 3 measured runs per cell**, not 2. AQE's skew join is not measured. | L1 is the noisiest cell: the S3 I1-L1 runs took 60, 79 and 81 s, and the gains expected here are a few seconds. AQE's skew join needs AQE on, and turning AQE on in L1 also merges the partitions, which is a much bigger change: the effect of the skew handling couldn't be separated. |
+| D14 | **The ClickHouse blocks are measured on ClickHouse's own figures as well as the run time, with 5 runs per cell.** | A ClickHouse run takes about 2 s, of which 1.2–1.6 s is starting Python and connecting, which no ClickHouse setting can change. The queries themselves take 0.3–0.7 s. `system.query_log` gives exact per-query time, CPU, memory and threads for every run (tagged with the run id), so those show the effect even when the total doesn't. 5 runs per cell cost about 10 s. |
+| D15 | **The ClickHouse CPUs come from an environment variable** `BR5_CLICKHOUSE_CPUS` (default 1) in `docker-compose.yml`, used for the `clickhouse` service's `cpus`. Memory stays 1 GB. | Same approach as D3: nothing changes when the variable isn't set, so BR3, BR4 and BR6, which share this ClickHouse, are unaffected. Memory is not varied: a whole ClickHouse run peaks at a few tens of MB at ×10, far below 1 GB. |
 
 ## 3. The matrix
 
@@ -104,13 +106,67 @@ A preset is a named set of values from the Advanced Settings page (`jobs/br5_pro
 - `spark.eventLog.enabled` true (needed for the Spark screenshots).
 - All analysis rules (`rules.*`: low-season threshold 60%, minimum bookings 100, top 10 cards, …). They change the answer, not the performance, so the answer depends on the input only.
 
-### 3.4 ClickHouse engine
+### 3.4 ClickHouse engine (the alternative solution)
+
+#### 3.4.1 C1: first setup (done, in the S2 block)
 
 | ID | Preset | Runs |
 |---|---|---|
-| C1 | `bench-clickhouse`: all defaults + `pipeline.engine=clickhouse` (column C1 above) | I1, I2, I3 in the S2 block, 3 runs each (about 3 s per run) |
+| C1 | `bench-clickhouse`: all defaults + `pipeline.engine=clickhouse` (column C1 above) | I1, I2, I3 in the S2 block, 3 runs each (about 2 s per run) |
 
 The ClickHouse engine runs as a Python job in `br5-app` that sends 4 SQL queries to ClickHouse; no Spark session is created. So the Spark settings and the worker's cores don't apply to it. Its resources are ClickHouse's 1 CPU and 1 GB, plus `br5-app` for the Python side.
+
+#### 3.4.2 Blocks H1–H3: ClickHouse's own matrix
+
+The same inputs (3.1), with ClickHouse's own start-up configurations and live settings.
+
+**Start-up configurations (need a ClickHouse restart):**
+
+| ID | `BR5_CLICKHOUSE_CPUS` | `clickhouse` container `cpus` | ClickHouse's default `max_threads` | Restart |
+|---|---|---|---|---|
+| H1 | unset (default 1) | 1 | `auto(1)` | – (the project's normal setup) |
+| H2 | 2 | 2 | `auto(2)` | `clickhouse` only, done by the benchmark script |
+| H3 | 4 | 4 | `auto(4)` | `clickhouse` only |
+
+ClickHouse sets its default thread count per query from the CPUs it may use, so the container's limit should show as `auto(N)`. Check 10 confirms this; if ClickHouse showed the host's 14 cores instead, the presets would set `clickhouse.max_threads` to the block's CPUs explicitly, and the plan would be updated.
+
+The same in all three: memory 1 GB; server settings at ClickHouse's defaults (with `system.metric_log` off, as in the whole project); the Spark worker stays at 2 cores (the ClickHouse engine doesn't use it); `br5-app` 1 CPU / 2 GB.
+
+**Live settings (presets, applied per run):**
+
+| ID | Preset | Settings | What it shows |
+|---|---|---|---|
+| HL1 | `bench-clickhouse` (C1's preset) | all defaults: `pipeline.engine=clickhouse`, `clickhouse.max_threads=0` (the server's default, `auto(N)`), `clickhouse.max_memory_usage=0` (the server's default) | The optimized alternative as shipped |
+| HL2 | `bench-clickhouse-1thread` | HL1 + `clickhouse.max_threads=1` | ClickHouse without its parallel query processing: the "single-threaded" baseline. On H1 it equals HL1, so that pair is also a check of the noise |
+
+Only `clickhouse.max_threads` differs. The two other ClickHouse settings of the registry are left at their defaults: a memory limit could only make a query fail at this size (a whole run peaks at a few tens of MB), and the Spark settings don't apply.
+
+**Cells:** 3 inputs × 2 live settings per block, 5 measured runs each, interleaved (D8, D14), with one warm-up after each restart.
+
+#### 3.4.3 What differs from the Spark blocks
+
+| | Spark blocks (S1–S3, X) | ClickHouse blocks (H1–H3) |
+|---|---|---|
+| Restarted service | `spark-worker` (`BR5_WORKER_CORES`) | `clickhouse` (`BR5_CLICKHOUSE_CPUS`). The data stays in its volume; the script waits for the health check |
+| Where the job runs | spark-submit from `br5-app`; driver in `br5-app`, executor on the worker | Python in `br5-app`, 4 SQL queries; no Spark application |
+| Start-up check | Spark master reports the worker's cores | `docker inspect` shows the CPU limit, and `system.settings` shows `max_threads` = `auto(N)` |
+| Warm-up after a restart | Yes (JVMs, Spark) | Yes: ClickHouse starts with empty caches (marks, OS page cache inside the VM) |
+| Runs per cell | 2 (+ a third if they differ by more than 15%); 3 in block X | 5 (D14) |
+| Main figures | Run time, steps, Spark CPU / tasks / shuffle / spill / GC | Run time, time inside the steps, and from `system.query_log`: query time, CPU, peak memory, rows and bytes read, peak threads |
+| Screenshots | `finder.jpg`, `compare.jpg`, `resources.jpg`, `spark.jpg` (+ `stages.jpg` in X) | `finder.jpg` and `compare.jpg` only: a run is shorter than one 5 s Prometheus sample, and there is no Spark application |
+| Other users of the service | ClickHouse is shared, but only the reader touches it | During H2/H3 nothing else may use ClickHouse: no Spark run, no Grafana page (its panels query ClickHouse) |
+
+**Query cache:** ClickHouse's query cache is off by default (`use_query_cache=0`), so a repeated run really re-executes its queries. Check 11 confirms it from `system.query_log`.
+
+#### 3.4.4 Comparisons for the report
+
+- **Within ClickHouse:** H1 → H2 → H3 with HL1 (more CPUs), and HL2 against HL1 in each block (parallel query processing on or off).
+- **Spark against ClickHouse at the same CPUs:** S1 against H1 (1 core / 1 CPU), S2 against H2, S3 against H3, each with Spark's default (L2) and best (L3) setting and ClickHouse's HL1. During the Spark blocks ClickHouse had 1 CPU, which only served the reader's queries.
+- C1 stays in the result as the first measurement; H1-HL1 measures the same setup again, with 5 runs.
+
+#### 3.4.5 Expected size of the effect
+
+At ×10 the 4 queries take 0.3–0.7 s inside a 1.9–2.3 s run. More CPUs can at best shorten the query part, so totals may differ by 0.1–0.3 s, close to the noise. The query figures (time, CPU, threads) will show the effect clearly, and the report says plainly when the totals don't differ.
 
 ### 3.5 Counts
 
@@ -120,6 +176,7 @@ The ClickHouse engine runs as a Python job in `br5-app` that sends 4 SQL queries
 | ClickHouse | 3 | 9 | – |
 | Import ×10 | 1 | 1 | – |
 | Block X (3.6): 3 inputs × 3 presets, S3 only | 9 | 27 | 1 |
+| ClickHouse blocks H1–H3 (3.4.2): 3 inputs × 2 live × 3 sizes | 18 | 90 | 3 |
 
 ### 3.6 Block X: shuffle partitions and data skew (added for the presentation)
 
@@ -166,12 +223,15 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
 | `apps/br5/views/promotion_finder.py`, `backend.py` | `?run=<id>`: show that run's result with a note "an earlier run", and set the three choices to that run's (D10). |
 | `apps/br5/views/run_history.py` | `?a=<id>` for run A (D10). The compare tables are as tall as their rows: they scrolled inside a fixed height, which cut rows off a screenshot. |
 | `Makefile` | `br5-bench BLOCK=S1` and `br5-bench-screens BLOCK=S1`. |
-| `docs/guide/br5/config-guide.md` | The `BR5_WORKER_CORES` variable in the restart guide. |
+| `docs/guide/br5/config-guide.md` | The `BR5_WORKER_CORES` and `BR5_CLICKHOUSE_CPUS` variables in the restart guide. |
+| `docker-compose.yml` | ClickHouse blocks: `clickhouse` gets `cpus: ${BR5_CLICKHOUSE_CPUS:-1}` (D15). |
+| `jobs/br5_promotion/run_metrics.py` | ClickHouse blocks: the per-run ClickHouse figures also take `max(peak_threads_usage)` from `system.query_log`, stored as `clickhouse.peak_threads` and shown in Run History. |
+| `jobs/br5_promotion/analyze.py` (run snapshot) | ClickHouse blocks: a ClickHouse run records `cluster.clickhouse_max_threads`, the server's default `max_threads` (`auto(N)`) at the start of the run, as Spark runs record `cluster.worker_cores`. |
 | `jobs/br5_promotion/run_settings.py`, `pipeline_spark.py` | Block X: the `pipeline.salt_buckets` setting and salting in the early join (3.6). |
 | `tests/br5/benchmark.py` | Block X: the presets P1 and K1, block `X` (S3 cores, cells L1, P1, K1, 3 runs each), and the figures of table F. These are read from the Spark history server's REST API (`/api/v1/applications/<app>/stages`, task summary with quantiles 0.5 and 1.0), so no new dependency is needed. |
 
 `benchmark.py` sub-commands:
-- **`presets`:** saves the four presets of 3.3 and 3.4, and the four new ones of 3.6.
+- **`presets`:** saves the four presets of 3.3 and 3.4, the new ones of 3.6, and `bench-clickhouse-1thread` (3.4.2).
 - **`block S1|S2|S3|X`:**
   1. Restarts `spark-worker` with the block's cores if needed, and waits until the Spark master reports a worker with that many cores.
   2. Runs one warm-up: the first selected cell, recorded as `warmup` and left out of the figures.
@@ -181,7 +241,10 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
 - **`screens S1|S2|S3`:** takes the screenshots of section 6 for every cell of the block.
 - **`report`:** reads the manifest and `br5.run_history` and writes `docs/result/br5/benchmark/tables.md`, with the tables of section 7. It also checks section 8 and prints any failure.
 - **`stages X`:** block X's skew figures (table F) for every measured run, from the Spark history server: one row per shuffle stage in `docs/result/br5/benchmark/stages-X.csv`, and per run the room join and the skewed stages.
-- **`restore`:** puts the worker back to 2 cores.
+- **`block H1|H2|H3`:** the ClickHouse blocks (3.4.2):
+  1. Recreates `clickhouse` with the block's CPUs if needed (`BR5_CLICKHOUSE_CPUS`), waits for its health check, and checks the CPU limit and `max_threads` = `auto(N)` (check 10). It refuses to start while a run is in progress.
+  2. One warm-up run, then the 6 cells interleaved, 5 runs each, through `scripts/br5.py run --preset ...`, appended to the same manifest.
+- **`restore`:** puts the worker back to 2 cores and ClickHouse back to 1 CPU.
 
 ## 5. Procedure and time
 
@@ -194,6 +257,7 @@ Everything else is as in L1 (section 3.3): `spark.cores.max` 4, the driver reade
 | 4 | Block S3; then its screenshots; `benchmark.py restore` | 15 min + 5 min |
 | 5 | Summary screenshots (section 6), `benchmark.py report`, `docs/result/br5/result-benchmark.md` | 5 min |
 | 6 | Block X (3.6): build the salting setting, `benchmark.py presets`, block X, its screenshots, `restore` | 35 min + 5 min |
+| 7 | ClickHouse blocks (3.4.2): build the tooling of section 4, `benchmark.py presets`, blocks H1, H2, H3 and their screenshots, `restore` | 15 min + 5 min |
 
 That is about 1 h 40 min in total. Each block is self-contained, so the blocks can run in separate sessions. S2 goes first because it needs no restart and contains the reference cells.
 
@@ -210,6 +274,8 @@ Saved under `docs/result/br5/benchmark/<cell>/`, for example `S2-I1-L2/`. They c
 | `resources.jpg` | Grafana BR5 Resource use (kiosk mode), from 2 s before the run to 2 s after (interleaved runs follow each other within seconds, so a wider window shows parts of the neighbours and inflates "CPU seconds used") | CPU and memory of `spark-worker`, `br5-app` and `clickhouse`, with the run shaded and the worker's CPU limit | Every Spark cell (ClickHouse runs are shorter than one 5 s sample) |
 | `spark.jpg` | Spark history, the application's Jobs page | Jobs named after the steps, with their durations | Every Spark cell |
 | `stages.jpg` | Spark history, the stage page of the room-type join (the most skewed), Summary Metrics table | Duration and shuffle read records at min / median / max over the tasks: the skew, and how K1 spreads it | Block X, L1, P1 and K1 |
+
+ClickHouse blocks (folders `H1-I1-HL1/` and so on): `finder.jpg` for every cell, and `compare.jpg` with these references: HL2 against HL1 of the same input and block; HL1 of H2 and H3 against H1's HL1. H1's HL1 cells are the references. No `resources.jpg` or `spark.jpg` (3.4.3); Run History's compare page shows the ClickHouse figures instead.
 
 Summary screenshots in `docs/result/br5/benchmark/summary/`:
 - `live-SX.jpg`: Grafana Run performance for each block's time range, "Compare by setting" = `launch.settings_from`. Shows the median per live preset.
@@ -234,6 +300,10 @@ That is about 110 images. The script logs in to Grafana through its login API. I
   - run time of L1, P1 and K1, with P1 and K1 against L1
   - Spark tasks, shuffle, spill and GC time (P1 against L1)
   - per join stage of L1, P1 and K1: tasks, the largest task's share of the rows read, and the largest task's time against the median
+- **G. ClickHouse blocks**, per input:
+  - run time and time inside the steps: H1 / H2 / H3 × HL1 / HL2
+  - from `system.query_log`: query time, ClickHouse CPU, peak threads, peak memory, rows and bytes read
+  - Spark against ClickHouse at the same CPUs: S1/H1, S2/H2, S3/H3 (Spark L2 and L3 against ClickHouse HL1), total and inside the steps
 
 `docs/result/br5/result-benchmark.md` gets these tables, the observations for the report, and the screenshot index. It is updated after each block, not only at the end.
 
@@ -244,12 +314,14 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 | 1 | Each run used its intended start-up configuration | The run's snapshot `cluster.worker_cores` equals the block's cores. Prometheus `container_spec_cpus` for `spark-worker` matches during the block |
 | 2 | Each run used its intended live settings | `launch.settings_from` is the cell's preset. For L1, Spark reports AQE off and broadcast -1. For L3, the parallel reader sent 4 read queries whose rows add up to the rows read. ClickHouse's own "rows read" counts the rows it scanned, not the rows returned (the index granules matching the filter, once per slice), so it is not a simple multiple |
 | 3 | Inputs read what 3.1 says | Rows read per input equals the table (×10 counts) in every cell |
-| 4 | Same input, same result | For each input, all Spark cells and C1 give the same cards and month rows (`same_result`; numbers equal within a relative 1e-9, since sums added in another order differ in their last bits). The settings change speed, never the answer |
+| 4 | Same input, same result | For each input, all Spark cells, C1 and every ClickHouse block cell give the same cards and month rows (`same_result`; numbers equal within a relative 1e-9, since sums added in another order differ in their last bits). The settings change speed, never the answer |
 | 5 | All runs succeeded; repeats are close | No failed run in the manifest (or the failure is reported as a finding, see R2). Each cell's runs are within 15%, or have a third run |
 | 6 | Screenshots complete and readable | One folder per cell with its files, and the summary set. I open a sample from each block to check that the figures are visible and match the manifest |
 | 7 | Stack restored | Worker back to 2 cores; `make br5-check-dashboards` passes |
 | 8 | Block X used the intended settings | P1: Spark reports `spark.sql.shuffle.partitions` 8 and its shuffle stages have 8 tasks. All three: AQE off, and the plans show `SortMergeJoin` and no `BroadcastHashJoin` |
 | 9 | The salting really happened | L1 and P1: the room-join stage has one task with most of the rows. K1: the join keys include `salt`, and the largest task's share drops to about 1/8 of the hot key's rows or less |
+| 10 | ClickHouse blocks used the intended start-up configuration | At the start and end of each block, `docker inspect clickhouse` shows the block's CPU limit and `system.settings` shows `max_threads` = `auto(N)`. Every run's snapshot has `cluster.clickhouse_max_threads` = `auto(N)` |
+| 11 | ClickHouse live settings applied, no cache | HL2 runs: every query in `system.query_log` has `max_threads` = 1 in its settings and `peak_threads_usage` 1. HL1 runs on H2/H3 use more than 1 thread. No query used the query cache (`query_cache_usage` is `None`), and every run read its rows from the table (`read_rows` per input as in C1) |
 
 ## 9. Risks
 
@@ -260,13 +332,17 @@ That is about 110 images. The script logs in to Grafana through its login API. I
 - **R5 Compose interpolation of `cpus`.** Checked: Compose accepts `${BR5_WORKER_CORES:-2}` there.
 - **R6 Screenshot size.** About 110 JPEGs of about 200 KB each. If the total grows past about 40 MB, they move to Git LFS.
 - **R7 Block X effects may be small in seconds.** See 3.6: the skewed tasks last at most about 2 s each. The report then leans on the stage figures (table F), and says plainly if run times differ by less than the noise.
+- **R8 ClickHouse effects are small in seconds at ×10.** See 3.4.5 and D14: the report leans on the query figures from `system.query_log`.
+- **R9 ClickHouse doesn't follow the container's CPU limit.** Check 10 shows it at the first block; the fallback is in 3.4.2.
+- **R10 Restarting ClickHouse affects the other services.** Spark runs, the app and Grafana lose their connection for a few seconds. The script restarts it only between runs, and `restore` puts it back to 1 CPU, which BR3, BR4 and BR6 expect.
 
 ## 10. Not covered
 
 - ×1 and ×50: ×1 figures are in result-pipeline.md and result-monitoring.md; ×50 is left out (D1).
 - Import benchmarks: the writers are compared in result-data-import.md.
+- ClickHouse: memory sizes, server settings other than the defaults, other table layouts or pre-aggregated tables, and the query cache. ClickHouse at larger scales than ×10.
 - Single-setting studies for caching and the serializer; several workers; table layouts (C9). Skew handling and shuffle partitions are covered by block X only, on S3 and from the baseline. AQE's skew join is not measured (D13).
 
 ## 11. Status
 
-The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. All blocks are done: S1, S2 with C1, S3, and block X (3.6, shuffle partitions and skew, 2026-10-24); 106 runs, all succeeded. Not built: the `report` sub-command and the summary screenshots (section 6); `result-benchmark.md` has the report tables instead.
+The process was checked on one cell (S3-I3-L3) and works. The measured results are in [result-benchmark.md](../../result/br5/result-benchmark.md), updated after each block. Done: S1, S2 with C1, S3, and block X (3.6, shuffle partitions and skew, 2026-10-24); 106 runs, all succeeded. Planned, not built yet: the ClickHouse blocks H1–H3 (3.4.2). Not built: the `report` sub-command and the summary screenshots (section 6); `result-benchmark.md` has the report tables instead.
