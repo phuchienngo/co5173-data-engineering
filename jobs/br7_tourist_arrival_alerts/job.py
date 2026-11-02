@@ -54,7 +54,9 @@ def read_csv(name):
 
 
 def load_dimensions():
-    zones = [[int(r["zone_id"]), r["zone_name"], r["borough"], r["landmark"]] for r in read_csv("zones")]
+    # Landmark labels come from the code so they can change without re-preparing data.
+    zones = [[int(r["zone_id"]), r["zone_name"], r["borough"], TOURIST_ZONES[int(r["zone_id"])]]
+             for r in read_csv("zones")]
     baseline_rows = read_csv("baseline")
     baseline = {
         (int(r["zone_id"]), int(r["hour_of_week"])): (float(r["mean_arrivals"]), float(r["p90_arrivals"]))

@@ -11,19 +11,19 @@ from zoneinfo import ZoneInfo
 
 LOCAL_TZ = "America/New_York"
 
-# TLC taxi zone id -> landmark shown on the dashboard. Zone names come from
-# taxi_zone_lookup.csv; the landmark is only a reading aid.
+# TLC taxi zone id -> landmark (Vietnamese) shown on the dashboard. Zone names
+# come from taxi_zone_lookup.csv; the landmark is only a reading aid.
 TOURIST_ZONES = {
-    12: "Battery Park (Statue of Liberty ferry)",
-    43: "Central Park",
-    45: "Chinatown",
-    88: "Financial District South (Wall Street)",
-    144: "Little Italy/NoLiTa",
-    161: "Midtown Center (Rockefeller Center, MoMA)",
-    164: "Midtown South (Empire State Building)",
-    230: "Times Sq/Theatre District",
-    234: "Union Sq",
-    261: "World Trade Center (9/11 Memorial)",
+    12: "Bến phà tượng Nữ thần Tự do",
+    43: "Công viên Central Park",
+    45: "Khu phố Tàu (Chinatown)",
+    88: "Phố Wall",
+    144: "Khu Little Italy",
+    161: "Rockefeller Center, bảo tàng MoMA",
+    164: "Tòa nhà Empire State",
+    230: "Quảng trường Thời Đại, Broadway",
+    234: "Quảng trường Union",
+    261: "Đài tưởng niệm 11/9",
 }
 
 MIN_TRAINING_HOURS = 8   # baseline cell needs this many historical hours

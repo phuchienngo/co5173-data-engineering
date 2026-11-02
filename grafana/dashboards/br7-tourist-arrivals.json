@@ -9,7 +9,7 @@
   "panels": [
     {
       "id": 1,
-      "title": "Zone-hours processed",
+      "title": "Số khu × giờ đã xử lý",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -30,11 +30,11 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT count() AS zone_hours FROM v_br7_zone_hourly",
+          "rawSql": "SELECT count() AS v FROM v_br7_zone_hourly",
           "refId": "A"
         }
       ],
-      "description": "Closed one-hour windows written by Spark (one row per zone and hour).",
+      "description": "Số giờ (tính riêng từng khu) mà Spark đã đếm xong và ghi vào ClickHouse.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -50,7 +50,7 @@
     },
     {
       "id": 2,
-      "title": "Taxi arrivals processed",
+      "title": "Tổng lượt taxi đến",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -71,11 +71,11 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT sum(observed_arrivals) AS arrivals FROM v_br7_zone_hourly",
+          "rawSql": "SELECT sum(observed_arrivals) AS v FROM v_br7_zone_hourly",
           "refId": "A"
         }
       ],
-      "description": "Cleaned yellow-taxi drop-offs in the monitored zones, summed over closed hours.",
+      "description": "Tổng số chuyến taxi vàng thả khách vào 10 khu du lịch, sau khi làm sạch dữ liệu.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -91,7 +91,7 @@
     },
     {
       "id": 3,
-      "title": "Warning hours",
+      "title": "Số giờ có cảnh báo",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -112,11 +112,11 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT countIf(alert_level = 'warning') AS warning_hours FROM v_br7_zone_hourly",
+          "rawSql": "SELECT countIf(alert_level = 'warning') AS v FROM v_br7_zone_hourly",
           "refId": "A"
         }
       ],
-      "description": "Hours whose next-hour forecast is above the zone's usual p90 and at least the minimum size.",
+      "description": "Số giờ mà hệ thống dự báo giờ tiếp theo sẽ đông bất thường (vượt mức p90 thường lệ và từ 50 lượt trở lên).",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -132,7 +132,7 @@
     },
     {
       "id": 4,
-      "title": "Forecast error (MAPE)",
+      "title": "Sai số dự báo trung bình",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -153,11 +153,11 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS mape FROM v_br7_forecast_check WHERE actual_arrivals >= 20",
+          "rawSql": "SELECT round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS v FROM v_br7_forecast_check WHERE actual_arrivals >= 20",
           "refId": "A"
         }
       ],
-      "description": "Mean absolute percentage error of the next-hour forecast against the hour that actually followed (hours with at least 20 arrivals).",
+      "description": "Dự báo lệch trung bình bao nhiêu % so với số lượt thực tế của giờ sau (MAPE). Chỉ tính các giờ có ít nhất 20 lượt để giờ đêm vắng không làm méo số.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -180,7 +180,7 @@
     },
     {
       "id": 5,
-      "title": "Warnings confirmed",
+      "title": "Tỷ lệ cảnh báo đúng",
       "type": "stat",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -201,11 +201,11 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT round(100 * countIf(actual_above_threshold = 1) / greatest(count(), 1), 1) AS confirmed FROM v_br7_forecast_check WHERE alert_level = 'warning'",
+          "rawSql": "SELECT round(100 * countIf(actual_above_threshold = 1) / greatest(count(), 1), 1) AS v FROM v_br7_forecast_check WHERE alert_level = 'warning'",
           "refId": "A"
         }
       ],
-      "description": "Share of warnings where the following hour really was above the warning threshold.",
+      "description": "Trong các cảnh báo, bao nhiêu % thật sự vượt ngưỡng ở giờ sau.",
       "options": {
         "reduceOptions": {
           "calcs": [
@@ -228,7 +228,7 @@
     },
     {
       "id": 6,
-      "title": "Next-hour forecast vs actual \u2014 ${zone}",
+      "title": "Dự báo giờ tới so với thực tế — ${zone}",
       "type": "timeseries",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -249,13 +249,14 @@
           "editorType": "sql",
           "format": 0,
           "queryType": "timeSeries",
-          "rawSql": "SELECT target_hour AS time, actual_arrivals, predicted_arrivals, warning_threshold FROM v_br7_forecast_check WHERE zone_name = '${zone}' AND $__timeFilter(target_hour) ORDER BY time",
+          "rawSql": "SELECT target_hour AS time, actual_arrivals AS \"Thực tế\", predicted_arrivals AS \"Dự báo\", warning_threshold AS \"Ngưỡng cảnh báo\" FROM v_br7_forecast_check WHERE zone_name = '${zone}' AND $__timeFilter(target_hour) ORDER BY time",
           "refId": "A"
         }
       ],
-      "description": "Predicted arrivals for each hour, the arrivals that actually happened, and the warning threshold (usual p90 for that weekday and hour).",
+      "description": "Đường Thực tế là số chuyến taxi thật sự đến trong giờ. Đường Dự báo là con số hệ thống đoán từ giờ trước đó. Đường đỏ nét đứt là ngưỡng đông bất thường (mức p90 của khu này vào cùng thứ, cùng giờ). Dự báo vượt đường đỏ thì có cảnh báo.",
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
@@ -271,7 +272,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "warning_threshold"
+              "options": "Ngưỡng cảnh báo"
             },
             "properties": [
               {
@@ -307,7 +308,7 @@
     },
     {
       "id": 7,
-      "title": "Hourly taxi arrivals by zone",
+      "title": "Lượt taxi đến theo giờ của từng khu",
       "type": "timeseries",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -328,10 +329,11 @@
           "editorType": "sql",
           "format": 0,
           "queryType": "timeSeries",
-          "rawSql": "SELECT observed_hour AS time, zone_name, observed_arrivals FROM v_br7_zone_hourly WHERE $__timeFilter(observed_hour) ORDER BY time",
+          "rawSql": "SELECT observed_hour AS time, zone_name, observed_arrivals AS \"Lượt đến\" FROM v_br7_zone_hourly WHERE $__timeFilter(observed_hour) ORDER BY time",
           "refId": "A"
         }
       ],
+      "description": "So sánh mức độ đông của 10 khu theo từng giờ (giờ New York).",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -358,7 +360,7 @@
     },
     {
       "id": 8,
-      "title": "Latest forecast by zone",
+      "title": "Tình hình mới nhất theo khu",
       "type": "table",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -379,14 +381,60 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT zone_name, landmark, argMax(observed_hour_local, observed_hour) AS last_hour_local, argMax(observed_arrivals, observed_hour) AS last_hour_arrivals, argMax(predicted_arrivals, observed_hour) AS predicted_next_hour, argMax(warning_threshold, observed_hour) AS warning_threshold, argMax(alert_level, observed_hour) AS alert_level FROM v_br7_zone_hourly GROUP BY zone_name, landmark ORDER BY predicted_next_hour DESC",
+          "rawSql": "SELECT zone_name AS \"Khu\", landmark AS \"Địa danh tiêu biểu\", argMax(observed_hour_local, observed_hour) AS \"Giờ gần nhất (NY)\", argMax(observed_arrivals, observed_hour) AS \"Lượt đến giờ đó\", argMax(predicted_arrivals, observed_hour) AS \"Dự báo giờ tới\", argMax(warning_threshold, observed_hour) AS \"Ngưỡng cảnh báo\", argMax(multiIf(alert_level = 'warning', 'Cảnh báo', alert_level = 'normal', 'Bình thường', 'Chưa có mức chuẩn'), observed_hour) AS \"Trạng thái\" FROM v_br7_zone_hourly GROUP BY zone_name, landmark ORDER BY \"Dự báo giờ tới\" DESC",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Giờ gần nhất của từng khu và dự báo cho giờ tiếp theo.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trạng thái"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Cảnh báo": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Bình thường": {
+                        "color": "green",
+                        "index": 1
+                      },
+                      "Chưa có mức chuẩn": {
+                        "color": "gray",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
     },
     {
       "id": 9,
-      "title": "Forecast quality by zone",
+      "title": "Chất lượng dự báo theo khu",
       "type": "table",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -407,15 +455,19 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT zone_name, count() AS forecasts, round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS mape_pct, countIf(alert_level = 'warning') AS warnings, countIf(alert_level = 'warning' AND actual_above_threshold = 1) AS warnings_confirmed, countIf(actual_above_threshold = 1) AS hours_above_threshold FROM v_br7_forecast_check WHERE actual_arrivals >= 20 GROUP BY zone_name ORDER BY warnings DESC",
+          "rawSql": "SELECT zone_name AS \"Khu\", count() AS \"Số dự báo\", round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS \"Sai số TB (%)\", countIf(alert_level = 'warning') AS \"Số cảnh báo\", countIf(alert_level = 'warning' AND actual_above_threshold = 1) AS \"Cảnh báo đúng\", countIf(actual_above_threshold = 1) AS \"Giờ thực tế vượt ngưỡng\" FROM v_br7_forecast_check WHERE actual_arrivals >= 20 GROUP BY zone_name ORDER BY \"Số cảnh báo\" DESC",
           "refId": "A"
         }
       ],
-      "description": "MAPE uses hours with at least 20 actual arrivals so quiet night hours do not dominate the percentage."
+      "description": "Sai số chỉ tính các giờ có ít nhất 20 lượt thực tế. \"Cảnh báo đúng\" là cảnh báo mà giờ sau thật sự vượt ngưỡng.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     },
     {
       "id": 10,
-      "title": "Recent warning hours",
+      "title": "Các giờ bị cảnh báo gần đây",
       "type": "table",
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -436,10 +488,15 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT zone_name, toTimeZone(target_hour, 'America/New_York') AS target_hour_local, observed_arrivals AS current_hour_arrivals, round(usual_arrivals, 1) AS usual_current_hour, predicted_arrivals, warning_threshold FROM v_br7_zone_hourly WHERE alert_level = 'warning' AND $__timeFilter(target_hour) ORDER BY target_hour DESC LIMIT 200",
+          "rawSql": "SELECT zone_name AS \"Khu\", toTimeZone(target_hour, 'America/New_York') AS \"Giờ được cảnh báo (NY)\", observed_arrivals AS \"Lượt đến giờ trước\", round(usual_arrivals, 1) AS \"Mức thường lệ giờ trước\", predicted_arrivals AS \"Dự báo\", warning_threshold AS \"Ngưỡng cảnh báo\" FROM v_br7_zone_hourly WHERE alert_level = 'warning' AND $__timeFilter(target_hour) ORDER BY target_hour DESC LIMIT 200",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Mỗi dòng: giờ trước đó đông hơn thường lệ, nên dự báo giờ được cảnh báo sẽ vượt ngưỡng.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
     }
   ],
   "refresh": "30s",
@@ -454,7 +511,7 @@
     "list": [
       {
         "name": "zone",
-        "label": "Zone",
+        "label": "Khu",
         "type": "query",
         "datasource": {
           "type": "grafana-clickhouse-datasource",
@@ -478,8 +535,8 @@
     "to": "2026-10-01T05:00:00.000Z"
   },
   "timezone": "America/New_York",
-  "title": "BR7 Tourist zone arrival warnings (NYC taxi)",
+  "title": "BR7 — Cảnh báo khu du lịch đông bất thường (taxi NYC)",
   "uid": "co5173-br7-tourist-arrivals",
-  "version": 2,
-  "description": "Next-hour warnings for unusual taxi arrivals in New York tourist zones. Replay of NYC TLC yellow-taxi drop-offs, September 2026; baseline from Sep 2025 - Aug 2026."
+  "version": 3,
+  "description": "Dự báo lượng taxi đến 10 khu du lịch New York trong giờ tới và cảnh báo khi đông bất thường. Phát lại dữ liệu TLC tháng 09/2026; mức thường lệ tính từ 09/2025 – 08/2026."
 }
