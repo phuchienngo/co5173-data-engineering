@@ -19,6 +19,7 @@ import argparse
 import csv
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -129,6 +130,15 @@ def append_manifest(row):
         writer.writerow(row)
 
 
+def block_env(block):
+    """The block's container sizes for the run's environment: scripts/br6.py
+    run calls `docker compose up`, which would otherwise put the worker and
+    ClickHouse back to their default sizes."""
+    cores = BLOCKS.get(block, BLOCKS["S2"])
+    cpus = CLICKHOUSE_BLOCKS.get(block, CLICKHOUSE_BLOCKS["H1"])
+    return {**os.environ, "BR5_WORKER_CORES": str(cores), "BR5_CLICKHOUSE_CPUS": str(cpus)}
+
+
 def run_cell(block, cell, repeat):
     input_id, live = cell.split("-")
     city, start, end, stops, visitor = INPUTS[input_id]
@@ -140,8 +150,8 @@ def run_cell(block, cell, repeat):
         cmd += ["--stops", stops]
     if visitor is not None:
         cmd += ["--visitor", str(visitor)]
-    proc = subprocess.Popen(cmd, cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                            encoding="utf-8", errors="replace")
+    proc = subprocess.Popen(cmd, cwd=REPO, env=block_env(block), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, encoding="utf-8", errors="replace")
     run_id = None
     for line in proc.stdout:
         print("   ", line, end="", flush=True)
@@ -166,6 +176,13 @@ def set_clickhouse(cpus):
     br5.set_clickhouse(cpus)  # also refuses during a BR5 run
 
 
+def check_size(block):
+    if block in CLICKHOUSE_BLOCKS:
+        br5.check_clickhouse(CLICKHOUSE_BLOCKS[block])
+    elif br5.worker_cores() != BLOCKS[block]:
+        sys.exit(f"The Spark worker has {br5.worker_cores()} cores; expected {BLOCKS[block]}.")
+
+
 def cmd_block(args):
     cells = block_cells(args.block, args.cells)
     repeats = args.repeats or BLOCK_REPEATS.get(args.block, 2)
@@ -175,6 +192,7 @@ def cmd_block(args):
         br5.set_worker(BLOCKS[args.block])
     if not args.no_warmup:
         run_cell(args.block, cells[0], "warmup")
+    check_size(args.block)  # the run's launcher must not have resized the containers
     measured = {cell: [] for cell in cells}
     for repeat in range(1, repeats + 1):  # D5: interleaved
         for cell in cells:
@@ -184,8 +202,7 @@ def cmd_block(args):
         if len(times) >= 2 and max(times) / min(times) > THIRD_RUN_SPREAD:
             print(f"{cell}: runs differ by more than {THIRD_RUN_SPREAD - 1:.0%}; a third run.")
             run_cell(args.block, cell, repeats + 1)
-    if args.block in CLICKHOUSE_BLOCKS:
-        br5.check_clickhouse(CLICKHOUSE_BLOCKS[args.block])  # still the same size at the end
+    check_size(args.block)  # still the same size at the end
     print("\nBlock done.")
     for row in [r for r in read_manifest() if r["block"] == args.block]:
         print(f"  {row['cell']:7} {row['repeat']:7} {row['status']:9} {float(row['duration_s'] or 0):6.2f} s  "
@@ -332,6 +349,22 @@ def finder_shot(page, row, folder):
     br5.shoot(page, folder / "finder.jpg")
 
 
+def trim(path, margin=80):
+    """Cuts the empty page below the content. Run History grows the viewport
+    to its long run list, so a compare shot can end in thousands of empty
+    pixels. The sidebar (left 25%) is left out of the search."""
+    from PIL import Image, ImageChops
+
+    image = Image.open(path)
+    width, height = image.size
+    main = image.crop((width // 4, 0, width, height)).convert("L")
+    background = Image.new("L", main.size, main.getpixel((main.width - 5, main.height - 5)))
+    box = ImageChops.difference(main, background).point(lambda v: 255 if v > 24 else 0).getbbox()
+    if box and box[3] + margin < height:
+        image.crop((0, 0, width, box[3] + margin)).save(path, quality=80)
+        print(f"    trimmed {path.relative_to(REPO)} from {height} to {box[3] + margin} px")
+
+
 def compare_shot(page, row, ref_id, folder):
     page.set_viewport_size({"width": 1600, "height": 1000})
     page.goto(f"{APP}/route_run_history?a={ref_id}&run={row['run_id']}")
@@ -339,6 +372,7 @@ def compare_shot(page, row, ref_id, folder):
     br5.fit_height(page)
     br5.streamlit_ready(page, "Same result?")
     br5.shoot(page, folder / "compare.jpg")
+    trim(folder / "compare.jpg")
 
 
 def resources_shot(page, row, folder):
@@ -388,6 +422,7 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("presets")
     sub.add_parser("restore")
+    sub.add_parser("trim", help="Trim the empty page below every saved compare.jpg")
     for name in ("block", "screens", "check"):
         p = sub.add_parser(name)
         p.add_argument("block", choices=[*BLOCKS, *CLICKHOUSE_BLOCKS])
@@ -403,6 +438,9 @@ def main():
         set_clickhouse(CLICKHOUSE_BLOCKS["H1"])
     elif args.command == "block":
         cmd_block(args)
+    elif args.command == "trim":
+        for path in sorted(OUT.glob("*/compare.jpg")):
+            trim(path)
     elif args.command == "check":
         cmd_check(args)
     else:
