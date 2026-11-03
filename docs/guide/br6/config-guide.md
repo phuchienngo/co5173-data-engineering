@@ -55,7 +55,7 @@ Line numbers are those of the version this guide was written with. If they have 
 
   | Service | Lines | Current |
   |---|---|---|
-  | `clickhouse` | 130–131 | 1g, 1.0 |
+  | `clickhouse` | 151 and 153 | 1g, `BR5_CLICKHOUSE_CPUS` (default 1) |
   | `spark-master` | 203–204 | 512m, 0.5 |
   | `spark-worker` | 226 and 228 | 2500m, `BR5_WORKER_CORES` (default 2) |
   | `br5-app` (the shared app; runs the Spark driver of every BR5 and BR6 job) | 287–288 | 2g, 1.0 |
@@ -66,6 +66,13 @@ Line numbers are those of the version this guide was written with. If they have 
 - **ClickHouse's 1 GB is tight for BR6 imports.** ClickHouse keeps its tracked memory under 90% of the limit (about 920 MiB). When an insert would pass it, the insert fails, Spark retries the task, and the retried task inserts its rows again. The import's verify step catches the extra rows and fails the import, so the stored data stays as it was.
   - The big consumer was ClickHouse's own `system.metric_log` (about 2,100 columns): each of its background merges peaked at about 730 MiB. `docker-compose.yml` now turns it off (config `clickhouse-system-logs-xml`, mounted as `config.d/system-logs.xml`). Nothing in the project reads it; Grafana uses the Prometheus endpoint. See [result-pipeline.md](../../result/br6/result-pipeline.md).
   - To turn it back on, remove that config and its mount, then restart `clickhouse`. If imports fail with "memory limit exceeded" again, raise ClickHouse's `mem_limit`.
+- **Two variables size the shared containers without editing the file** (their names come from BR5's benchmark; they apply to both BRs): `BR5_WORKER_CORES` (see above) and `BR5_CLICKHOUSE_CPUS`, the `clickhouse` container's CPUs. The BR6 benchmark uses both ([plan-benchmark.md](../../plan/br6/plan-benchmark.md)):
+
+  ```bash
+  BR5_CLICKHOUSE_CPUS=4 docker compose --profile full up -d --no-deps clickhouse
+  ```
+
+  ClickHouse then reports `max_threads` = `auto(4)`. In the 1 GB container a query still runs on one thread unless the setting **ClickHouse: threads need free memory** (Advanced Settings, Reading and writing) is off.
 - **Sample value:** `clickhouse` with `mem_limit: 2g` and `cpus: 2.0`.
 - **Restart:** the changed service. If you change `br5-app`, the app reloads for both BRs; a job it started is stopped.
 - **Confirm:** run `docker stats --no-stream` and check the MEM LIMIT column. For the CPU limit, `docker inspect --format "{{.HostConfig.NanoCpus}}" clickhouse` prints the CPU count × 10⁹. For ClickHouse, the "Needs restart" section also shows its container memory and CPU limit.

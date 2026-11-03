@@ -63,6 +63,11 @@ BR6_SETTINGS = [
     _s("clickhouse.max_memory_usage", "Reading and writing", "ClickHouse max_memory_usage",
        "Memory limit per ClickHouse query. 0: the server's default.",
        "size", "0", "clickhouse", min=0, max=8192 * MB),
+    _s("clickhouse.limit_threads_by_memory", "Reading and writing", "ClickHouse: threads need free memory",
+       "On (the server's default): ClickHouse runs a query on fewer threads unless each thread has 1 GB of "
+       "free memory, so in a 1 GB container every query runs on one thread. Off: no such limit "
+       "(max_threads_min_free_memory_per_thread = 0).",
+       "bool", "true", "clickhouse"),
     # Analysis rules (team settings)
     _s("rules.max_detour_km", RULES_GROUP, "Maximum detour (km)",
        "A place is near the route when its straight-line distance to the route is at most this.",
@@ -136,4 +141,9 @@ def spark_conf(values):
 
 def clickhouse_query_settings(values):
     """ClickHouse settings sent with every query of a run (0 = server default)."""
-    return {k: v for k, v in CATALOG.options(values)["clickhouse"].items() if v}
+    opts = CATALOG.options(values)["clickhouse"]
+    limit_threads = opts.pop("limit_threads_by_memory")
+    settings = {k: v for k, v in opts.items() if v}
+    if not limit_threads:
+        settings["max_threads_min_free_memory_per_thread"] = 0
+    return settings

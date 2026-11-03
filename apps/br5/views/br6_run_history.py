@@ -20,6 +20,8 @@ RUN_FIGURES = [
     ("Executor peak heap (MB)", "spark.executor_peak_heap_bytes", MB, 0),
     ("Driver peak heap (MB)", "spark.driver_peak_heap_bytes", MB, 0),
     ("ClickHouse queries", "clickhouse.queries", 1, 0),
+    ("ClickHouse query time (s)", "clickhouse.query_ms", 1000, 2),
+    ("ClickHouse peak threads", "clickhouse.peak_threads", 1, 0),
     ("ClickHouse rows read", "clickhouse.read_rows", 1, 0),
     ("ClickHouse rows written", "clickhouse.written_rows", 1, 0),
     ("ClickHouse CPU time (s)", "clickhouse.cpu_ms", 1000, 2),

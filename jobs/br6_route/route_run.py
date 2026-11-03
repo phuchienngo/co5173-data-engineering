@@ -208,6 +208,9 @@ def main():
         values = CATALOG.resolve(runs.load_settings(client, runs.CURRENT))
     cluster = runs.run_store.cluster_info()
     errors, _ = CATALOG.validate(values, cluster)
+    # ClickHouse's own size: its default threads per query, "auto(N)" for N CPUs.
+    threads = client.command("SELECT value FROM system.settings WHERE name = 'max_threads'")
+    cluster = {**(cluster or {}), "clickhouse_max_threads": str(threads).strip("'")}
     if errors:
         sys.exit("Settings can't be used: " + "; ".join(f"{CATALOG.by_key[k].label} {v}" for k, v in errors.items()))
     opts = CATALOG.options(values)

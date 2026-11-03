@@ -60,6 +60,13 @@ class Settings(unittest.TestCase):
         errors, _ = catalog.validate(catalog.resolve({"pipeline.storage_level": "OFF_HEAP"}), CLUSTER)
         self.assertIn("pipeline.storage_level", errors)
 
+    def test_clickhouse_thread_limit(self):
+        catalog = route_settings.CATALOG
+        self.assertEqual(route_settings.clickhouse_query_settings(catalog.defaults()), {})
+        off = catalog.resolve({"clickhouse.limit_threads_by_memory": "false", "clickhouse.max_threads": "4"})
+        self.assertEqual(route_settings.clickhouse_query_settings(off),
+                         {"max_threads": 4, "max_threads_min_free_memory_per_thread": 0})
+
 
 class ReferenceFiles(unittest.TestCase):
     def test_every_city_file_has_a_city_row(self):

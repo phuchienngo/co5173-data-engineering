@@ -1,3 +1,4 @@
 data filter=lfs diff=lfs merge=lfs -text
 data/** filter=lfs diff=lfs merge=lfs -text
 docs/result/br5/benchmark/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+docs/result/br6/benchmark/**/*.jpg filter=lfs diff=lfs merge=lfs -text

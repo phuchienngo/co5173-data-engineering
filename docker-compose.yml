@@ -187,8 +187,7 @@ services:
     image: confluentinc/cp-kafka:8.3.1
     container_name: kafka
     mem_limit: 1g
-    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
-    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
+    cpus: 1.0
     ports:
       - "9092:9092"       # host access
       - "29092:29092"     # inter-container access
@@ -310,8 +309,7 @@ services:
     hostname: br5-app
     profiles: ["br5", "br6"]
     mem_limit: 2g
-    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
-    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
+    cpus: 1.0
     user: "0:0"
     depends_on:
       - clickhouse
