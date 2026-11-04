@@ -4,7 +4,7 @@ Measures how the Route Finder run performs across inputs, start-up configuration
 
 As for BR5, the test runs on the dev laptop only, so it is kept to **just enough runs to show each effect with real figures** for the report.
 
-**Status:** planned on 2026-11-02; the open points of section 11 were accepted as proposed. The tooling of section 4 is built. Blocks H1–H3 and S3 are done (2026-11-03); the measured results are in [result-benchmark.md](../../result/br6/result-benchmark.md), updated after each block.
+**Status:** planned on 2026-11-02; the open points of section 11 were accepted as proposed. The tooling of section 4 is built. Blocks H1–H3 and S3 (2026-11-03) and S2 (2026-11-04) are done; the measured results are in [result-benchmark.md](../../result/br6/result-benchmark.md), updated after each block.
 
 **As built:** `docker-compose.yml` also gets `cpus: 1.0` back for `kafka` and `br5-app`, which BR5's ClickHouse blocks had tied to `BR5_CLICKHOUSE_CPUS` by mistake. The script passes the block's sizes to every run's environment, because `scripts/br6.py run` runs `docker compose up`, which reset ClickHouse to 1 CPU in a first, void H2 attempt. It checks the size after the warm-up and trims the empty page below each `compare.jpg`. Its `check` compares each run with the first S2 L2 run of its input, or, before S2 has run, with the input's first run.
 

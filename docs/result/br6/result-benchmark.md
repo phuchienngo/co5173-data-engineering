@@ -9,8 +9,9 @@ Measured results of [plan-benchmark.md](../../plan/br6/plan-benchmark.md). **Thi
 | H1 | ClickHouse engine, ClickHouse at 1 CPU | **Done** (2026-11-03) | 1 warm-up + 60 measured, all succeeded |
 | H2 | ClickHouse at 2 CPUs | **Done** (2026-11-03, second attempt) | 1 warm-up + 60 measured, all succeeded. The first attempt ran at 1 CPU and is void (see "Issues") |
 | H3 | ClickHouse at 4 CPUs | **Done** (2026-11-03) | 1 warm-up + 60 measured, all succeeded |
+| S2 | Spark worker at 2 cores | **Done** (2026-11-04) | 1 warm-up + 19 measured (2 per cell, a third for I1-L2), all succeeded |
 | S3 | Spark worker at 4 cores | **Done** (2026-11-03) | 1 warm-up + 20 measured (2 per cell, a third for I1-L1 and I3-L3), all succeeded |
-| S1, S2 | Spark worker at 1 and 2 cores | Not run yet | |
+| S1 | Spark worker at 1 core | Not run yet | |
 | V | Single options on 2 cores | Not run yet | |
 
 ## Setup
@@ -42,32 +43,33 @@ The main solution: a Spark application per run, submitted from `br5-app` (the dr
 | L2 | `bench-default` | Nothing: statistics from the import, parallel reader, grid matching, native distance |
 | L3 | `bench-stats-run` | Place statistics counted from the city's check-ins every run (`pipeline.place_stats=run`) |
 
-### Run time and steps on 4 cores (S3, median)
+### Run time and steps (median)
 
-Steps are the job's own timings, in seconds. "Inside the steps" is their sum; the rest of the run time (about 11 s) is spark-submit, the driver's start and the Spark session. Spark CPU is the executor's, summed over its tasks.
+Each figure is given as S2 / S3 (2 / 4 worker cores). Steps are the job's own timings, in seconds. "Inside the steps" is their sum; the rest of the run time (about 10–11 s) is spark-submit, the driver's start and the Spark session. Spark CPU is the executor's, summed over its tasks.
 
-| Input | Cell | Runs (s) | Run time (s) | Inside the steps | read | clean | match | visitor | Spark CPU (s) | Shuffle (MB) | Driver heap peak (MB) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| I1 Istanbul | L1 baseline | 57.2, 70.2, 68.8 | 68.8 | 58.1 | 6.1 | 14.9 | 30.1 | 5.0 | 35.0 | 14.9 | 400 |
-| | L2 default | 28.2, 28.9 | 28.6 | 17.7 | 9.6 | 1.7 | 5.5 | 0.7 | 4.5 | 0.3 | 123 |
-| | L3 statistics every run | 48.9, 46.1 | 47.5 | 36.4 | 23.2 | 3.3 | 6.9 | 2.6 | 16.2 | 5.3 | 127 |
-| I2 Jakarta | L1 | 61.3, 61.4 | 61.4 | 50.2 | 5.9 | 14.8 | 29.1 | – | 31.2 | 14.8 | 340 |
-| | L2 | 29.5, 31.0 | 30.3 | 19.5 | 10.7 | 1.8 | 6.7 | – | 5.0 | 0.5 | 147 |
-| | L3 | 45.4, 47.1 | 46.3 | 35.1 | 23.6 | 3.2 | 8.0 | – | 15.7 | 4.4 | 152 |
-| I3 Beijing | L1 | 58.7, 52.0 | 55.4 | 43.8 | 4.9 | 13.7 | 24.9 | – | 19.5 | 0.3 | 115 |
-| | L2 | 28.2, 27.9 | 28.1 | 16.8 | 9.1 | 1.7 | 5.9 | – | 3.1 | 0.0 | 107 |
-| | L3 | 49.7, 41.2, 41.3 | 41.3 | 30.6 | 20.3 | 3.2 | 7.7 | – | 11.2 | 0.1 | 111 |
+| Input | Cell | Run time (s) | Inside the steps | read | clean | match | visitor | Spark CPU (s) | Shuffle (MB) | Driver heap peak (MB) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| I1 Istanbul | L1 baseline | 71.4 / 68.8 | 61.5 / 58.1 | 5.5 / 6.1 | 15.9 / 14.9 | 34.8 / 30.1 | 5.0 / 5.0 | 20.9 / 35.0 | 14.6 / 14.9 | 389 / 400 |
+| | L2 default | 29.7 / 28.6 | 18.0 / 17.7 | 9.6 / 9.6 | 1.7 / 1.7 | 6.1 / 5.5 | 0.7 / 0.7 | 3.0 / 4.5 | 0.3 / 0.3 | 140 / 123 |
+| | L3 statistics every run | 47.8 / 47.5 | 37.6 / 36.4 | 22.8 / 23.2 | 3.8 / 3.3 | 8.5 / 6.9 | 2.3 / 2.6 | 12.6 / 16.2 | 5.1 / 5.3 | 123 / 127 |
+| I2 Jakarta | L1 | 69.8 / 61.4 | 59.6 / 50.2 | 5.2 / 5.9 | 17.1 / 14.8 | 37.0 / 29.1 | – | 21.5 / 31.2 | 14.3 / 14.8 | 370 / 340 |
+| | L2 | 31.0 / 30.3 | 20.7 / 19.5 | 12.0 / 10.7 | 1.8 / 1.8 | 6.7 / 6.7 | – | 3.3 / 5.0 | 0.4 / 0.5 | 140 / 147 |
+| | L3 | 49.9 / 46.3 | 39.0 / 35.1 | 25.0 / 23.6 | 4.1 / 3.2 | 9.6 / 8.0 | – | 13.2 / 15.7 | 4.3 / 4.4 | 159 / 152 |
+| I3 Beijing | L1 | 64.3 / 55.4 | 53.4 / 43.8 | 4.5 / 4.9 | 15.5 / 13.7 | 33.2 / 24.9 | – | 15.3 / 19.5 | 0.2 / 0.3 | 106 / 115 |
+| | L2 | 27.0 / 28.1 | 16.9 / 16.8 | 10.0 / 9.1 | 1.4 / 1.7 | 5.3 / 5.9 | – | 2.0 / 3.1 | 0.0 / 0.0 | 104 / 107 |
+| | L3 | 48.4 / 41.3 | 35.1 / 30.6 | 22.3 / 20.3 | 4.6 / 3.2 | 8.0 / 7.7 | – | 9.2 / 11.2 | 0.1 / 0.1 | 104 / 111 |
 
 Score and write take 0.1–0.3 s in every cell. The visitor step runs only for I1 (a chosen visitor).
 
-### Observations (S3)
+### Observations (S2, S3)
 
-- **The default (L2) takes 28–30 s on every input**, though I1 has 370× the check-ins of I3. It reads one statistics row per place, so its work doesn't depend on the check-ins. About 11 s is Spark's start-up and 9–11 s the read step, mostly fixed costs too (the session's first jobs). Spark CPU is 3–5 s.
-- **Counting the statistics every run (L3) adds 13–19 s**, almost all in the read step (9.6 → 23.2 s on I1). It costs 3.5× the Spark CPU of the default (16.2 against 4.5 s on I1). Even I3, with 1,470 check-ins, needs 13 s more: most of the extra time is the extra Spark jobs and their 200-partition shuffles, not the rows.
-- **The baseline (L1) takes 55–69 s, about 2.2× the default.** Most of its extra time is in clean (14–15 s) and match (25–30 s), on every input: without the grid every place of the city goes through the Python UDF, and with AQE off the 200 shuffle partitions are not merged. Its driver reader holds Istanbul's check-ins in the driver: 400 MB of the 512 MB heap (I3: 115 MB).
-- **The input size shows in CPU and shuffle, little in run time.** On L1, I1 uses 35 s of Spark CPU against I3's 19.5 s and shuffles 14.9 MB against 0.3 MB, but runs only 13 s longer. On L2 the three inputs are within 2 s.
-- **How 4 cores compare with 1 and 2 follows when S1 and S2 are run.** As an indication only: the pipeline test on 2 cores (result-pipeline.md, route A, one run) took 30.5 s for the default and 51.7 s with statistics every run (read 25.0 s), against 28.6 s and 47.5 s (read 23.2 s) here on I1. So 4 cores would save a few seconds at most, on the steps that read check-ins.
-- **Against ClickHouse at 4 CPUs (H3):** the same lists in 1.5–1.9 s, against 28–30 s for Spark's default and 41–48 s with statistics every run. Spark's start-up alone (about 11 s) is 6× a whole ClickHouse run.
+- **The default (L2) takes 27–31 s on every input and either size**, though I1 has 370× the check-ins of I3. It reads one statistics row per place, so its work doesn't depend on the check-ins, and 2 more cores change nothing (I3 is even 1 s slower on 4, within the noise). About 10 s is Spark's start-up and 9–12 s the read step, mostly fixed costs too (the session's first jobs). Spark CPU is 2–5 s.
+- **Counting the statistics every run (L3) adds 17–21 s on 2 cores** (13–19 s on 4), almost all in the read step (9.6 → 22.8 s on I1). It costs about 4× the Spark CPU of the default. Even I3, with 1,470 check-ins, needs 21 s more: most of the extra time is the extra Spark jobs and their 200-partition shuffles, not the rows.
+- **The baseline (L1) takes 64–71 s on 2 cores, 2.3–2.4× the default.** Most of its extra time is in clean (14–17 s) and match (25–37 s), on every input: without the grid every place of the city goes through the Python UDF, and with AQE off the 200 shuffle partitions are not merged. Its driver reader holds Istanbul's check-ins in the driver: 389–400 MB of the 512 MB heap (I3: about 110 MB).
+- **4 cores help only where there is work to split, and only a little.** L1: 3–9 s faster (4–14%), mostly in match (Python UDF tasks run 4 at a time). L3: 0–7 s faster. L2: no change. Spark CPU grows on 4 cores (I1-L1 20.9 → 35.0 s) while the time falls less: the 4 tasks share the laptop with the driver and ClickHouse, and the 200-task stages have more scheduling and start-up per task than work.
+- **The input size shows in CPU and shuffle, little in run time.** On L1, I1 uses 21 s of Spark CPU against I3's 15 s on 2 cores and shuffles 14.6 MB against 0.2 MB, but runs only 7 s longer. On L2 the three inputs are within 4 s.
+- **Same result everywhere.** Every S2 and S3 run, and every ClickHouse run of H1–H3, gives the same list as S2's L2 run of its input (check 4).
+- **Against ClickHouse (H2 at 2 CPUs, H3 at 4):** the same lists in 1.5–1.9 s, against 27–31 s for Spark's default and 41–50 s with statistics every run. Spark's start-up alone (about 10 s) is 6× a whole ClickHouse run. Inside the steps, Spark's default needs 17–21 s against ClickHouse's 0.2–0.5 s.
 
 ## ClickHouse blocks (H1–H3)
 
@@ -125,6 +127,7 @@ Rows scanned are the same in every block. They count the index granules ClickHou
 
 ## Noise
 
+- **S2:** the two runs of a cell differed by 0.4–4.3 s, except I1-L2 (27.5 and 33.2 s), which got a third run (29.7 s).
 - **S3:** the two runs of a cell differed by 0.4–1.6 s, except I1-L1 (57.2 and 70.2 s) and I3-L3 (49.7 and 41.2 s), which got a third run (68.8 and 41.3 s). Differences under about 3 s between Spark cells are noise.
 - **H1–H3:** the runs of a cell varied by 0.1–0.6 s, with single slow runs of up to 2.71 s (H3 I2-HL3) and 2.60 s (H1 I3-HL1) where the cell's others took 1.4–1.9 s. The slow time was outside the queries. Run-time differences under about 0.3 s between cells are noise; the query figures are the steadier evidence.
 
@@ -132,12 +135,12 @@ Rows scanned are the same in every block. They count the index granules ClickHou
 
 | # | Check | Result |
 |---|---|---|
-| 2 | Each run used its preset (Spark) | Every S3 run's snapshot: `launch.settings_from` is the cell's preset and `cluster.worker_cores` is 4 |
-| 3 | Inputs read what the plan says | Every S3 and H1–H3 run: 544,471 / 412,100 / 1,470 check-ins read, 4,574 / 7,178 / 61 places near the route |
-| 4 | Same input, same result | Every H1–H3 run gives the same list as the first run of its input (`route_compare.py`): the same places, statuses, ranks, scores and cleaning counts, on every ClickHouse size, with either statistics mode and either thread setting. Until S2 is run, the reference is the input's first run, which is H1's: every S3 run (Spark L1, L2 and L3) gives the same list as ClickHouse |
-| 5 | All succeeded | S3: 21 of 21 (with the warm-up). H1–H3: 183 of 183 (and the 61 void runs of the first H2 attempt) |
-| 6 | Screenshots | S3: 9 each of `finder.jpg`, `resources.jpg` and `spark.jpg`, and 6 `compare.jpg` (L1 and L3 against L2); samples checked by eye: 4 cores in use, the steps as Spark jobs. H1–H3: 36 `finder.jpg` and 33 `compare.jpg`. Samples checked by eye: the result, the run summary, the one setting that differs, the ClickHouse figures, and "Same result: yes" |
-| 7 | Stack restored | Worker left at 4 cores after S3 (the next block sets its own; `restore` puts back 2). ClickHouse back to 1 CPU (`auto(1)`) after H3; `br5-app` at 1 CPU throughout |
+| 2 | Each run used its preset (Spark) | Every S2 and S3 run's snapshot: `launch.settings_from` is the cell's preset and `cluster.worker_cores` is the block's (2 or 4) |
+| 3 | Inputs read what the plan says | Every S2, S3 and H1–H3 run: 544,471 / 412,100 / 1,470 check-ins read, 4,574 / 7,178 / 61 places near the route |
+| 4 | Same input, same result | Every S2, S3 and H1–H3 run gives the same list as S2's L2 run of its input (`route_compare.py`): the same places, statuses, ranks, scores and cleaning counts, with Spark (every live setting, 2 and 4 cores) and ClickHouse (every size, statistics mode and thread setting). 219 runs checked |
+| 5 | All succeeded | S2: 20 of 20 and S3: 21 of 21 (with the warm-ups). H1–H3: 183 of 183 (and the 61 void runs of the first H2 attempt) |
+| 6 | Screenshots | S2 and S3: 9 each of `finder.jpg`, `resources.jpg` and `spark.jpg`, and 6 and 9 `compare.jpg`; samples checked by eye: 4 cores in use, the steps as Spark jobs. H1–H3: 36 `finder.jpg` and 36 `compare.jpg` (H1's HL1 against S2's L2: Spark against ClickHouse). Samples checked by eye: the result, the run summary, the one setting that differs, the ClickHouse figures, and "Same result: yes" |
+| 7 | Stack restored | Worker at 2 cores (the default) after S2. ClickHouse back to 1 CPU (`auto(1)`) after H3; `br5-app` at 1 CPU throughout |
 | 9 | ClickHouse start-up | After the restart, after the warm-up and at the end of each block: CPU limit 1 / 2 / 4 with `max_threads` `auto(1)` / `auto(2)` / `auto(4)`. Every run's snapshot has its block's `cluster.clickhouse_max_threads` |
 | 10 | ClickHouse live settings | HL2 and HL4: every query carries `max_threads_min_free_memory_per_thread` = 0; HL1 and HL3: none. HL3 and HL4 scan the city's check-ins (2.3 million rows on I1 against 0.84 million) |
 | 11 | Threads and cache | HL1 and HL3: 1 thread at the median on every size. HL2 and HL4 on 2 and 4 CPUs: 3 and 4–5 threads where a query is big enough (see above). No query used the query cache |
@@ -162,7 +165,7 @@ In [benchmark/](benchmark/), one folder per cell (for example `S3-I1-L2/` or `H1
 | `resources.jpg` | Spark cells: Grafana BR6 Resource use around the run (CPU and memory of `spark-worker`, `br5-app` and `clickhouse`) |
 | `spark.jpg` | Spark cells: the application's Jobs page in Spark history, jobs named after the steps |
 
-References: L1 and L3 against L2 of the same input and block; S3's L2 cells get their `compare.jpg` against S2's L2 once S2 has run. HL2 and HL3 against HL1 of the same input and block; HL4 against HL3; HL1 of H2 and H3 against H1's HL1. H1's HL1 cells get their `compare.jpg` against S2's L2 (Spark against ClickHouse) once S2 has run.
+References: L1 and L3 against L2 of the same input and block; L2 of S3 against S2's L2. HL2 and HL3 against HL1 of the same input and block; HL4 against HL3; HL1 of H2 and H3 against H1's HL1. H1's HL1 against S2's L2 (Spark against ClickHouse).
 
 Known limit: with `?run=<id>`, the Route Finder sets the city to the run's, but the choice boxes above the result keep their defaults (for example "General visitor" for I1). The result, headed with its own route and visitor, is the run's.
 
@@ -185,16 +188,16 @@ Known limit: with `?run=<id>`, the Route Finder sets the city to the run's, but 
 
 Warm-ups (not counted), I1-HL1: 2.09 / 1.92 / 1.75 s.
 
-| Cell | S3 (4 cores) |
-|---|---|
-| I1-L1 | 57.23, 70.17, 68.75 |
-| I1-L2 | 28.24, 28.87 |
-| I1-L3 | 48.85, 46.14 |
-| I2-L1 | 61.33, 61.38 |
-| I2-L2 | 29.49, 31.04 |
-| I2-L3 | 45.43, 47.07 |
-| I3-L1 | 58.72, 52.03 |
-| I3-L2 | 28.24, 27.86 |
-| I3-L3 | 49.66, 41.19, 41.30 |
+| Cell | S2 (2 cores) | S3 (4 cores) |
+|---|---|---|
+| I1-L1 | 69.26, 73.54 | 57.23, 70.17, 68.75 |
+| I1-L2 | 27.45, 33.23, 29.65 | 28.24, 28.87 |
+| I1-L3 | 47.75, 47.92 | 48.85, 46.14 |
+| I2-L1 | 70.02, 69.58 | 61.33, 61.38 |
+| I2-L2 | 32.12, 29.79 | 29.49, 31.04 |
+| I2-L3 | 49.31, 50.40 | 45.43, 47.07 |
+| I3-L1 | 65.92, 62.68 | 58.72, 52.03 |
+| I3-L2 | 26.45, 27.45 | 28.24, 27.86 |
+| I3-L3 | 46.76, 50.10 | 49.66, 41.19, 41.30 |
 
-Warm-up (not counted), S3 I1-L1: 52.99 s.
+Warm-ups (not counted), I1-L1: S2 74.72 s, S3 52.99 s.
