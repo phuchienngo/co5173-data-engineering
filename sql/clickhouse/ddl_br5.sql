@@ -1,0 +1,289 @@
+-- BR5 keeps all its tables in its own database. It is a batch BR, so
+-- start.py does not truncate them: the import job replaces the data tables
+-- itself (jobs/br5_promotion/job.py). Model: docs/plan/br5/plan-data-model.md.
+CREATE DATABASE IF NOT EXISTS br5;
+
+-- Landing layer: the source file as-is ("NULL"/"NA" read as empty).
+CREATE TABLE IF NOT EXISTS br5.raw_booking
+(
+    hotel                          LowCardinality(String),
+    is_canceled                    UInt8,
+    lead_time                      UInt16,
+    arrival_date_year              UInt16,
+    arrival_date_month             LowCardinality(String),
+    arrival_date_week_number       UInt8,
+    arrival_date_day_of_month      UInt8,
+    stays_in_weekend_nights        UInt8,
+    stays_in_week_nights           UInt8,
+    adults                         UInt8,
+    children                       Nullable(UInt8),
+    babies                         UInt8,
+    meal                           LowCardinality(String),
+    country                        LowCardinality(Nullable(String)),
+    market_segment                 LowCardinality(String),
+    distribution_channel           LowCardinality(String),
+    is_repeated_guest              UInt8,
+    previous_cancellations         UInt8,
+    previous_bookings_not_canceled UInt8,
+    reserved_room_type             LowCardinality(String),
+    assigned_room_type             LowCardinality(String),
+    booking_changes                UInt8,
+    deposit_type                   LowCardinality(String),
+    agent                          Nullable(UInt16),
+    company                        Nullable(UInt16),
+    days_in_waiting_list           UInt16,
+    customer_type                  LowCardinality(String),
+    adr                            Float64,
+    required_car_parking_spaces    UInt8,
+    total_of_special_requests      UInt8,
+    reservation_status             LowCardinality(String),
+    reservation_status_date        Date,
+    import_id                      UUID,
+    source_row                     UInt32,
+    copy_no                        UInt16
+)
+ENGINE = MergeTree
+ORDER BY (hotel, arrival_date_year, source_row);
+
+-- Star schema. Keys are assigned by sorting the natural values; 0 = Unknown.
+CREATE TABLE IF NOT EXISTS br5.dim_date
+(
+    date_key     UInt32,  -- YYYYMMDD
+    date         Date,
+    year         UInt16,
+    quarter      UInt8,
+    month        UInt8,
+    month_name   LowCardinality(String),
+    iso_week     UInt8,
+    day_of_month UInt8,
+    day_of_week  UInt8,   -- 1 = Monday
+    is_weekend   UInt8
+)
+ENGINE = MergeTree
+ORDER BY date_key;
+
+CREATE TABLE IF NOT EXISTS br5.dim_hotel
+(
+    hotel_key  UInt8,
+    hotel_name LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY hotel_key;
+
+CREATE TABLE IF NOT EXISTS br5.dim_country
+(
+    country_key  UInt16,
+    country_code String,
+    country_name String
+)
+ENGINE = MergeTree
+ORDER BY country_key;
+
+CREATE TABLE IF NOT EXISTS br5.dim_room_type
+(
+    room_type_key  UInt8,
+    room_type_code LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY room_type_key;
+
+CREATE TABLE IF NOT EXISTS br5.dim_channel
+(
+    channel_key          UInt8,
+    market_segment       LowCardinality(String),
+    distribution_channel LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY channel_key;
+
+-- Junk dimension: low-value booking flags grouped into one small table.
+CREATE TABLE IF NOT EXISTS br5.dim_booking_profile
+(
+    profile_key        UInt8,
+    meal               LowCardinality(String),
+    deposit_type       LowCardinality(String),
+    customer_type      LowCardinality(String),
+    is_repeated_guest  UInt8,
+    reservation_status LowCardinality(String)
+)
+ENGINE = MergeTree
+ORDER BY profile_key;
+
+-- One row per booking (per copy when imported with a multiplier).
+CREATE TABLE IF NOT EXISTS br5.fact_booking
+(
+    arrival_date_key               UInt32,
+    booking_date_key               UInt32,
+    status_date_key                UInt32,
+    hotel_key                      UInt8,
+    country_key                    UInt16,
+    reserved_room_type_key         UInt8,
+    assigned_room_type_key         UInt8,
+    channel_key                    UInt8,
+    profile_key                    UInt8,
+    agent_id                       Nullable(UInt16),
+    company_id                     Nullable(UInt16),
+    arrival_week_number            UInt8,  -- the file's own week number (not always the ISO week)
+    is_canceled                    UInt8,
+    lead_time                      UInt16,
+    weekend_nights                 UInt8,
+    week_nights                    UInt8,
+    stay_nights                    UInt8,
+    adults                         UInt8,
+    children                       Nullable(UInt8),
+    babies                         UInt8,
+    adr                            Float64,
+    previous_cancellations         UInt8,
+    previous_bookings_not_canceled UInt8,
+    booking_changes                UInt8,
+    days_in_waiting_list           UInt16,
+    required_car_parking_spaces    UInt8,
+    total_of_special_requests      UInt8,
+    is_duplicate                   UInt8,  -- exact copy of an earlier row in the file
+    import_id                      UUID,
+    source_row                     UInt32,
+    copy_no                        UInt16
+)
+ENGINE = MergeTree
+PARTITION BY intDiv(arrival_date_key, 10000)
+ORDER BY (hotel_key, country_key, reserved_room_type_key, arrival_date_key);
+
+-- Run history for imports and analysis runs. Never dropped or swapped by an
+-- import. Each update inserts a new version of the row; read with FINAL.
+CREATE TABLE IF NOT EXISTS br5.pipeline_runs
+(
+    run_id         UUID,
+    run_type       LowCardinality(String),  -- 'import' | 'analysis'
+    status         LowCardinality(String),  -- 'running' | 'succeeded' | 'failed'
+    step           String,
+    started_at     DateTime64(3, 'UTC'),
+    finished_at    Nullable(DateTime64(3, 'UTC')),
+    duration_ms    Nullable(UInt64),
+    step_durations Map(String, UInt32),
+    rows_read      UInt64,
+    rows_expected  UInt64,
+    rows_written   UInt64,
+    multiplier     UInt16,
+    writer         LowCardinality(String),
+    source_file    String,
+    source_bytes   UInt64,
+    import_id      Nullable(UUID),
+    error          String,
+    heartbeat_at   DateTime64(3, 'UTC'),
+    updated_at     DateTime64(3, 'UTC')
+)
+ENGINE = ReplacingMergeTree(updated_at)
+ORDER BY run_id;
+
+-- Added by the pipeline plan (docs/plan/br5/plan-pipeline.md). ADD COLUMN IF
+-- NOT EXISTS keeps this file re-runnable on an existing br5 database.
+ALTER TABLE br5.pipeline_runs
+    ADD COLUMN IF NOT EXISTS criteria       Map(String, String),  -- analysis: hotel, country, room_type
+    ADD COLUMN IF NOT EXISTS settings       Map(String, String),  -- snapshot of every setting used
+    ADD COLUMN IF NOT EXISTS rows_used      UInt64,
+    ADD COLUMN IF NOT EXISTS rows_excluded  Map(String, UInt64),  -- per cleaning reason (+ report-only counts)
+    ADD COLUMN IF NOT EXISTS result_count   UInt16,
+    ADD COLUMN IF NOT EXISTS result_summary String;               -- JSON: low-season texts, messages
+
+-- Added by the monitoring plan (docs/plan/br5/plan-monitoring.md, B2–B3).
+ALTER TABLE br5.pipeline_runs
+    ADD COLUMN IF NOT EXISTS spark_app_id String,                 -- link to the Spark history server
+    ADD COLUMN IF NOT EXISTS resources    Map(String, Float64);   -- spark.* (total, @step), clickhouse.*
+
+-- Current settings (__current__) and named presets. Kept by fresh mode.
+CREATE TABLE IF NOT EXISTS br5.settings
+(
+    name           String,
+    setting_values Map(String, String),
+    is_deleted     UInt8,
+    updated_at     DateTime64(3, 'UTC')
+)
+ENGINE = ReplacingMergeTree(updated_at, is_deleted)
+ORDER BY name;
+
+-- Results of analysis runs, kept for every run. target_rank 0 = the whole
+-- selection (the chart); 1.. = the ranked cards.
+CREATE TABLE IF NOT EXISTS br5.run_month
+(
+    run_id        UUID,
+    target_rank   UInt16,
+    month         UInt8,
+    demand        Float64,  -- room-nights per month (average per year, per original row)
+    bookings      Float64,
+    avg_adr       Nullable(Float64),
+    share_of_peak Float64,
+    is_low        UInt8,
+    is_peak       UInt8
+)
+ENGINE = MergeTree
+ORDER BY (run_id, target_rank, month);
+
+CREATE TABLE IF NOT EXISTS br5.run_card
+(
+    run_id            UUID,
+    target_rank       UInt16,
+    hotel             String,
+    room_type         String,
+    country_code      String,
+    country_name      String,
+    valid_bookings    Float64,
+    low_months        Array(UInt8),
+    when_text         String,
+    peak_month        UInt8,
+    peak_demand       Float64,
+    low_demand        Float64,
+    demand_ratio      Float64,
+    potential         Float64,
+    offers            Array(String),
+    evidence          Array(String),
+    discount          String,
+    channels          Array(String),
+    low_bookings      Float64,
+    peak_bookings     Float64,
+    low_median_lead   Nullable(Float64),
+    peak_median_lead  Nullable(Float64),
+    low_avg_stay      Nullable(Float64),
+    peak_avg_stay     Nullable(Float64),
+    low_family_share  Nullable(Float64),
+    peak_family_share Nullable(Float64),
+    low_avg_adr       Nullable(Float64),
+    peak_avg_adr      Nullable(Float64)
+)
+ENGINE = MergeTree
+ORDER BY (run_id, target_rank);
+
+-- One row per run, flattened for Grafana and the app's Run History
+-- (docs/plan/br5/plan-monitoring.md). Replaced on every apply, so it follows
+-- new columns.
+CREATE OR REPLACE VIEW br5.run_history AS
+SELECT
+    run_id,
+    run_type,
+    status,
+    step,
+    started_at,
+    finished_at,
+    duration_ms / 1000 AS duration_s,
+    -- Spark start-up and other time outside the recorded steps.
+    greatest(duration_ms - arraySum(mapValues(step_durations)), 0) / 1000 AS outside_steps_s,
+    if(settings['launch.settings_from'] = '', 'unknown', settings['launch.settings_from']) AS settings_from,
+    if(settings['pipeline.engine'] = '' OR run_type = 'import', 'spark', settings['pipeline.engine']) AS engine,
+    if(run_type = 'analysis',
+       concat(criteria['hotel'], ' · ', criteria['country'], ' · ', criteria['room_type']),
+       'import') AS choice,
+    concat(settings_from, if(run_type = 'analysis', concat(' · ', engine), '')) AS variant,
+    multiplier,
+    rows_read,
+    rows_used,
+    rows_written,
+    rows_excluded,
+    step_durations,
+    settings,
+    criteria,
+    resources,
+    spark_app_id,
+    import_id,
+    result_count,
+    result_summary,
+    error
+FROM br5.pipeline_runs FINAL;

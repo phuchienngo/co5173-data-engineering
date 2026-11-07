@@ -1,0 +1,1955 @@
+osm_id,name,category,city,lat,lon,ticket_vnd
+n10603622205,Pont main,attraction,danang,16.052077,108.215636,20000
+n10709724107,Làng đá mỹ nghệ Non Nước,attraction,danang,16.000952,108.266643,20000
+n10709738005,Làng chiếu Cẩm Nê,attraction,danang,15.986732,108.177282,20000
+n10709738105,Làng nước mắm Nam Ô,attraction,danang,16.112831,108.13009,20000
+n11161070774,Dragon's Tail,attraction,danang,16.06108,108.224817,20000
+n11161070775,Dragon's Head,attraction,danang,16.061248,108.229655,20000
+n11171035936,Buddha,artwork,danang,16.004321,108.262207,0
+n11171038441,Buddha,artwork,danang,16.004402,108.263897,0
+n11176025737,Lang Bich hoa Da Nang,attraction,danang,16.06071,108.220025,20000
+n11359603957,Chùa Nam Sơn,attraction,danang,15.998799,108.205104,20000
+n11555496744,Tượng Mẹ Nhu,historic,danang,16.065261,108.183354,30000
+n11606548802,Lady Buddha,artwork,danang,16.060983,108.217855,0
+n11934169470,Queen Cobra,attraction,danang,16.043299,108.22599,20000
+n12404434601,Khu Văn hóa Tâm linh Đà Sơn,attraction,danang,16.041857,108.147778,20000
+n12424938201,Buddha,artwork,danang,16.004468,108.263944,0
+n12603319867,Nhà thờ Thanh Bình,place_of_worship,danang,16.076662,108.213286,0
+n12622064034,Marble Mountains Museum,museum,danang,16.003907,108.266031,40000
+n12701646101,Son Tra view,viewpoint,danang,16.109214,108.251772,0
+n12701675501,Small waterfall,viewpoint,danang,16.114523,108.255616,0
+n12815941401,7 wonders,attraction,danang,16.09881,108.224414,20000
+n13008480396,Miếu xóm,place_of_worship,danang,16.076434,108.242047,0
+n13417754301,DaNang Beach,artwork,danang,16.063977,108.24639,0
+n13484040419,Đền Bà Càn Khôn,place_of_worship,danang,16.104021,108.285991,0
+n13523223198,6 Animals,artwork,danang,16.100805,108.277295,0
+n13523232802,11 Animals,artwork,danang,16.101074,108.277079,0
+n13525483833,Hard to climb,viewpoint,danang,16.003942,108.263351,0
+n13525483883,Dragon,artwork,danang,15.99859,108.254299,0
+n13525483886,Buddha,artwork,danang,16.004315,108.262257,0
+n13531850361,Old Jets,historic,danang,16.035195,108.203781,30000
+n13624937778,Trâu Nước,artwork,danang,16.006398,108.125319,0
+n13677406601,Memorial to the victims of the Flight 229 plane crash on March 15 1979.,historic,danang,16.121001,108.257229,30000
+n13734880501,Tượng Phật Phước Lý,attraction,danang,16.040563,108.148938,20000
+n14074967004,Bia Nghĩa trủng Phước Ninh,historic,danang,16.060532,108.217903,30000
+n14130293535,Tượng đài Dũng sĩ Điện Ngọc,historic,danang,15.955565,108.255576,30000
+n1538334281,Ban Co Peak,viewpoint,danang,16.118929,108.272004,0
+n1758586662,Thuỷ Sơn,attraction,danang,16.004304,108.263527,20000
+n2093848428,Chùa Quán Thế Âm,place_of_worship,danang,15.999266,108.255408,0
+n3110591694,Golden Buddha,artwork,danang,16.099194,108.276745,0
+n3760247201,chùa Vu Lan,place_of_worship,danang,16.052013,108.219568,0
+n3760247202,chùa Sư Nữ,place_of_worship,danang,16.053315,108.219571,0
+n3760272162,Chùa Tam Bảo,place_of_worship,danang,16.058187,108.219347,0
+n3763846156,Chùa Pháp Lâm,place_of_worship,danang,16.062286,108.215534,0
+n4005611262,Đền thờ Tiền Hiền làng Lổ Giang,place_of_worship,danang,15.99761,108.212169,0
+n4005611263,Đình Lổ Giáng,place_of_worship,danang,15.998295,108.212471,0
+n4172034499,Non Nuoc Beach,attraction,danang,16.020534,108.261744,20000
+n4280016689,Chùa Giác Hoàng Viên,place_of_worship,danang,16.005616,108.254634,0
+n4294056396,Thiếu nữ,artwork,danang,16.07122,108.217659,0
+n4294056397,nhà thờ Phú Hạ,artwork,danang,16.033722,108.105734,0
+n4294060393,bến xe Đà Nẵng,artwork,danang,16.057238,108.172329,0
+n4294060394,cầu vượt Ngã Ba Huế,artwork,danang,16.060065,108.176157,0
+n4294119391,ngã tư Phú Hạ,artwork,danang,16.030118,108.115504,0
+n4294135790,nhà thờ Phú Thượng,place_of_worship,danang,16.046395,108.105258,0
+n4294139091,nhà thờ An Ngãi Tây,place_of_worship,danang,16.068114,108.10439,0
+n4294143690,đèo Đại La - xã Hòa Sơn,artwork,danang,16.042982,108.134873,0
+n4294143691,Nhà thờ Giáo xứ An Thượng,place_of_worship,danang,16.048073,108.240888,0
+n4294143994,chi nhánh Travel Indochina tại Đà nẵng,artwork,danang,16.048629,108.240954,0
+n4294147089,khách sạn Xanh - đường Hoàng văn Thái,artwork,danang,16.055385,108.163163,0
+n4297498393,Ngã tư Quân Đoàn,artwork,danang,16.049498,108.222341,0
+n4301384195,Nhà hàng sinh thái Chân Trời Góc Bể,artwork,danang,16.100674,108.224495,0
+n4326118127,milano cafe 233 nguyen van linh,artwork,danang,16.06055,108.214018,0
+n4692968491,Cong an My An,artwork,danang,16.04262,108.248181,0
+n4706189591,To Quoc Ghi Cong,historic,danang,16.023789,108.24773,30000
+n4717753291,Cát Việt Travel & Media,artwork,danang,16.058015,108.22068,0
+n4761152563,Tượng Mẹ Âu Cơ,artwork,danang,16.07032,108.245616,0
+n4782520523,Tang Ninh,place_of_worship,danang,16.073363,108.221031,0
+n4782540521,Trung Hung Buu Tôa,place_of_worship,danang,16.071918,108.217088,0
+n4807957148,Trung tâm Giải trí Phức hợp Helio Center,theme_park,danang,16.036456,108.224671,150000
+n4924323121,Fishing Village and Fleet,attraction,danang,16.101754,108.258963,20000
+n5216168822,Thánh thất Cao Đài,place_of_worship,danang,16.071949,108.217092,0
+n5272119221,Ca Chep Hoa Rong,artwork,danang,16.062925,108.229816,0
+n5272119721,Chu Dai Bi,artwork,danang,16.064339,108.242982,0
+n5273998822,Cầu Tiên Sơn,attraction,danang,16.035269,108.235272,20000
+n5273998823,Cầu Trần Thị Lý,attraction,danang,16.050179,108.229381,20000
+n5273999121,Cầu Thuận Phước,attraction,danang,16.094808,108.220013,20000
+n5276547123,Cau Nguyen Van Troi Bridge,attraction,danang,16.051089,108.229247,20000
+n5421670780,Chùa An Phước,place_of_worship,danang,16.063448,108.2316,0
+n5432701004,Nhà thờ Hoà Cường,place_of_worship,danang,16.044099,108.209793,0
+n5600384025,Lễ Tân FPT Software,place_of_worship,danang,15.978392,108.262077,0
+n5817580453,Art in Paradise Da Nang 3D Museum,museum,danang,16.095381,108.243077,40000
+n5922491411,Vong Giang Dai,place_of_worship,danang,16.003572,108.262129,0
+n5922491536,Buddha,artwork,danang,16.004361,108.264579,0
+n6330431498,Hero Statue,artwork,danang,16.065364,108.204511,0
+n6332518185,Miếu Xóm An Mỹ,place_of_worship,danang,16.066273,108.230619,0
+n6369465978,Vietnamese Mother Statue,place_of_worship,danang,16.040933,108.223891,0
+n6512888885,Cementerio militar franco-español de Y Pha Nho,historic,danang,16.12233,108.220038,30000
+n6513792708,Đình Phục Đán,place_of_worship,danang,16.074565,108.17457,0
+n6528451001,Cây đa Đò Xu,attraction,danang,16.027678,108.221887,20000
+n7095169367,Art Gallery,gallery,danang,16.08572,108.219428,30000
+n7276380289,Cầu Sông Hàn,attraction,danang,16.07214,108.226811,20000
+n7301996085,Chợ đêm Helio,attraction,danang,16.037094,108.224819,20000
+n8474743417,Bảo tàng Phật giáo,museum,danang,15.999431,108.254583,40000
+n8616526724,Chùa Hương Sơn,place_of_worship,danang,16.004224,108.252018,0
+r8552348,Ngũ Hành Sơn,attraction,danang,16.00171,108.259613,20000
+w1126018374,Chùa Thanh Bình,place_of_worship,danang,16.081061,108.215475,0
+w118609193,Thành Điện Hải,historic,danang,16.076354,108.221769,30000
+w118691767,Bảo tàng Quân khu 5,museum,danang,16.047874,108.21736,40000
+w1205388457,Chùa Linh Ứng,place_of_worship,danang,16.004276,108.264375,0
+w1205388470,Chùa Từ Tâm,place_of_worship,danang,16.004131,108.26146,0
+w1228356968,Nhà thờ Giáo xứ Sơn Trà,place_of_worship,danang,16.101007,108.248563,0
+w1228356978,GIÁO XÚ NHƯỢNG NGHĨA,place_of_worship,danang,16.085255,108.229318,0
+w1243468922,Nhà thờ Tin Lành An Hải,place_of_worship,danang,16.063092,108.235767,0
+w1279556276,Chùa Mỹ Khê,place_of_worship,danang,16.065183,108.242918,0
+w1326441936,Chùa Phổ Đà,place_of_worship,danang,16.055917,108.218228,0
+w1326445079,Chùa Từ Tôn,place_of_worship,danang,16.060368,108.218429,0
+w1329689890,Chùa Báo Ân,place_of_worship,danang,16.053009,108.209536,0
+w1331565206,Đài Tưởng niệm Liệt sỹ thành phố Đà Nẵng,historic,danang,16.040971,108.224323,30000
+w1336812874,Chùa Quang Minh,place_of_worship,danang,16.059868,108.164318,0
+w1339199613,Chùa Bửu Đài Sơn,place_of_worship,danang,16.101338,108.255595,0
+w1368599361,Bảo tàng Đà Nẵng,museum,danang,16.074832,108.22398,40000
+w1374632791,Nhà thờ Giáo xứ Cồn Dầu,place_of_worship,danang,16.015018,108.225348,0
+w1375028004,Chùa An Long,place_of_worship,danang,16.059685,108.223281,0
+w1378265221,Chùa Kỳ Viên,place_of_worship,danang,16.056436,108.211203,0
+w1386932720,Tượng Phật Quan Âm - Chùa Mỹ Khê,place_of_worship,danang,16.064355,108.242961,0
+w1422444084,Chùa Thuận Thành,place_of_worship,danang,16.074391,108.208597,0
+w1474183572,Nhà thờ Lê Tộc - Tân Thái,place_of_worship,danang,16.089486,108.247322,0
+w1474183573,Chùa Tân Thái,place_of_worship,danang,16.08971,108.246926,0
+w1474308642,Vong Hai Dai,place_of_worship,danang,16.0037,108.264241,0
+w1474583779,Nhà Trưng bày Hoàng Sa,museum,danang,16.093469,108.251206,40000
+w1481285653,Miếu Thành Hoàng Bổn Xứ,place_of_worship,danang,16.015723,108.249505,0
+w1481663044,Bản sao nhà sàn,historic,danang,16.047236,108.217429,30000
+w1484919510,Xanh Design DN Tiệm Cây và Nước,zoo,danang,16.020164,108.236873,60000
+w1547483080,Đình làng Phước Ninh,place_of_worship,danang,16.060376,108.217904,0
+w1547483081,Đình Túy Loan,place_of_worship,danang,15.997554,108.136466,0
+w1564136728,Đình Phong Lệ,place_of_worship,danang,15.986964,108.196346,0
+w204790989,Chợ Cồn,attraction,danang,16.06817,108.214534,20000
+w302872188,Bảo tàng Nghệ thuật Điêu khắc Chăm Đà Nẵng,museum,danang,16.060196,108.223168,40000
+w302944359,Chùa Trung Lương,place_of_worship,danang,16.002579,108.215228,0
+w303341669,Bảo tàng Hồ Chí Minh,museum,danang,16.046482,108.218247,40000
+w303499553,Đình Nại Nam,place_of_worship,danang,16.037361,108.22748,0
+w363224651,Nhà thờ Đức Mẹ Sao Biển,place_of_worship,danang,16.047807,108.248266,0
+w372172907,Tịnh xá Ngọc Giáng,place_of_worship,danang,16.068629,108.206527,0
+w372196690,Nhà thờ Tin Lành,place_of_worship,danang,16.071043,108.212951,0
+w372311082,Chùa Bồ Đề,place_of_worship,danang,16.065433,108.172612,0
+w404714309,Nhà thờ Chính tòa Đà Nẵng,place_of_worship,danang,16.066683,108.223058,0
+w420947244,Quan Âm,artwork,danang,16.099686,108.277016,0
+w486703049,Chùa Linh Ứng,place_of_worship,danang,16.100143,108.278443,0
+w486703057,Tháp Xá Lợi,place_of_worship,danang,16.099894,108.280086,0
+w554812139,Tượng Bồ Câu,historic,danang,16.082332,108.223195,30000
+w570998848,Chùa An Hải,place_of_worship,danang,16.068009,108.23291,0
+w597505233,Đình Bồ Bản,place_of_worship,danang,15.987912,108.151845,0
+w627383447,Chùa Tam Tôn,place_of_worship,danang,16.003965,108.262142,0
+w627383449,Tháp Xá Lợi,place_of_worship,danang,16.00355,108.264241,0
+w627383451,Chùa Tam Thai,place_of_worship,danang,16.003889,108.262791,0
+w635620774,Giáo xứ An Ngãi Đông,place_of_worship,danang,16.076312,108.114589,0
+w693383334,Nhà thờ Giáo xứ An Hải,place_of_worship,danang,16.069196,108.229806,0
+w693441028,Đình Mỹ Khê,place_of_worship,danang,16.065045,108.242592,0
+w694479601,Nhà thờ Tin lành Tân An,place_of_worship,danang,16.066384,108.203013,0
+w694831926,Cầu Rồng,attraction,danang,16.061168,108.227898,20000
+w695008783,Miếu Cây Đa Đò Xu,place_of_worship,danang,16.02771,108.221804,0
+w759913076,Bảo tàng Mỹ thuật Đà Nẵng,museum,danang,16.071374,108.217683,40000
+w760601272,Chùa Long Thơ,place_of_worship,danang,16.069256,108.224272,0
+w780484947,Nhà thờ Tin Lành,place_of_worship,danang,16.051979,108.235068,0
+w834483808,Giáo xứ Hoà Minh,place_of_worship,danang,16.070833,108.171862,0
+w843007161,Chùa Phục Đán,place_of_worship,danang,16.074952,108.175045,0
+n1000087403,Nguyen Art Gallery,gallery,hanoi,21.02852,105.836493,30000
+n10091771745,Nguyễn Trãi,historic,hanoi,20.972776,105.781511,30000
+n10209353562,Tượng Hồ Chí Minh,artwork,hanoi,21.04484,105.789646,0
+n10712267105,đình Xuân Trạch,artwork,hanoi,21.081968,105.854909,0
+n10812547653,Bác Hồ và Chiến dịch Biên giới 1950,artwork,hanoi,21.045227,105.801866,0
+n10821779879,Tượng Chu Văn An,artwork,hanoi,21.042816,105.831713,0
+n10823799704,Chung tay bảo vệ môi trường,artwork,hanoi,21.035036,105.836856,0
+n10833845610,Tượng đài hoa sen,artwork,hanoi,21.042255,105.835677,0
+n10839104679,Tiệm Cắt Lông MiMi Pet - Ngõ 42 An Dương Vương,place_of_worship,hanoi,21.086247,105.817075,0
+n10839148596,Công ty Cổ phần Thương mại Dịch vụ Kadoki Việt Nam,place_of_worship,hanoi,21.087432,105.816117,0
+n10839148972,Mật ong thiên nhiên số 1,place_of_worship,hanoi,21.088452,105.814766,0
+n10839162706,MTdoggycamp,place_of_worship,hanoi,21.085674,105.816963,0
+n10872867309,Chùa Mật Dụng,place_of_worship,hanoi,21.047792,105.810919,0
+n10926514724,Tượng đài Hồ Chí Minh,artwork,hanoi,21.06665,105.875199,0
+n11034652835,José Martí,artwork,hanoi,21.021513,105.857756,0
+n11043816631,Cây Số 55,historic,hanoi,21.013595,105.86053,30000
+n11085187216,Lotte World Aquarium,aquarium,hanoi,21.075795,105.812588,100000
+n11112006405,Xác máy bay B52,attraction,hanoi,21.037939,105.827093,20000
+n11240584042,Đền Quán Đôi,place_of_worship,hanoi,21.040616,105.805449,0
+n11299985249,SAM-2,historic,hanoi,21.03541,105.825903,30000
+n11299985250,SAM-2,historic,hanoi,21.03531,105.826031,30000
+n11397903985,Đài tưởng niệm liệt sỹ Dịch Vọng Hậu,historic,hanoi,21.031256,105.787172,30000
+n11449233337,Blue Gallery,gallery,hanoi,21.024936,105.855614,30000
+n11534640150,Đài tưởng niệm liệt sĩ phường Lê Đại Hành,historic,hanoi,21.013992,105.849394,30000
+n11556781562,Kỉ niệm 25 năm trường,artwork,hanoi,21.042012,105.787458,0
+n11573064916,Thầy Nguyễn Bỉnh Khiêm,artwork,hanoi,21.042019,105.78766,0
+n11573064918,Các nhà khoa học vĩ đại,artwork,hanoi,21.041787,105.787952,0
+n11586961123,Tượng Chủ Tịch Hồ Chí Minh,artwork,hanoi,21.04242,105.785589,0
+n11609557643,Giáo sư Lê Văn Thiêm,artwork,hanoi,21.037229,105.783575,0
+n11609557644,Giáo sư Đặng Thai Mai,artwork,hanoi,21.03724,105.783089,0
+n11621684847,Chùa Tràng An,place_of_worship,hanoi,21.01782,105.850751,0
+n11634634900,Cối xay nước,attraction,hanoi,21.040142,105.798921,20000
+n11636607297,50 năm giải phóng thủ đô,historic,hanoi,21.040431,105.797233,30000
+n11655807782,Tượng thầy Nguyễn Sanh Dạn,artwork,hanoi,21.003713,105.841884,0
+n11681012714,Bảo tàng Tố Hữu,museum,hanoi,21.039861,105.793866,40000
+n11691256822,Vĩnh Long Gallery,gallery,hanoi,21.010054,105.85134,30000
+n11729275869,Ha Giang Majestic Tours,artwork,hanoi,21.03398,105.847436,0
+n11882942765,Đình làng Phú Thứ,place_of_worship,hanoi,21.002344,105.750607,0
+n11934159272,Chùa Đỏ,place_of_worship,hanoi,20.975191,105.783403,0
+n12057863165,Bia tưởng niệm liệt sĩ phường Điện Biên,historic,hanoi,21.032715,105.832781,30000
+n12090398186,Lunet Art Galerie,gallery,hanoi,21.029912,105.838722,30000
+n12093662001,Trống đồng Đông Sơn,artwork,hanoi,21.035578,105.832832,0
+n12093775438,Tượng đồng Chủ tịch Hồ Chí Minh,artwork,hanoi,21.035627,105.832562,0
+n12284557543,Công Ty TNHH IZISolution,place_of_worship,hanoi,21.029785,105.785049,0
+n12343629708,Đình Cổ Vũ,place_of_worship,hanoi,21.031655,105.849902,0
+n12372330891,빛나는 초거대 버섯 조각상,artwork,hanoi,21.009347,105.774512,0
+n12447043443,Đình Làng Thanh Trì,place_of_worship,hanoi,20.999331,105.884113,0
+n12492157862,Hươu cao cổ,attraction,hanoi,21.031407,105.806038,20000
+n12492265364,Khỉ vàng,attraction,hanoi,21.030538,105.80549,20000
+n12492265365,Khỉ đuôi lợn,attraction,hanoi,21.030144,105.806135,20000
+n12492265366,Khỉ vàng,attraction,hanoi,21.030335,105.807938,20000
+n12492282606,Vẹt Nam Mỹ,attraction,hanoi,21.030943,105.803583,20000
+n12492282607,Cá sấu,attraction,hanoi,21.030733,105.803498,20000
+n12492282609,Quạ đen,attraction,hanoi,21.030678,105.803715,20000
+n12492282610,Ngỗng,attraction,hanoi,21.030725,105.803314,20000
+n12492282611,Đà điểu,attraction,hanoi,21.030527,105.803426,20000
+n12492282612,Sáo,attraction,hanoi,21.030569,105.803214,20000
+n12492282614,Bồ câu,attraction,hanoi,21.030464,105.803251,20000
+n12492282615,Cu li nhỏ,attraction,hanoi,21.030355,105.803267,20000
+n12492282616,Yểng,attraction,hanoi,21.030329,105.80351,20000
+n12492282617,Khu chim họ Trĩ,attraction,hanoi,21.030031,105.803582,20000
+n12492282618,Công,attraction,hanoi,21.030298,105.803813,20000
+n12492282619,Công Việt Nam,attraction,hanoi,21.029949,105.803914,20000
+n12492282620,Cu ngói,attraction,hanoi,21.03021,105.804031,20000
+n12492282621,Gà rừng tai trắng,attraction,hanoi,21.029968,105.804092,20000
+n12492282622,Gà lôi vằn,attraction,hanoi,21.030098,105.8044,20000
+n12492282623,Gà rừng tai đỏ,attraction,hanoi,21.030193,105.804211,20000
+n12492312457,Nai,attraction,hanoi,21.031641,105.805825,20000
+n12492312458,Vượn cáo đuôi vòng,attraction,hanoi,21.031356,105.805462,20000
+n12492312459,Nhím đuôi ngắn,attraction,hanoi,21.031314,105.805638,20000
+n12492312460,Khỉ mặt đỏ,attraction,hanoi,21.0311,105.806079,20000
+n12492312461,Cầy mực,attraction,hanoi,21.030979,105.806287,20000
+n12492312462,Báo lửa,attraction,hanoi,21.030925,105.806534,20000
+n12492312463,Cầy hương,attraction,hanoi,21.030929,105.806722,20000
+n12492312464,Vượn đen má trắng,attraction,hanoi,21.031095,105.807017,20000
+n12492312473,Nai,attraction,hanoi,21.031258,105.806646,20000
+n12492312475,Ngựa vằn,attraction,hanoi,21.031407,105.806799,20000
+n12492312476,Ngựa,attraction,hanoi,21.031512,105.806833,20000
+n12492312480,Voi,attraction,hanoi,21.031181,105.80747,20000
+n12492312481,Hà mã,attraction,hanoi,21.031768,105.807297,20000
+n12492312482,Hổ,attraction,hanoi,21.031793,105.807642,20000
+n12492354138,Tượng chim công,artwork,hanoi,21.031132,105.804697,0
+n12555926214,Propaganda,gallery,hanoi,21.03011,105.849113,30000
+n12600406901,Phúc Tân – Sông Hông,artwork,hanoi,21.037953,105.855659,0
+n12669561801,Steers to the Sky,attraction,hanoi,21.079363,105.835389,20000
+n12669568802,Kid's House on the tree,attraction,hanoi,21.080627,105.834941,20000
+n12669955901,Sculpture Park,gallery,hanoi,21.084017,105.821828,30000
+n12723387900,Đền Sơn Hải,place_of_worship,hanoi,21.031323,105.86016,0
+n13008625317,Đền Bà Tễu,place_of_worship,hanoi,21.00942,105.864465,0
+n13100959743,Công viên Ngọc Thụy,historic,hanoi,21.058537,105.870439,30000
+n13255283812,Tượng Đài Hoàng Văn Thụ,artwork,hanoi,20.986315,105.850861,0
+n13272775772,Đài tưởng niệm liệt sĩ,artwork,hanoi,20.989051,105.852834,0
+n13310439001,Mosaic,artwork,hanoi,21.012566,105.841498,0
+n13415760108,Rose Kitchen Cooking Classes,attraction,hanoi,21.037796,105.82323,20000
+n13483667183,Miếu Hai Cô,place_of_worship,hanoi,21.045811,105.856991,0
+n13595549341,Vì lợi ích mười năm...,historic,hanoi,20.990486,105.838377,30000
+n13684779295,Chaika,historic,hanoi,21.025186,105.858742,30000
+n13684800176,0 km,attraction,hanoi,21.026669,105.853649,20000
+n13684800772,ZIS 115,historic,hanoi,21.025512,105.859011,30000
+n13687879837,MIG-21,historic,hanoi,21.035647,105.825857,30000
+n13719271437,Đức Thánh Huyền Thiên Trấn Vũ,artwork,hanoi,21.043028,105.836658,0
+n13736841086,Bia đá,artwork,hanoi,21.044884,105.83613,0
+n13793120391,E-Software Jsc,place_of_worship,hanoi,20.990276,105.784188,0
+n13806398863,Lăng mộ Nguyễn Văn Siêu,historic,hanoi,20.97877,105.821127,30000
+n13830351880,Bia chiến thắng B.52,historic,hanoi,20.983371,105.826005,30000
+n14095752086,Thương yêu cô gái nhỏ,historic,hanoi,21.013597,105.860599,30000
+n14096883184,Hanoi Train Street,attraction,hanoi,21.030153,105.844069,20000
+n14137142367,Miếu thờ Đức Thánh Cả,place_of_worship,hanoi,21.016257,105.77878,0
+n14148043050,Trận địa tên lửa Chèm,historic,hanoi,21.079385,105.767879,30000
+n14161811025,Quan Âm Bồ Tát,artwork,hanoi,21.022671,105.825176,0
+n14196143125,Đài tưởng niệm các anh hùng liệt sĩ Việt Hưng,historic,hanoi,21.057218,105.898563,30000
+n1498111667,Di Tích Lịch Sử Chùa Láng,historic,hanoi,21.023434,105.802772,30000
+n1716371376,Ô Thuỵ Chương,historic,hanoi,21.039524,105.828405,30000
+n2607827391,Cầu Mậu Lương,attraction,hanoi,20.952708,105.786903,20000
+n2810302635,Bảo tàng Binh chủng Thông tin liên lạc,museum,hanoi,21.030343,105.82663,40000
+n3370127645,Nhà thờ họ Hoa Văn,place_of_worship,hanoi,21.062132,105.781548,0
+n3426500755,Đài tưởng niệm Liệt sĩ Cổ Nhuế,historic,hanoi,21.054713,105.787189,30000
+n3794435557,Đình Làng Quảng Bá,place_of_worship,hanoi,21.066868,105.823032,0
+n4266207090,Tempo,place_of_worship,hanoi,21.01008,105.809888,0
+n4277824433,Đền Án,place_of_worship,hanoi,20.978875,105.802926,0
+n4406321390,Xuân thu vườn,artwork,hanoi,21.05814,105.897985,0
+n443033827,Tượng đài Lý Thái Tổ,historic,hanoi,21.027489,105.854501,30000
+n445345255,Nhà 48 phố Hàng Ngang,museum,hanoi,21.034328,105.850439,40000
+n445345257,Chùa Lý Triều Quốc Sư,place_of_worship,hanoi,21.02951,105.849172,0
+n446031978,Chùa Trung Kính Thượng,place_of_worship,hanoi,21.013352,105.80608,0
+n4489385889,Chợ Đêm Hàng Đào – Đồng Xuân,attraction,hanoi,21.033508,105.850957,20000
+n449628162,Đình Khương Đình,place_of_worship,hanoi,20.992289,105.816472,0
+n4497819206,Sinh viên Công giáo Phú Mỹ,place_of_worship,hanoi,21.029844,105.772306,0
+n4499978190,Bảo tàng Địa chất Việt Nam,museum,hanoi,21.023552,105.858772,40000
+n4544230189,Chùa Kim Liên,place_of_worship,hanoi,21.058527,105.83297,0
+n4550329090,Chùa Vạn Niên,place_of_worship,hanoi,21.066207,105.810948,0
+n4551057513,Đình Nghi Tàm,place_of_worship,hanoi,21.056658,105.832966,0
+n4572907889,Chợ Đêm,attraction,hanoi,21.033219,105.852376,20000
+n4716177261,Sư tử châu Phi,attraction,hanoi,21.031812,105.808048,20000
+n4716178797,Khỉ vàng,attraction,hanoi,21.030236,105.807065,20000
+n4716178909,Khỉ mốc,attraction,hanoi,21.030165,105.806607,20000
+n4716178910,Khỉ đuôi dài,attraction,hanoi,21.030284,105.807372,20000
+n4716178925,Hổ Đông Dương,attraction,hanoi,21.031493,105.808439,20000
+n4716178989,Cá sấu,attraction,hanoi,21.030376,105.808471,20000
+n4742507123,Đài Tưởng Niệm Vua Lê Thái Tổ,historic,hanoi,21.029055,105.850958,30000
+n4887078501,Đình Làng Văn Tinh,place_of_worship,hanoi,21.090663,105.850476,0
+n4889087244,Bảo Tàng Hậu Cần,museum,hanoi,21.018907,105.772999,40000
+n4927916321,Tượng kỷ niệm chiến thắng B52,attraction,hanoi,21.04683,105.836831,20000
+n5025409279,Tượng đài Lý Tự Trọng,historic,hanoi,21.043227,105.835437,30000
+n5129868129,Tượng Phật,historic,hanoi,21.070294,105.80512,30000
+n5132815623,Chùa Ngòi,place_of_worship,hanoi,20.970937,105.767315,0
+n5285071606,Chùa Hoà Bình Green City,place_of_worship,hanoi,21.000129,105.870108,0
+n5310080021,Chabad Of Hanoi,place_of_worship,hanoi,21.067723,105.825215,0
+n5395820990,Miếu Cửa Sông,place_of_worship,hanoi,21.051689,105.842272,0
+n5406262022,Đài quan sát Lotte Skywalk,attraction,hanoi,21.032202,105.812329,20000
+n5441412622,Iglesia Ni Cristo - Hanoi,place_of_worship,hanoi,21.060311,105.834153,0
+n5485635750,Miếu Trung Liệt,historic,hanoi,21.011871,105.824783,30000
+n5485636741,Tượng đài Quang Trung,artwork,hanoi,21.012791,105.82398,0
+n5485653498,Đình Mai Dịch,place_of_worship,hanoi,21.036818,105.779191,0
+n5485835198,Nhà thờ Hoàng Thôn,place_of_worship,hanoi,21.058487,105.783398,0
+n5637455966,Chùa Mỗ Lao,place_of_worship,hanoi,20.976403,105.780535,0
+n5662790840,Nhà thờ Tân Lạc,place_of_worship,hanoi,20.996891,105.847412,0
+n5857310193,Tháp Bút,artwork,hanoi,21.030639,105.853387,0
+n5880670767,Am Phường Thụy Khuê,place_of_worship,hanoi,21.043498,105.819046,0
+n6046636103,Tượng Đức Mẹ,historic,hanoi,21.028905,105.84935,30000
+n6051320086,Phòng Trưng Bày Green Palm,gallery,hanoi,21.032386,105.850548,30000
+n6053785702,Binh Minh Jazz Club,attraction,hanoi,21.024016,105.858359,20000
+n6282134029,Miếu Làng Bằng A,place_of_worship,hanoi,20.963558,105.819165,0
+n6282143862,Đình thờ Danh nhân tiên triết Chu Văn An,place_of_worship,hanoi,20.96371,105.817957,0
+n6342873885,Panasonic Nanoco Studio Gallery,artwork,hanoi,21.004193,105.817889,0
+n6413588585,Phòng Tranh Gia Bảo,artwork,hanoi,21.033354,105.851999,0
+n6433567585,Phòng Tranh Đương Đại Cá Lăng Toàn Thắng,artwork,hanoi,21.024999,105.862025,0
+n6544886541,Lư,artwork,hanoi,21.036252,105.840345,0
+n6546220354,Rồng đá,attraction,hanoi,21.036528,105.840407,20000
+n6549313786,Quan Âm Từ Bi,artwork,hanoi,21.035715,105.833426,0
+n6566027577,Mộ Linh Mục Trần Ngọc Liễn,historic,hanoi,21.064297,105.78101,30000
+n6579567133,Phù điêu Hà Nội mùa đông năm 1946,artwork,hanoi,21.038232,105.848933,0
+n6579724624,Đền Hội Thống,place_of_worship,hanoi,21.03757,105.851988,0
+n6581664929,Đền Trung Hạ,place_of_worship,hanoi,21.034365,105.853888,0
+n6594592049,Nghi môn,artwork,hanoi,21.027391,105.8354,0
+n6600039828,Thánh Paul,artwork,hanoi,21.030931,105.835735,0
+n6605457432,V.I. Lê-nin,artwork,hanoi,21.031696,105.839388,0
+n6612623371,Đài Liệt Sĩ Phường Bồ Đề,historic,hanoi,21.038095,105.871657,30000
+n6612640826,Đài Tưởng Niệm Liệt Sĩ,historic,hanoi,21.048555,105.885379,30000
+n6612988434,Bia Tưởng Niệm Liệt Sĩ,historic,hanoi,21.056281,105.86477,30000
+n6677388085,Nhà thờ Giáo xứ Giảng Võ,place_of_worship,hanoi,21.024251,105.81472,0
+n6801247419,Bảo tàng Thiên nhiên Việt Nam,museum,hanoi,21.048073,105.800537,40000
+n6846261393,Tượng Louis Pasteur,artwork,hanoi,21.014358,105.859486,0
+n6846267429,Tượng Alexandre Yersin,historic,hanoi,21.013495,105.860627,30000
+n6849218729,Đình Tứ Kỳ,place_of_worship,hanoi,20.963946,105.841417,0
+n7085692627,Chuông,artwork,hanoi,21.036196,105.840644,0
+n7176884224,Den Phu Ung,place_of_worship,hanoi,21.030417,105.849015,0
+n7368395546,Tượng đài Sinh viên lên đường bảo vệ Tổ quốc,historic,hanoi,21.006207,105.842671,30000
+n7676180461,Chùa Bồ Đề,place_of_worship,hanoi,20.999927,105.809543,0
+n8090548315,Đài tưởng niệm liệt sĩ phường Kim Liên,historic,hanoi,21.008776,105.836545,30000
+n8303360363,Miếu Đầm,place_of_worship,hanoi,21.005671,105.784559,0
+n8318010619,Thung lũng hoa Hồ Tây,attraction,hanoi,21.0744,105.819763,20000
+n8353908039,Trung tâm đào tạo kế toán Global Training,historic,hanoi,21.072282,105.772784,30000
+n9287505718,Thủy đình làng Trường Lâm,attraction,hanoi,21.056267,105.895518,20000
+n9399202172,Bảo tàng Pháo binh,museum,hanoi,21.038501,105.808124,40000
+n9587296896,Đền Bia Bà,place_of_worship,hanoi,20.969802,105.760927,0
+n9757095553,Chùa Hà Trì,place_of_worship,hanoi,20.965986,105.783354,0
+n9809271757,Nghè Tư Đình - Đền Quang Cổ,place_of_worship,hanoi,21.027358,105.882382,0
+n9907239892,Bác Hồ - Bác Tôn,artwork,hanoi,21.011194,105.842482,0
+n9923824085,Đàn Xã Tắc,historic,hanoi,21.01802,105.829953,30000
+n9931817258,Tượng đài Công an Nhân dân,historic,hanoi,21.016899,105.846944,30000
+r14048545,Chùa Bồ Đề,place_of_worship,hanoi,21.035812,105.867026,0
+r14048548,Đền Chầu Bà,place_of_worship,hanoi,21.035278,105.866821,0
+r14048551,Đền Ghềnh,place_of_worship,hanoi,21.037747,105.865755,0
+r14428278,Đình Phúc Xá,place_of_worship,hanoi,21.055226,105.864694,0
+r14428279,Chùa Bắc Biên,place_of_worship,hanoi,21.055353,105.864291,0
+r16640104,Đền Bà Kiệu,place_of_worship,hanoi,21.031107,105.853457,0
+r17877970,Đài tưởng niệm các Anh hùng liệt sĩ,historic,hanoi,21.036036,105.838691,30000
+r19179452,Đền Hai Bà Trưng,place_of_worship,hanoi,21.012188,105.85509,0
+r20599842,Kẻ Bưởi,historic,hanoi,21.051187,105.809621,30000
+r20599926,Kẻ Láng,historic,hanoi,21.019888,105.804692,30000
+r20600028,Kẻ Cót,historic,hanoi,21.026671,105.796628,30000
+r20600730,Kẻ Sét,historic,hanoi,20.981491,105.847317,30000
+r20604644,Kẻ Noi (Cổ Nhuế),historic,hanoi,21.061516,105.781374,30000
+r20604658,Nghĩa Đô 義都,historic,hanoi,21.045609,105.804299,30000
+r20662634,Hội Quán Phúc Kiến,place_of_worship,hanoi,21.035619,105.848857,0
+r20965271,Đình đền Đông Thiên Vĩnh Hưng,place_of_worship,hanoi,20.990033,105.879429,0
+r21390097,Nhà triển lãm Mỹ thuật,gallery,hanoi,21.025125,105.855005,30000
+r21395416,Tu viện Dòng mến Thánh Giá,place_of_worship,hanoi,21.027519,105.850453,0
+r21401560,Quảng trường Ba Đình,attraction,hanoi,21.036972,105.835802,20000
+r21425134,Bảo tàng Mỹ thuật Việt Nam,museum,hanoi,21.030653,105.837032,40000
+r21425205,Hoàng thành Thăng Long,historic,hanoi,21.036289,105.840442,30000
+r21439106,Đài tưởng niệm Liệt sĩ Phường Mai Dịch,historic,hanoi,21.03615,105.779351,30000
+r21474423,Chùa Cả,place_of_worship,hanoi,21.003872,105.76845,0
+r7112202,Chợ đêm,attraction,hanoi,21.034592,105.850396,20000
+w1019050228,Bảo tàng Công binh,museum,hanoi,21.056194,105.809258,40000
+w1019050229,Bảo tàng Binh chủng Hóa học,museum,hanoi,21.039176,105.786446,0
+w1019050231,Bảo tàng Chiến thắng B52,museum,hanoi,21.035553,105.826082,0
+w1021332447,Chùa Đồng Quang,place_of_worship,hanoi,21.01105,105.826264,0
+w1040486455,Nhà thờ An Thái,place_of_worship,hanoi,21.04897,105.811322,0
+w1040487957,Chùa An Quốc,place_of_worship,hanoi,21.028689,105.832849,0
+w1040742615,Biệt thự 49 Trần Hưng Đạo,attraction,hanoi,21.020846,105.851913,20000
+w1041112515,Chùa Tứ Kỳ,place_of_worship,hanoi,20.963781,105.840944,0
+w1042562816,Đình Hạ Yên Quyết,place_of_worship,hanoi,21.021943,105.796479,0
+w1063191474,Chùa Thọ Lão,place_of_worship,hanoi,21.010521,105.856873,0
+w1080023296,Di tích Pháo đài Láng,historic,hanoi,21.020683,105.806412,30000
+w1082227920,Miếu làng Bằng A,place_of_worship,hanoi,20.963571,105.819178,0
+w1104102840,Chùa Liên Đàm,place_of_worship,hanoi,20.965548,105.835942,0
+w1104856388,Đình Kim Lũ,place_of_worship,hanoi,20.979651,105.819122,0
+w1104873499,Đình Tựu Liệt,place_of_worship,hanoi,20.953024,105.83301,0
+w1110686331,Chùa Xã Đàn,place_of_worship,hanoi,21.015404,105.830473,0
+w1114717100,Di tích trại giam Nhà Tiền,historic,hanoi,21.031076,105.830075,30000
+w1114717104,Đình Hào Nam,place_of_worship,hanoi,21.027283,105.826522,0
+w1114996971,Nhà Trịnh Văn Bô - Hoàng Thị Minh Hồ,historic,hanoi,21.034361,105.838816,30000
+w1114996973,Nhà Đại tướng Võ Nguyên Giáp,historic,hanoi,21.034941,105.838325,30000
+w1118494921,Chùa Hà,place_of_worship,hanoi,21.037127,105.795191,0
+w1118788845,Chùa Sở Vòng,place_of_worship,hanoi,21.033793,105.774324,0
+w1118788847,Đình Dịch Vọng Sở,place_of_worship,hanoi,21.034848,105.775489,0
+w1123050055,Đài tưởng niệm liệt sĩ Nghĩa Tân,historic,hanoi,21.042879,105.793383,30000
+w1128232751,Thanh đàm cổ từ,place_of_worship,hanoi,20.975546,105.812402,0
+w1128232777,Chùa Quang Phúc,place_of_worship,hanoi,20.969635,105.821931,0
+w1135736683,Chùa Long Quang,place_of_worship,hanoi,20.96121,105.812748,0
+w1138955996,Chùa Thanh An,place_of_worship,hanoi,20.969614,105.793093,0
+w1140667038,Chùa Phúc Khánh,place_of_worship,hanoi,21.004447,105.821156,0
+w1144130583,Đền Mẫu Đầm Sen,place_of_worship,hanoi,20.975302,105.832214,0
+w1144867249,Chùa Lệ Mật,place_of_worship,hanoi,21.053146,105.899544,0
+w1144867250,Đình Lệ Mật,place_of_worship,hanoi,21.053505,105.900124,0
+w1144874390,Cổng làng Lệ Mật,historic,hanoi,21.052621,105.899394,30000
+w1147629014,Chùa Thiên Phúc,place_of_worship,hanoi,20.981539,105.819457,0
+w1148571536,Bảo tàng Lịch sử Quân sự Việt Nam,museum,hanoi,21.011577,105.754666,40000
+w1162589283,Nhà cố Tổng bí thư Lê Duẩn,historic,hanoi,21.0399,105.839588,30000
+w1164583083,Đình An Thái,place_of_worship,hanoi,21.048907,105.806889,0
+w1166293260,Đình An Thọ,place_of_worship,hanoi,21.048417,105.8088,0
+w1169249141,Chùa Tĩnh Lâu,place_of_worship,hanoi,21.050166,105.813019,0
+w1171597387,Đình Hoà Mục,place_of_worship,hanoi,21.010228,105.808914,0
+w1171597396,Chùa Cót,place_of_worship,hanoi,21.023662,105.792845,0
+w1181062127,Chùa Đại Bi,place_of_worship,hanoi,20.974302,105.867765,0
+w1207063057,Abandoned Van,attraction,hanoi,21.012791,105.885621,20000
+w1207157084,Nghè Hoa,place_of_worship,hanoi,21.043739,105.895246,0
+w1210566297,Chùa Vân Hồ,place_of_worship,hanoi,21.011265,105.848736,0
+w1211530678,Lăng tổ Chu tộc Hoàng Đống,place_of_worship,hanoi,21.047928,105.78362,0
+w1211729749,Đình An Phú,place_of_worship,hanoi,21.044863,105.804203,0
+w1213235641,Chùa Duệ Tú,place_of_worship,hanoi,21.035926,105.802359,0
+w1213238767,Chùa Quan Hoa,place_of_worship,hanoi,21.033862,105.8037,0
+w1213628318,Chùa Tăng Phúc,place_of_worship,hanoi,21.038551,105.798497,0
+w1213872795,Chùa Dâu,place_of_worship,hanoi,21.046563,105.803008,0
+w1213872798,Đền Trung Nha,place_of_worship,hanoi,21.050002,105.804226,0
+w1213883587,Đình Bái Ân,place_of_worship,hanoi,21.053299,105.807931,0
+w1213883588,Chùa Bái Ân,place_of_worship,hanoi,21.055197,105.806294,0
+w1213885335,Chùa Báo Ân,place_of_worship,hanoi,21.028861,105.798878,0
+w1216770910,Nhà bia Tưởng niệm Liệt sỹ phường Cát Linh,historic,hanoi,21.028476,105.829793,30000
+w1217390576,Bích Câu Đạo Quán,place_of_worship,hanoi,21.028714,105.832742,0
+w1218673065,Đền Thủy Trung Tiên,place_of_worship,hanoi,21.048666,105.838932,0
+w1219524639,Bảo tàng Phòng không - Không quân,museum,hanoi,20.999274,105.829233,40000
+w1219991538,Tháp Hòa Phong,attraction,hanoi,21.026336,105.853313,20000
+w1229058095,Chùa Tháp,place_of_worship,hanoi,21.032487,105.793725,0
+w1229058096,Đình Tháp,place_of_worship,hanoi,21.032612,105.793554,0
+w1229062099,Đình Thọ Cầu,place_of_worship,hanoi,21.034554,105.791618,0
+w1229062101,Chùa Thọ Cầu,place_of_worship,hanoi,21.034715,105.791428,0
+w1229267979,Đình Ô Cách,place_of_worship,hanoi,21.061007,105.895021,0
+w1229451553,Đài tưởng niệm liệt sĩ phường Quan Hoa,historic,hanoi,21.03813,105.798151,30000
+w1230498807,Chùa Hoa Lăng,place_of_worship,hanoi,21.038386,105.805348,0
+w1230498810,Chùa Nền,place_of_worship,hanoi,21.026598,105.800199,0
+w1230498813,Chùa Cây Quế,place_of_worship,hanoi,21.011011,105.808563,0
+w1232642179,Cổng tam quan Chùa,historic,hanoi,21.053218,105.899828,30000
+w1232642185,Miếu Công chúa,place_of_worship,hanoi,21.053084,105.899862,0
+w1234036432,Đông Phong Art Gallery,gallery,hanoi,21.025215,105.857316,30000
+w1238050566,Chùa Đông Tân,place_of_worship,hanoi,21.014914,105.850652,0
+w1239425732,Chùa Chân Tiên,place_of_worship,hanoi,21.014122,105.849546,0
+w1240363497,Chùa Linh Thông,place_of_worship,hanoi,21.00821,105.81082,0
+w1247135450,Phố đường tàu Hà Nội,attraction,hanoi,21.029974,105.843128,20000
+w1249796827,Nhà lưu niệm Đại tướng Văn Tiến Dũng,historic,hanoi,21.061514,105.776769,30000
+w1250198544,Đình Tân Thụy,place_of_worship,hanoi,21.043474,105.899214,0
+w1251617787,Nhà Chăm,attraction,hanoi,21.039878,105.798992,20000
+w1251617788,Nhà Việt,attraction,hanoi,21.039745,105.799419,20000
+w1251617810,Nhà Hà Nhì,attraction,hanoi,21.041311,105.799173,20000
+w1253201592,Đài tưởng niệm các anh hùng liệt sỹ phường Vĩnh Tuy,historic,hanoi,20.998195,105.873286,30000
+w1255802866,Hội thánh Tin lành Hà Nội,place_of_worship,hanoi,21.031025,105.846023,0
+w1264135486,Chùa Kim Liên,place_of_worship,hanoi,21.011637,105.837852,0
+w1273307132,Chùa Vua,place_of_worship,hanoi,21.01048,105.853133,0
+w1273594368,Đền Hương Tượng,place_of_worship,hanoi,21.034952,105.85329,0
+w1274306485,Đình Đồng Nhân,place_of_worship,hanoi,21.012004,105.855127,0
+w1286509443,Đình Cống Vị,place_of_worship,hanoi,21.037279,105.808272,0
+w1286509450,Đình Kim Mã Thượng,place_of_worship,hanoi,21.037654,105.812708,0
+w1286509452,Chùa Thanh Ninh,place_of_worship,hanoi,21.032708,105.832579,0
+w1286509472,Chùa Kim Sơn,place_of_worship,hanoi,21.031597,105.826401,0
+w1286509474,Đình Kim Mã,place_of_worship,hanoi,21.03129,105.823249,0
+w1286509477,Đình Xuân Biểu,place_of_worship,hanoi,21.033211,105.830842,0
+w1287926762,Chùa Phụng Thánh,place_of_worship,hanoi,21.017478,105.836853,0
+w1287926779,Đình Thổ Quan,place_of_worship,hanoi,21.016269,105.834703,0
+w1287926787,Chùa Linh Ứng,place_of_worship,hanoi,21.019626,105.833706,0
+w1287926793,Đình đền Trung Tả,place_of_worship,hanoi,21.019966,105.834634,0
+w1287926794,Chùa Bụt Mọc,place_of_worship,hanoi,21.021107,105.834324,0
+w1287926795,Điện Huy Văn,place_of_worship,hanoi,21.022875,105.83266,0
+w1287926796,Chùa Huy Văn,place_of_worship,hanoi,21.022988,105.832749,0
+w1287926805,Đền Văn Chỉ,place_of_worship,hanoi,21.023585,105.833014,0
+w1287926806,Đền Lương Sử,place_of_worship,hanoi,21.025551,105.836157,0
+w1287926808,Chùa Linh Quang,place_of_worship,hanoi,21.022465,105.836646,0
+w1287926810,Đình Linh Quang,place_of_worship,hanoi,21.022552,105.836501,0
+w1287959198,Đình Hữu Tiệp,place_of_worship,hanoi,21.038564,105.82716,0
+w1289252431,Đền chính - Đền Voi Phục,place_of_worship,hanoi,21.03064,105.804212,0
+w1289252432,Nhà mẫu - Đền Voi Phục,place_of_worship,hanoi,21.030594,105.803986,0
+w1289252433,Nhà Tả Vu - Đền Voi Phục,place_of_worship,hanoi,21.030825,105.804152,0
+w1289252435,Chùa Phúc Lâm,place_of_worship,hanoi,21.04086,105.849414,0
+w1289252444,Đền Cống Yên,place_of_worship,hanoi,21.045614,105.807422,0
+w1289252451,Đình Hoàng,place_of_worship,hanoi,21.056608,105.784024,0
+w1313264566,Đình Thành Công,place_of_worship,hanoi,21.021283,105.815697,0
+w1315344012,Lăng Phùng Hưng,place_of_worship,hanoi,21.031338,105.829,0
+w1315344014,Đình Thịnh Hào,place_of_worship,hanoi,21.022714,105.831541,0
+w1315344017,Đình Văn Hương,place_of_worship,hanoi,21.023819,105.835461,0
+w1316353973,Bảo tàng Vũ Khí,museum,hanoi,21.067569,105.881322,0
+w1316901417,Nhà lưu niệm Bác Hồ,historic,hanoi,21.057265,105.89519,30000
+w1317836184,Đình Trung Tự,place_of_worship,hanoi,21.012093,105.8382,0
+w1317836196,Chùa Trung Tự,place_of_worship,hanoi,21.012982,105.836353,0
+w1317836198,Đền Trung Phụng,place_of_worship,hanoi,21.015354,105.838239,0
+w1319176641,Chùa Tựu Liệt,place_of_worship,hanoi,20.953506,105.832954,0
+w1323789771,Chùa Nga My,place_of_worship,hanoi,20.990848,105.851997,0
+w1323789772,Đình Hoàng Mai,place_of_worship,hanoi,20.990485,105.852589,0
+w1323789774,Đình Ông,place_of_worship,hanoi,20.991476,105.857525,0
+w1323789775,Đền Lư Giang,place_of_worship,hanoi,20.985208,105.86309,0
+w1329826250,Đền tưởng niệm các Anh Hùng - Liệt Sĩ,historic,hanoi,21.012225,105.754603,30000
+w1330415427,Chùa Giao Quang,place_of_worship,hanoi,21.005989,105.759561,0
+w1331638484,Vinpearl Aquarium Times City,aquarium,hanoi,20.996411,105.867941,100000
+w1337571022,비를 피할수 있는 알록달록한 조형물,artwork,hanoi,21.006006,105.772341,0
+w1350620262,Tàu lượn siêu tốc,attraction,hanoi,21.030506,105.805679,20000
+w136247704,H6 - Nhà truyền thống,museum,hanoi,21.04883,105.784778,40000
+w1368360528,Shaun the Sheep,zoo,hanoi,21.07651,105.836765,60000
+w1372585241,Đình làng Yên Duyên,place_of_worship,hanoi,20.974383,105.867225,0
+w1390007831,Chùa Viên Minh,place_of_worship,hanoi,21.012367,105.855183,0
+w1390007833,Đình Chèm,place_of_worship,hanoi,21.094051,105.774169,0
+w1418338727,Đình Trạm,place_of_worship,hanoi,21.023318,105.889418,0
+w1422082088,Đình Sài Đồng,place_of_worship,hanoi,21.038155,105.900029,0
+w1445339600,Chùa Tương Mai,place_of_worship,hanoi,20.989773,105.847866,0
+w1446285673,Đình Tương Mai,place_of_worship,hanoi,20.987805,105.8477,0
+w1446303895,Chùa Sét,place_of_worship,hanoi,20.983101,105.846347,0
+w1446303897,Đền thờ Đức Vua Cha Bát Hải (Trương Định),place_of_worship,hanoi,20.982388,105.846031,0
+w1446455174,Kim Quy Linh Điện,place_of_worship,hanoi,21.084761,105.860578,0
+w1448665696,Làng Văn Háo Mễ Trì Thượng,historic,hanoi,21.003612,105.779456,30000
+w1450036328,Chùa Phổ Linh,place_of_worship,hanoi,21.060541,105.822589,0
+w1450094984,Chùa Tiêu Giao,place_of_worship,hanoi,21.062872,105.862855,0
+w1452566130,Nhà thờ Giáo xứ Kẻ Sét,place_of_worship,hanoi,20.987722,105.843058,0
+w1452786220,Chùa Hưng Ký,place_of_worship,hanoi,20.994401,105.854904,0
+w1452786221,Đền Mai Sau,place_of_worship,hanoi,20.994102,105.85524,0
+w1454205938,Chùa Tề Đồng Vật Ngã,place_of_worship,hanoi,20.990385,105.849088,0
+w1454208910,Đền Mai Hoa,place_of_worship,hanoi,20.988109,105.846829,0
+w1454630438,Chùa Linh Quang,place_of_worship,hanoi,20.995394,105.842333,0
+w1455209065,Đền thờ cha thánh Martino Tạ Đức Thịnh,place_of_worship,hanoi,20.987126,105.843072,0
+w1460746033,Nhà bia tưởng niệm liệt sỹ,historic,hanoi,20.993526,105.841938,30000
+w1461315292,Đền Cổ Mai,place_of_worship,hanoi,20.992766,105.849787,0
+w1462051681,Đình làng Mai Động,place_of_worship,hanoi,20.992417,105.858996,0
+w1462245643,Chùa Thiện Khánh Mai Động,place_of_worship,hanoi,20.993569,105.858462,0
+w1462245644,Nghe Mai Động,place_of_worship,hanoi,20.993526,105.85811,0
+w1467843082,Chùa A Phái,place_of_worship,hanoi,21.084104,105.872239,0
+w1471597874,Đình Gia Thượng,place_of_worship,hanoi,21.06432,105.866568,0
+w1471931001,Đền Rừng,place_of_worship,hanoi,21.058837,105.861471,0
+w1471931002,Đền Mẫu Thoải Phúc Xá,place_of_worship,hanoi,21.057139,105.861899,0
+w1471931003,Đền Đức Ông Đào Kỳ,place_of_worship,hanoi,21.056556,105.862029,0
+w1473331895,Chùa Liên Hoa,place_of_worship,hanoi,20.982624,105.830806,0
+w1473331896,Đình thôn Hạ,place_of_worship,hanoi,20.982137,105.830268,0
+w1474962118,Chùa Ái Mộ,place_of_worship,hanoi,21.041334,105.865867,0
+w1475290263,Đài tưởng niệm Hồ Chí Minh (Định Công Hạ),historic,hanoi,20.981551,105.830066,30000
+w1475629306,Đình thôn Thượng,place_of_worship,hanoi,20.984463,105.820203,0
+w1476135877,Chùa Mai Phúc,place_of_worship,hanoi,21.040113,105.898674,0
+w1476571872,Nghĩa trang Liệt sỹ Phường Định Công,historic,hanoi,20.982294,105.8278,30000
+w1479282621,Miếu Hoàng Anh,place_of_worship,hanoi,20.979284,105.828614,0
+w1481173156,Đình Phương Liệt,place_of_worship,hanoi,20.996001,105.840111,0
+w1481550721,Đền Voi Phục,place_of_worship,hanoi,21.030078,105.805066,0
+w1481550728,Đài tưởng niệm liệt sĩ,historic,hanoi,21.030986,105.804372,30000
+w1481550735,Nhà Quản tượng,place_of_worship,hanoi,21.03082,105.804275,0
+w1481550737,Miếu Hữu,place_of_worship,hanoi,21.029365,105.805588,0
+w1481550747,Ban thần nông,place_of_worship,hanoi,21.030514,105.804058,0
+w1481550749,Nhà Hữu Vu - Đền Voi Phục,place_of_worship,hanoi,21.030491,105.804221,0
+w1481550751,Miếu chúa sơn trang - Đền Voi Phục,place_of_worship,hanoi,21.030848,105.804344,0
+w1481550752,Miếu cô bơ,place_of_worship,hanoi,21.0308,105.804401,0
+w1482199938,Lăng mộ Hoàng Cao Khải,historic,hanoi,21.008388,105.822604,30000
+w1482440124,Đình Đại Từ,place_of_worship,hanoi,20.970516,105.830356,0
+w1482440125,Chùa Đại Từ,place_of_worship,hanoi,20.970059,105.830492,0
+w1482440126,Đài tưởng niệm Chủ tịch Hồ Chí Minh (Đại Từ),historic,hanoi,20.970368,105.830951,30000
+w1482572128,Đình Trung Kính Thượng,place_of_worship,hanoi,21.012892,105.804958,0
+w1482787842,Đình Kim Văn,place_of_worship,hanoi,20.97565,105.823571,0
+w1482908197,Nhà bia tưởng niệm liệt sỹ Đại Kim,historic,hanoi,20.978034,105.822778,30000
+w1482908222,Đền Vua Lê,place_of_worship,hanoi,20.976612,105.820705,0
+w1483308246,Đình Giáp Lục,place_of_worship,hanoi,20.980798,105.846411,0
+w1484092477,Đền Bà Bụi - Miếu Tổng Thịnh Liệt,place_of_worship,hanoi,20.978598,105.847092,0
+w1484425457,Đình làng Giáp Nhị,place_of_worship,hanoi,20.976409,105.846237,0
+w1484793110,Đình làng Giáp Tứ,place_of_worship,hanoi,20.97634,105.85095,0
+w1488889320,Nhà thờ giáo xứ Yên Duyên,place_of_worship,hanoi,20.965881,105.874529,0
+w1488891322,Chùa Pháp Vân,place_of_worship,hanoi,20.968596,105.842488,0
+w1488891323,Đình làng Pháp Vân,place_of_worship,hanoi,20.968972,105.842109,0
+w1489635599,Chùa Tâm Pháp - Giáp Nhị,place_of_worship,hanoi,20.976534,105.846734,0
+w1490993007,Đình Linh Đàm,place_of_worship,hanoi,20.968253,105.835406,0
+w1497569902,Tượng đài “Quyết tử để Tổ quốc quyết sinh”,historic,hanoi,21.040158,105.846055,30000
+w1497572243,Điện Kính Thiên,historic,hanoi,21.036771,105.840426,30000
+w1498023638,Nhà hoá vàng,historic,hanoi,21.042897,105.836584,30000
+w1498023641,Voi Phục,artwork,hanoi,21.043101,105.836206,0
+w1498023642,Voi Phục,artwork,hanoi,21.042982,105.836202,0
+w1498023643,Nhà tưởng niệm liệt sĩ,place_of_worship,hanoi,21.042821,105.836399,0
+w1498035240,Nhà bia,historic,hanoi,21.042815,105.836236,30000
+w1498334120,Chùa Cống Yên,place_of_worship,hanoi,21.045767,105.807338,0
+w1507387390,Đình làng Hậu,place_of_worship,hanoi,21.036003,105.789868,0
+w1507523027,Làng Cốm Vòng,historic,hanoi,21.034855,105.788966,30000
+w1507639919,Đình Tân Khai,place_of_worship,hanoi,20.988892,105.874765,0
+w1507896803,Chùa Vĩnh Trù,place_of_worship,hanoi,21.037538,105.848525,0
+w1507906001,Đền Thọ Nam,place_of_worship,hanoi,21.032298,105.854296,0
+w1507957173,Đền Nhân Nội,place_of_worship,hanoi,21.034018,105.848215,0
+w1509740862,Miếu thờ Kim Giang,place_of_worship,hanoi,20.978319,105.815708,0
+w1510706883,Đình Đồng Lạc,place_of_worship,hanoi,21.033436,105.850793,0
+w1510723411,Đền Cổ Lương,place_of_worship,hanoi,21.036933,105.851563,0
+w1510732443,Đền Quan Đế,place_of_worship,hanoi,21.036145,105.851985,0
+w1511124667,Đình Đông Thành,place_of_worship,hanoi,21.035201,105.847879,0
+w1511193587,Đền Bích Tiêu,place_of_worship,hanoi,20.982793,105.846206,0
+w1511502932,Nhà thờ Pháp Vân,place_of_worship,hanoi,20.967252,105.843595,0
+w1512814817,Đình làng Giáp Thất,place_of_worship,hanoi,20.983228,105.844238,0
+w1512814818,Chùa Giáp Bát,place_of_worship,hanoi,20.982989,105.843942,0
+w1519545462,Di tích ngôi nhà số 5D phố Hàm Long,museum,hanoi,21.018414,105.854521,40000
+w1519545465,Nhà lưu niệm Chủ tịch Hồ Chí Minh,museum,hanoi,20.977471,105.77674,40000
+w1520930701,Đền Cuông Vọng Tử,place_of_worship,hanoi,20.995591,105.846017,0
+w1524880478,Đình Nam Dư Hạ,place_of_worship,hanoi,20.976916,105.885836,0
+w1524880482,Chùa Nam Dư Hạ,place_of_worship,hanoi,20.977784,105.884252,0
+w1524880491,Chùa Trung Lập,place_of_worship,hanoi,20.981218,105.885677,0
+w1524880492,Đình Trung Lâp,place_of_worship,hanoi,20.98096,105.884431,0
+w1524880571,Chùa Nam Dư Thượng,place_of_worship,hanoi,20.983072,105.880753,0
+w1524880599,Đình Nam Dư Thượng,place_of_worship,hanoi,20.985001,105.885093,0
+w1527119265,Chùa Phúc Khánh,place_of_worship,hanoi,20.988894,105.877503,0
+w1527119269,Đài tưởng niệm liệt sĩ Vĩnh Hưng,historic,hanoi,20.988644,105.877974,30000
+w1527831362,Đình Thịnh Quang,place_of_worship,hanoi,21.008011,105.817868,0
+w1533203862,Nhà thờ giáo họ Yên Lương,place_of_worship,hanoi,20.972758,105.888269,0
+w1533257370,Nhà thờ giáo xứ Nam Dư,place_of_worship,hanoi,20.984151,105.889008,0
+w1537614274,Đình Sở Thượng,place_of_worship,hanoi,20.962703,105.866738,0
+w1537614282,Chùa Hưng Phúc,place_of_worship,hanoi,20.963266,105.867293,0
+w1537614323,Đền Kim Quyết,place_of_worship,hanoi,20.959937,105.869273,0
+w1538978464,Đền Thọ Chỉ,place_of_worship,hanoi,20.972893,105.851637,0
+w1540217672,Đền Ba Cây - Mơ Táo,place_of_worship,hanoi,20.992394,105.86333,0
+w1540217673,Chùa Phúc Khánh (Mơ Táo),place_of_worship,hanoi,20.992797,105.863756,0
+w1547645326,Miếu Nam Dư,place_of_worship,hanoi,20.987524,105.882784,0
+w1554222171,Đền Đông Lô,place_of_worship,hanoi,20.969136,105.893476,0
+w1554222174,Chùa Diên Khánh Thúy Lĩnh,place_of_worship,hanoi,20.975466,105.893798,0
+w1554222175,Đình Thúy Lĩnh,place_of_worship,hanoi,20.975079,105.89397,0
+w1554222193,Chùa Đông Phương,place_of_worship,hanoi,20.980159,105.895455,0
+w1554222198,Đền Bà Chúa,place_of_worship,hanoi,20.979689,105.892481,0
+w1556744125,Đình Hoàng Xá,place_of_worship,hanoi,21.088255,105.766454,0
+w1556744128,Đình Hoàng Liên,place_of_worship,hanoi,21.086156,105.758417,0
+w1556744133,Đình Yên Nội,place_of_worship,hanoi,21.083056,105.753248,0
+w1556744137,Chùa Yên Nội,place_of_worship,hanoi,21.083983,105.753314,0
+w1556744146,Đền Yên Nội,place_of_worship,hanoi,21.083862,105.750602,0
+w1556744163,Đình Đông Ngạc,place_of_worship,hanoi,21.090608,105.787669,0
+w1556744167,Chùa Phúc Khánh,place_of_worship,hanoi,21.087979,105.788486,0
+w1556744174,Chùa Tự Khánh,place_of_worship,hanoi,21.092123,105.778979,0
+w1556744186,Đình Đông Ngạc,place_of_worship,hanoi,21.091206,105.783933,0
+w1556744203,Nhà thờ Danh y Nguyễn Đạo An,place_of_worship,hanoi,21.055033,105.761306,0
+w1557512897,Chùa Quang Minh,place_of_worship,hanoi,21.026831,105.839513,0
+w1557512900,Đình Trung Kính,place_of_worship,hanoi,21.016897,105.839181,0
+w1557512901,Chùa Mỹ Quang,place_of_worship,hanoi,21.017049,105.839081,0
+w1557512912,Chùa Cổ Miễu,place_of_worship,hanoi,21.007826,105.815929,0
+w1557512914,Chùa Cảm Ứng,place_of_worship,hanoi,21.012746,105.81034,0
+w1557512919,Đền Sòng Sơn,place_of_worship,hanoi,21.026878,105.834027,0
+w1557512929,Đền Nhà Bà,place_of_worship,hanoi,21.02768,105.826566,0
+w1557512956,Đền Tương Thuận,place_of_worship,hanoi,21.019254,105.839201,0
+w1557512958,Lăng mộ Hoàng Trọng Phu,historic,hanoi,21.009007,105.822568,30000
+w1557804638,Đình Tú Thị,place_of_worship,hanoi,21.032079,105.847911,0
+w1557804643,Đình Đức Môn,place_of_worship,hanoi,21.035978,105.849476,0
+w1557804650,Chùa Thái Cam,place_of_worship,hanoi,21.035809,105.846927,0
+w1557804651,Đền Vũ Thạch,place_of_worship,hanoi,21.02526,105.851797,0
+w1557804659,Đền Hỏa Thần,place_of_worship,hanoi,21.033318,105.846701,0
+w1557811356,Miếu Hai Bà Trưng,place_of_worship,hanoi,21.013317,105.865915,0
+w1557811367,Chùa Hương Tuyết,place_of_worship,hanoi,21.004493,105.85179,0
+w1557811373,Đình Đại,place_of_worship,hanoi,21.004575,105.850371,0
+w1560427345,Đình Trường Lâm,place_of_worship,hanoi,21.056738,105.895194,0
+w1560427365,Chùa Kim Quan,place_of_worship,hanoi,21.059659,105.89815,0
+w1564495861,Đình An Việt - Mơ Táo,place_of_worship,hanoi,20.992949,105.863314,0
+w1566751724,Đình Giáp Nhị,place_of_worship,hanoi,20.979288,105.843343,0
+w175975025,Chùa Láng,place_of_worship,hanoi,21.024215,105.802886,0
+w178995262,Đền Ngọc Sơn,place_of_worship,hanoi,21.03073,105.852376,0
+w178995269,Tháp Rùa,historic,hanoi,21.027873,105.852293,30000
+w178995271,Đình Trấn Ba,place_of_worship,hanoi,21.03049,105.852428,0
+w185531691,Cửa Bắc,historic,hanoi,21.040555,105.841032,30000
+w185531692,Hậu Lâu,historic,hanoi,21.038254,105.840563,30000
+w185535416,Nhà D67,attraction,hanoi,21.037323,105.840482,20000
+w185536369,Triển lãm Tranh dân gian Việt Nam,gallery,hanoi,21.036378,105.840109,30000
+w185542284,Công trình Vaxuco,historic,hanoi,21.04026,105.840468,30000
+w194852648,Đình Hoàng Cầu,place_of_worship,hanoi,21.02134,105.821952,0
+w200108825,Đình Giảng Võ,place_of_worship,hanoi,21.024924,105.816741,0
+w200130250,Đình Ngọc Khánh,place_of_worship,hanoi,21.029072,105.811802,0
+w207178320,Đền Quán Thánh,place_of_worship,hanoi,21.04303,105.836588,0
+w207178342,Nhà sàn Bác Hồ,attraction,hanoi,21.038171,105.833152,20000
+w208255133,Bảo tàng Hà Nội,museum,hanoi,21.010013,105.786309,40000
+w217341918,Chùa Bằng,place_of_worship,hanoi,20.962573,105.818903,0
+w220302249,Chùa Trấn Quốc,place_of_worship,hanoi,21.0479,105.83676,0
+w228075195,Cung Văn hóa Lao động Hữu nghị Việt Xô,attraction,hanoi,21.022216,105.844235,20000
+w242518340,Tháp nước Hàng Đậu,attraction,hanoi,21.040115,105.847428,20000
+w251611780,Đình làng Bằng A,place_of_worship,hanoi,20.961664,105.821615,0
+w257715376,Đình Liễu Giai,place_of_worship,hanoi,21.036781,105.817883,0
+w258038370,Đền Liễu Giai,place_of_worship,hanoi,21.036891,105.817438,0
+w28912942,Nhà thờ Lớn,place_of_worship,hanoi,21.028659,105.848851,0
+w28945667,Công viên Thủ Lệ,zoo,hanoi,21.030741,105.80664,50000
+w291706038,Bảo tàng lực lượng Tăng Thiết Giáp,museum,hanoi,21.046705,105.794338,40000
+w292907018,Đường sắt Hà Nội - Đồng Đăng,attraction,hanoi,21.038781,105.847153,20000
+w324550132,Đình Khương Hạ,place_of_worship,hanoi,20.992561,105.816328,0
+w337895383,Đại Chủng viện Thánh Giuse Hà Nội - cơ sở 2,place_of_worship,hanoi,21.064716,105.781021,0
+w339936730,Bảo tàng Dân tộc học Việt Nam,museum,hanoi,21.040394,105.798837,40000
+w340128580,Nhà tù Hỏa Lò,museum,hanoi,21.025376,105.846427,40000
+w351035449,Đài tưởng niệm liệt sĩ Phú Diễn,historic,hanoi,21.054449,105.763228,30000
+w37625751,Lăng Chủ tịch Hồ Chí Minh,attraction,hanoi,21.036762,105.834692,20000
+w37629143,Bảo tàng Hồ Chí Minh,museum,hanoi,21.035618,105.832625,40000
+w37629570,Phủ Chủ Tịch,attraction,hanoi,21.039302,105.834441,20000
+w37933050,Nhà hát Lớn,attraction,hanoi,21.024193,105.857825,20000
+w37933256,Bảo tàng Lịch sử Quốc gia Việt Nam,museum,hanoi,21.024243,105.859716,40000
+w37933258,Bảo tàng Lịch sử Quốc gia Việt Nam,museum,hanoi,21.025331,105.858617,40000
+w409390951,Trung tâm Lưu trữ và Triển lãm Ảnh Nghệ thuật Việt Nam,museum,hanoi,21.026166,105.785258,40000
+w412784309,Đình Làng Mễ Trì Hạ,place_of_worship,hanoi,21.011078,105.779321,0
+w428850033,Đình Triều Khúc,place_of_worship,hanoi,20.978511,105.801085,0
+w430133742,Chùa Hương Vân,place_of_worship,hanoi,20.98076,105.800478,0
+w430133921,Đình Thờ Sắc,place_of_worship,hanoi,20.980354,105.80106,0
+w460267385,Đền Núi Sưa,place_of_worship,hanoi,21.039916,105.830005,0
+w480826771,Bảo tàng Văn học Việt Nam,museum,hanoi,21.070618,105.824501,40000
+w483273181,Vườn Thực vật Hà Nội,attraction,hanoi,21.059774,105.756798,20000
+w500576514,Chùa Quan Âm,place_of_worship,hanoi,21.083979,105.847381,0
+w527709325,Chùa Khai Nguyên,place_of_worship,hanoi,21.070438,105.805514,0
+w548070677,Đài Tưởng Niệm Liệt Sĩ Giảng Võ,historic,hanoi,21.024813,105.817184,30000
+w548081099,Chùa Thánh Chúa,place_of_worship,hanoi,21.03923,105.783886,0
+w548259807,Đình Thị Cấm,place_of_worship,hanoi,21.035094,105.749656,0
+w548259809,Đình Thị Cấm,place_of_worship,hanoi,21.038142,105.757619,0
+w568314766,Chùa Quỳnh Lôi,place_of_worship,hanoi,20.999098,105.857823,0
+w582077342,Đài tưởng niệm các nạn nhân bị bom mìn sát hại làng Gia Thụy,historic,hanoi,21.051055,105.886754,30000
+w595185896,Chùa Bụt Mọc,place_of_worship,hanoi,21.051828,105.75625,0
+w630921540,Nhà thờ Thái Hà,place_of_worship,hanoi,21.014836,105.826856,0
+w673072446,Đền Hàm Rồng,place_of_worship,hanoi,20.99804,105.761668,0
+w696389268,Đoan Môn,attraction,hanoi,21.035257,105.840252,20000
+w696389287,Di tích nhà bát giác,historic,hanoi,21.036589,105.83812,30000
+w696668911,Dấu vết ngự đạo,historic,hanoi,21.035383,105.840275,30000
+w697161740,Phủ Thủ tướng,historic,hanoi,21.040463,105.834216,30000
+w697326488,Gian thờ Tổ Mẫu,place_of_worship,hanoi,21.035623,105.833555,0
+w697326489,Chính điện,place_of_worship,hanoi,21.03574,105.833426,0
+w697326496,Chùa Một Cột,attraction,hanoi,21.035856,105.833614,20000
+w697791079,Đền Đống Nước,place_of_worship,hanoi,21.039386,105.823504,0
+w697791083,Chùa Bát Mẫu,place_of_worship,hanoi,21.038272,105.82617,0
+w697791086,Đền Cát Triệu,place_of_worship,hanoi,21.038556,105.827,0
+w697791109,Đình Ngọc Hà,place_of_worship,hanoi,21.037824,105.829351,0
+w698018249,Nhà thờ Cửa Bắc,attraction,hanoi,21.041453,105.840506,20000
+w698273197,Đền Vĩnh Phúc,place_of_worship,hanoi,21.040571,105.818976,0
+w698273199,Chùa Vĩnh Khánh,place_of_worship,hanoi,21.04097,105.819193,0
+w698659314,Đình Vĩnh Phúc,place_of_worship,hanoi,21.040485,105.819258,0
+w698659336,Đình Đại Yên,place_of_worship,hanoi,21.037231,105.820949,0
+w698659339,Chùa Bát Tháp,place_of_worship,hanoi,21.035924,105.822495,0
+w698676698,Đình Vạn Phúc,place_of_worship,hanoi,21.033921,105.824121,0
+w698676700,Đền Miếu Trắng,place_of_worship,hanoi,21.034007,105.823573,0
+w699065697,Chùa Sùng Quang,place_of_worship,hanoi,21.061154,105.781791,0
+w699218399,Đình thôn Viên,place_of_worship,hanoi,21.06557,105.779212,0
+w699218413,Chùa Anh Linh,place_of_worship,hanoi,21.06977,105.779753,0
+w699218417,Đền Bà Chúa,place_of_worship,hanoi,21.068745,105.778877,0
+w699218441,Nhà thờ Giáo xứ Cổ Nhuế,place_of_worship,hanoi,21.064286,105.780491,0
+w699905184,Chùa Châu Lâm,place_of_worship,hanoi,21.042684,105.820151,0
+w699905199,Miếu Thuỵ Ưng,place_of_worship,hanoi,21.043729,105.815737,0
+w699905206,Đền Voi Phục,place_of_worship,hanoi,21.043806,105.815484,0
+w700620994,Chùa Pháp Bảo Tạng,place_of_worship,hanoi,21.037523,105.846979,0
+w700620997,Thánh đường Hồi giáo Al-Noor,place_of_worship,hanoi,21.037948,105.847555,0
+w700627452,Ô Quan Chưởng,historic,hanoi,21.037331,105.852198,30000
+w700627463,Chùa Quán Huyền Thiên,place_of_worship,hanoi,21.038975,105.849096,0
+w700654145,Đền Tứ Vị,place_of_worship,hanoi,21.041507,105.847468,0
+w700654146,Đền Yên Thuận Thượng,place_of_worship,hanoi,21.04193,105.847448,0
+w700654152,Đình Tây Luông,place_of_worship,hanoi,21.041148,105.847894,0
+w700671916,Đền Nghĩa Dũng,place_of_worship,hanoi,21.050189,105.839058,0
+w700671918,Đình An Trí,place_of_worship,hanoi,21.048598,105.841318,0
+w700671930,Chùa Thần Quang,place_of_worship,hanoi,21.046094,105.840688,0
+w700671931,Đình Ngũ Xã,place_of_worship,hanoi,21.046325,105.840743,0
+w700671940,Chùa Châu Long,place_of_worship,hanoi,21.044567,105.841812,0
+w700671954,Đền Đức Vua,place_of_worship,hanoi,21.043536,105.846943,0
+w700671962,Đền Yên Thành,place_of_worship,hanoi,21.040911,105.845225,0
+w700671974,Chùa Hoè Nhai,place_of_worship,hanoi,21.042446,105.847454,0
+w700840685,Đình Kim Ngân,place_of_worship,hanoi,21.03414,105.852965,0
+w700840693,Đền Hương Nghĩa,place_of_worship,hanoi,21.037003,105.852637,0
+w700840702,Trung tâm Giao lưu văn hóa phố cổ Hà Nội,museum,hanoi,21.035519,105.852785,40000
+w700840708,Hội quán Việt Đông,place_of_worship,hanoi,21.036371,105.852244,0
+w700840711,Đền Bạch Mã,place_of_worship,hanoi,21.035913,105.850991,0
+w700840718,Đình Thanh Hà,place_of_worship,hanoi,21.036589,105.850322,0
+w700840727,Chùa Cầu Đông,place_of_worship,hanoi,21.035874,105.849476,0
+w700853374,Chủa Kim Cổ,place_of_worship,hanoi,21.030809,105.847394,0
+w700853377,Đình Yên Thái,place_of_worship,hanoi,21.031384,105.84774,0
+w700853379,Đền Nhân Nội,place_of_worship,hanoi,21.033629,105.847129,0
+w700853380,Đình Tân Khai,place_of_worship,hanoi,21.035846,105.846832,0
+w700853410,Cảm Tử Quân,historic,hanoi,21.031064,105.853747,30000
+w700853412,Đền Hàng Tre,place_of_worship,hanoi,21.032109,105.854688,0
+w701605967,Chùa Bà Đá,place_of_worship,hanoi,21.028667,105.850309,0
+w701882889,Chùa Vũ Thạch,place_of_worship,hanoi,21.025078,105.852222,0
+w701882893,Đình Vũ Thạch,place_of_worship,hanoi,21.025191,105.851782,0
+w701882971,Đình Nam Hương,place_of_worship,hanoi,21.029013,105.850854,0
+w702185155,Khuê Văn Các,attraction,hanoi,21.028583,105.835889,20000
+w702456221,Đền Hàng Cà,place_of_worship,hanoi,21.025767,105.839193,0
+w702456225,Y Miếu,place_of_worship,hanoi,21.027134,105.839745,0
+w702456248,Chùa Phổ Giác,place_of_worship,hanoi,21.026472,105.837985,0
+w702456268,Chùa Bà Nành,place_of_worship,hanoi,21.028899,105.836675,0
+w702456270,Chùa Ngọc Hồ,place_of_worship,hanoi,21.028861,105.837429,0
+w704134587,Bảo tàng Công an Hà Nội,museum,hanoi,21.024293,105.845857,40000
+w704134588,Chùa Quán Sứ,place_of_worship,hanoi,21.024453,105.845415,0
+w704134611,Chùa Thiên Phúc,place_of_worship,hanoi,21.027402,105.843259,0
+w704147278,Bảo tàng Phụ nữ Việt Nam,museum,hanoi,21.023402,105.851603,40000
+w704147333,Bảo tàng Công an nhân dân,museum,hanoi,21.02258,105.845567,40000
+w704147390,Dòng Thánh Phao lô Hà Nội,place_of_worship,hanoi,21.024447,105.84991,0
+w704153616,Bắc Bộ Phủ,attraction,hanoi,21.02662,105.855284,20000
+w704153620,Tòa nhà trung tâm Bưu điện Hà Nội,attraction,hanoi,21.026506,105.853726,20000
+w704159191,Đình Ngọc Lâm,place_of_worship,hanoi,21.044721,105.872826,0
+w704250703,Đền Lâm Du,place_of_worship,hanoi,21.032511,105.871209,0
+w704250709,Chùa Lâm Du,place_of_worship,hanoi,21.033104,105.870192,0
+w704250714,Đình Lâm Du,place_of_worship,hanoi,21.032855,105.870612,0
+w704250754,Đình làng Ái Mộ,place_of_worship,hanoi,21.038845,105.870483,0
+w704292564,Chùa Gia Quất,place_of_worship,hanoi,21.056067,105.877986,0
+w704292568,Đình Gia Quất,place_of_worship,hanoi,21.055118,105.877588,0
+w729254692,Chùa Cát Linh,place_of_worship,hanoi,21.028611,105.829665,0
+w765597030,Phố Tạ Hiện,attraction,hanoi,21.035301,105.851978,20000
+w777200131,Chùa Lủ,place_of_worship,hanoi,20.981571,105.816209,0
+w777200332,Chùa Lủ,place_of_worship,hanoi,20.981265,105.816515,0
+w784360799,Nhà thờ Phùng Khoang,place_of_worship,hanoi,20.989905,105.792098,0
+w784360800,Đình Phùng Khoang,place_of_worship,hanoi,20.989622,105.792935,0
+w826029905,Đình Ứng Thiên,place_of_worship,hanoi,21.011437,105.812105,0
+w838426608,Đền thờ Quang Trung,place_of_worship,hanoi,21.01297,105.823861,0
+w840803791,Chùa Liên Phái,place_of_worship,hanoi,21.005393,105.848923,0
+w860294713,Nhà thờ Hàng Bột,place_of_worship,hanoi,21.024606,105.832236,0
+w862095211,Chùa Thanh Nhàn,place_of_worship,hanoi,21.022869,105.824962,0
+w867981976,Nhà lưu niệm Chủ tịch Hồ Chí Minh,historic,hanoi,21.008141,105.835746,30000
+w875488220,Chùa Đại An,place_of_worship,hanoi,21.029782,105.768017,0
+w884063648,Chùa Nam Đồng,place_of_worship,hanoi,21.017642,105.82829,0
+w888629812,Chùa Bộc,place_of_worship,hanoi,21.008367,105.827645,0
+w891950562,Chùa Quan Nhân,place_of_worship,hanoi,21.004427,105.809382,0
+w892577251,Trung tâm nghệ thuật VCCA,gallery,hanoi,21.003424,105.814907,30000
+w894857495,Đình Yên Phụ,place_of_worship,hanoi,21.052261,105.836125,0
+w916879501,Đình Khương Thượng,place_of_worship,hanoi,21.003468,105.82503,0
+w925432867,Đài tưởng niệm liệt sỹ,historic,hanoi,21.053421,105.812162,30000
+w925432868,Đình làng Võng Thị,place_of_worship,hanoi,21.053116,105.812313,0
+w925432869,Chùa Võng Thị,place_of_worship,hanoi,21.05277,105.811805,0
+w925434570,Đình Đông Xã,place_of_worship,hanoi,21.047721,105.810905,0
+w925434571,Đình làng Hồ Khẩu,place_of_worship,hanoi,21.046837,105.812845,0
+w925434573,Đền Dực Thánh,place_of_worship,hanoi,21.048385,105.813612,0
+w939812608,Nhà thờ Hà Đông,place_of_worship,hanoi,20.971724,105.778181,0
+w941901612,Đền Kim Ngưu,place_of_worship,hanoi,21.05663,105.819639,0
+w941901613,Phủ Tây Hồ,place_of_worship,hanoi,21.055556,105.819719,0
+w944100695,Chùa Khuyến Lương,place_of_worship,hanoi,20.973337,105.880804,0
+w944513319,Nhà thờ Hàm Long,place_of_worship,hanoi,21.018679,105.853495,0
+w947089943,Đền Kim Liên,place_of_worship,hanoi,21.010678,105.838174,0
+w9566542,Cầu Thê Húc,attraction,hanoi,21.030769,105.852782,20000
+w964908494,Nhà tưởng niệm Liệt sĩ phường Phú Thượng,historic,hanoi,21.087487,105.808633,30000
+w977375277,Đình Nam Đồng,place_of_worship,hanoi,21.016909,105.829356,0
+n1001114513,Bảo Tàng Địa Chất,museum,hcmc,10.784996,106.707675,40000
+n10065432663,Hang đá Đức Mẹ,place_of_worship,hcmc,10.781355,106.681378,0
+n10259377070,Phòng Tranh,gallery,hcmc,10.810132,106.731207,30000
+n10647887205,Hồ Ngọc Lãm,artwork,hcmc,10.722903,106.610677,0
+n10648714827,Trần Quốc Tuấn,artwork,hcmc,10.730965,106.699833,0
+n10648714829,Einstein,artwork,hcmc,10.730985,106.699962,0
+n10648714832,Nguyễn Huệ,artwork,hcmc,10.731024,106.699825,0
+n10648714833,Lê Lợi,artwork,hcmc,10.730903,106.699843,0
+n10710920798,Cây đàn Việt Nam,artwork,hcmc,10.777174,106.703696,0
+n10730844051,Đại Lý Siemens - Công Ty TNHH Thanh Thiên Phú,place_of_worship,hcmc,10.854361,106.747596,0
+n10733429694,Tượng Quan Âm,artwork,hcmc,10.874663,106.6468,0
+n10733449241,Tượng Phật Di Lặc,artwork,hcmc,10.874989,106.646503,0
+n10831380266,Maitrism,information,hcmc,10.756808,106.689313,0
+n10885932945,Tượng Quan Thế Âm Bồ Tát,artwork,hcmc,10.742924,106.616477,0
+n10885932946,Tượng Đức Phật A Di Đà,artwork,hcmc,10.742282,106.616262,0
+n10885932947,Tượng Đức Phật Thích Ca Mâu Ni,artwork,hcmc,10.742724,106.616217,0
+n10885932956,Tượng Đức Phật Thích Ca Mâu Ni,artwork,hcmc,10.742328,106.616482,0
+n10885935314,Tượng Đức Phật Thích Ca Mâu Ni,artwork,hcmc,10.745389,106.617347,0
+n11040495502,Annam Gallery,gallery,hcmc,10.790027,106.688839,30000
+n11052129961,Chùa Đức Nguyên,place_of_worship,hcmc,10.725988,106.644177,0
+n11054418024,Miếu Ngũ Hành,place_of_worship,hcmc,10.730757,106.668879,0
+n11054429258,Chùa Thiền Lâm,place_of_worship,hcmc,10.740132,106.66891,0
+n11054448200,Chùa Bửu Quang,place_of_worship,hcmc,10.741078,106.672649,0
+n11056126202,Tịnh xá Ngọc Quy,place_of_worship,hcmc,10.73046,106.700699,0
+n11056339475,Chùa Tam Bửu,place_of_worship,hcmc,10.706472,106.739947,0
+n11056355060,Chùa Quang Minh,place_of_worship,hcmc,10.704864,106.740588,0
+n11056363251,Di tích lịch sử Gò Ô Môi,historic,hcmc,10.73385,106.741107,30000
+n11056396325,Chùa Pháp Thường,place_of_worship,hcmc,10.708125,106.810139,0
+n11056420243,Chùa Pháp Bảo,place_of_worship,hcmc,10.705547,106.813395,0
+n11056423853,Thánh thất Phú Đông,place_of_worship,hcmc,10.705619,106.818539,0
+n11056430479,Chùa Đàm Hoa,place_of_worship,hcmc,10.70734,106.81195,0
+n11056431339,Hương Nghiêm thiền viện,place_of_worship,hcmc,10.707296,106.81096,0
+n11056438888,Chùa Diệu Âm,place_of_worship,hcmc,10.705066,106.820598,0
+n11056445882,Chùa Pháp Thường,place_of_worship,hcmc,10.706103,106.818228,0
+n11056450283,Miễu Bà Ngũ Hành Rạch Cá,place_of_worship,hcmc,10.722183,106.772206,0
+n11056491237,Chùa Khánh Vân,place_of_worship,hcmc,10.675729,106.786998,0
+n11056491238,Bia tưởng niệm Liệt Sĩ xã Phước Khánh,historic,hcmc,10.676759,106.788711,30000
+n11056540263,Thánh thất Phước Khánh,place_of_worship,hcmc,10.677101,106.788978,0
+n11056551715,Miễu Ngũ Hành Phước Khánh,place_of_worship,hcmc,10.677424,106.788318,0
+n11056561135,Chùa Phước Lâm Cổ Tự,place_of_worship,hcmc,10.689227,106.835709,0
+n11058996842,Chùa Linh Sơn Hải Hội,place_of_worship,hcmc,10.840848,106.637249,0
+n11063430386,Chùa Lộc Dã,place_of_worship,hcmc,10.746786,106.670759,0
+n11063450896,Chùa Giác Quang,place_of_worship,hcmc,10.744782,106.666282,0
+n11184931964,Hội thánh Bi-sôn - Bishon Church,place_of_worship,hcmc,10.820238,106.726562,0
+n11244192784,Chùa Đồi,place_of_worship,hcmc,10.896458,106.848303,0
+n11248390446,Chùa Thiện Phước,place_of_worship,hcmc,10.702322,106.654392,0
+n11274966991,Đài tưởng niệm Liệt sỹ Bình Thạnh,historic,hcmc,10.803256,106.695238,30000
+n11343699081,CBES Mini Museum,museum,hcmc,10.792594,106.771801,40000
+n11365637664,Chùa Vạn Hạnh,place_of_worship,hcmc,10.799869,106.66027,0
+n11412869313,Tượng Phan Châu Trinh,artwork,hcmc,10.804274,106.66195,0
+n11430381711,Cambodia Bus Companies (many),attraction,hcmc,10.76781,106.691526,20000
+n11494677859,Mohandas Gandhi,artwork,hcmc,10.774818,106.693746,0
+n11515859469,Enjoy Massage Therapy;Góc Nhật Bản,attraction,hcmc,10.780358,106.704662,20000
+n11700124145,Bia Truyền thống Vườn Lài,historic,hcmc,10.764974,106.672707,30000
+n11708010270,Đường Sách,attraction,hcmc,10.780573,106.699695,20000
+n11759508517,J.B.Louis Pierre,artwork,hcmc,10.787982,106.705679,0
+n11827013649,Some Rockets And Military Vehicles,attraction,hcmc,10.802217,106.648704,20000
+n11828383887,MI-8,historic,hcmc,10.805219,106.660939,30000
+n11828383888,BOMBER A-37,historic,hcmc,10.804866,106.660717,30000
+n11828383890,PLANE UH-1,historic,hcmc,10.805041,106.660833,30000
+n11828383891,MI-24,historic,hcmc,10.80512,106.66105,30000
+n11828383892,RECONNAISSANCE PLANE U17. NO 764,historic,hcmc,10.80495,106.660785,30000
+n11828383893,JET PLANE MIG-21,historic,hcmc,10.804987,106.660945,30000
+n11828383897,INTERCEPTING BOMBER F5 NO 7579,historic,hcmc,10.804912,106.660904,30000
+n11829112369,Tượng ông Quách Đàm,artwork,hcmc,10.749383,106.651071,0
+n12050438627,Hồ Văn Huê,artwork,hcmc,10.84542,106.778064,0
+n12098937304,Tượng đài chiến thắng Bắc Thủ Đức,historic,hcmc,10.854821,106.739336,30000
+n12100148065,Nhà tôi - Nguyễn Trung Tín,place_of_worship,hcmc,10.831902,106.592115,0
+n12100969988,Chùa Minh Đức,place_of_worship,hcmc,10.786344,106.763751,0
+n12157256608,Tượng đài Nam Kỳ Khởi Nghĩa,historic,hcmc,10.889174,106.59527,30000
+n12159797672,Chùa Bà Châu Đốc 3 (Chùa Phước Long),place_of_worship,hcmc,10.879507,106.846032,0
+n12187388985,Chùa Định Lâm,place_of_worship,hcmc,10.713263,106.624304,0
+n12187407317,Chùa Giác Linh,place_of_worship,hcmc,10.712775,106.623689,0
+n12187452756,Chùa Viên Giác,place_of_worship,hcmc,10.713465,106.616422,0
+n12187486006,Chùa Từ Quang,place_of_worship,hcmc,10.712812,106.598651,0
+n12188527256,Tịnh Thất An Phú,place_of_worship,hcmc,10.837054,106.550396,0
+n12188528266,Khu Di Tích Dân Công Hỏa Tuyến,museum,hcmc,10.83929,106.550625,40000
+n12216161102,Tượng Tôn Đức Thắng,artwork,hcmc,10.771809,106.701473,0
+n12250683119,Chùa Pháp Chơn,place_of_worship,hcmc,10.660997,106.619948,0
+n12250687110,Chùa Vĩnh Phúc,place_of_worship,hcmc,10.679161,106.592595,0
+n12250712276,Chùa Phổ Quang,place_of_worship,hcmc,10.65672,106.615269,0
+n12288965901,Bãi chờ ra ca đi nhậu,attraction,hcmc,10.853426,106.796529,20000
+n12320153446,Cá chép,artwork,hcmc,10.794251,106.775027,0
+n12351093402,Ben Nghe Street Food,attraction,hcmc,10.777625,106.697823,20000
+n12369420001,Buu Long Buddhist Temple & Pagoda,place_of_worship,hcmc,10.818954,106.832227,0
+n12505622801,cầu lê văn việt,attraction,hcmc,10.843635,106.806468,20000
+n12505622803,Cầu,attraction,hcmc,10.82952,106.803709,20000
+n12505622901,fpt,attraction,hcmc,10.835574,106.808251,20000
+n12505622902,cty lập thành,attraction,hcmc,10.832359,106.806105,20000
+n12505625301,Sámung,attraction,hcmc,10.828428,106.802193,20000
+n12568787480,Bia tưởng niệm Nam Bộ Kháng chiến,historic,hcmc,10.749041,106.683491,30000
+n12619823329,Chùa Long Hoa Liên Bảo,place_of_worship,hcmc,10.861574,106.801746,0
+n12629969095,Tượng vua Quang Trung,artwork,hcmc,10.890006,106.800608,0
+n12730462257,Parish of the Protection of the Holy Theotokos,place_of_worship,hcmc,10.810271,106.734032,0
+n12733263316,Chùa Long Vân,place_of_worship,hcmc,10.805726,106.705536,0
+n12818406575,Chùa Phổ Quang Đường Huỳnh Lan Khanh,place_of_worship,hcmc,10.804775,106.668542,0
+n12845280181,Miếu Bà Chúa Xứ Kinh Ngang,place_of_worship,hcmc,10.657353,106.799544,0
+n12845389539,Chùa Quang Minh Như Lai,place_of_worship,hcmc,10.661007,106.772949,0
+n12845423664,Chùa Thiên Huệ,place_of_worship,hcmc,10.662055,106.779193,0
+n12893880768,Tượng Lý Tự Trọng Khám Lớn,artwork,hcmc,10.775493,106.698886,0
+n12901443422,Vân Đường Phủ (Nhà cụ Vương Hồng Sển),museum,hcmc,10.805225,106.699236,40000
+n12985242501,Khu Đô Thị Palm Marina City Novaland - Cổng Chính,historic,hcmc,10.789288,106.82195,30000
+n13124298027,Tượng vua Lê Lợi,artwork,hcmc,10.747666,106.649262,0
+n13142318454,Chùa Định Hương,place_of_worship,hcmc,10.870939,106.681306,0
+n13253059391,level 48 view is free and sufficient level 75 bar forces to buy one item per person - roughly 300.000 Dong per item - watery cocktails,viewpoint,hcmc,10.795036,106.721743,0
+n13336584701,Quang San Art Museum,museum,hcmc,10.818065,106.730073,40000
+n13437582047,Phở Bình,attraction,hcmc,10.790891,106.687077,20000
+n13528237411,HTTL Nguồn Sáng - LIghthouse Evangelical Church,place_of_worship,hcmc,10.832441,106.68991,0
+n13577839064,Tượng đài Giọt nước,artwork,hcmc,10.765149,106.679814,0
+n13663839301,Ring,historic,hcmc,10.77178,106.706576,30000
+n13668396337,Đền thờ Họ Lê,place_of_worship,hcmc,10.752809,106.657727,0
+n13706766968,CHÚCHỨNGNĂMHỎI,artwork,hcmc,10.812061,106.673672,0
+n13922170019,Miếu Ngũ Hành,historic,hcmc,10.756106,106.677092,30000
+n13937796640,Đức mẹ Maria,artwork,hcmc,10.752739,106.67813,0
+n13961419047,Miếu Bà Cố Vàm Tắc Rỗi,place_of_worship,hcmc,10.742716,106.736713,0
+n13996116244,Tượng Nguyễn Tất Thành,artwork,hcmc,10.768514,106.706692,0
+n14014006893,The Commons Thu Thiem,attraction,hcmc,10.782285,106.713316,20000
+n14092716982,Đình,place_of_worship,hcmc,10.804129,106.68567,0
+n14102292401,Tu Viện Quảng Hương Già Lam,place_of_worship,hcmc,10.8202,106.6858,0
+n14159026501,Tượng Thánh Mátthêu Lê Văn Gẫm (1813-1847),historic,hcmc,10.768693,106.689226,30000
+n1606185451,Chùa Hưng Long,place_of_worship,hcmc,10.781929,106.651065,0
+n1769477948,Tượng An Dương Vương,artwork,hcmc,10.759853,106.668921,0
+n1770193818,Phòng Truyền thống Thành Đoàn,museum,hcmc,10.782074,106.697707,40000
+n1770193841,Hồ Con Rùa,historic,hcmc,10.782588,106.695889,30000
+n1771088897,Bia Tưởng Niệm Trận Đánh Tòa Đại Sứ Mỹ,historic,hcmc,10.782967,106.700828,30000
+n1779408248,Miếu Ngũ Hành,place_of_worship,hcmc,10.754706,106.691198,0
+n2068659844,Khánh Vân Nam Viện Đạo Quán,place_of_worship,hcmc,10.757368,106.650752,0
+n2230447361,Nhà Thiếu Nhi Quận 1,museum,hcmc,10.784992,106.698682,40000
+n2297794195,Bảo Tàng TMA,museum,hcmc,10.855885,106.631485,40000
+n2410639584,Tượng Đức Bà Hòa Bình,historic,hcmc,10.779255,106.699627,30000
+n2593665195,Nhà Thờ Vĩnh Hiệp,place_of_worship,hcmc,10.841379,106.643541,0
+n2655151822,Chùa Giác Vương,place_of_worship,hcmc,10.860749,106.621429,0
+n2676925717,Miếu Năm Bà Ngũ Hành Tao Đàn,place_of_worship,hcmc,10.773697,106.694186,0
+n2677242469,Chùa Phước Hòa,place_of_worship,hcmc,10.768385,106.681313,0
+n2692629476,Liên Đoàn Truyền Giáo Phúc Âm Việt Nam,place_of_worship,hcmc,10.770301,106.704895,0
+n2776795747,Chùa Phong Linh,place_of_worship,hcmc,10.834785,106.782939,0
+n2891024263,Tượng Trận Đánh Cư Xá Brink,historic,hcmc,10.777611,106.703726,30000
+n2935020318,Tượng Phù Đổng Thiên Vương,artwork,hcmc,10.771349,106.693241,0
+n2942308148,Nghĩa Dũng Đài,historic,hcmc,10.889428,106.809719,30000
+n2995947269,Chùa Đại Giác,place_of_worship,hcmc,10.797652,106.672529,0
+n3098846282,Nhà Thờ Hòa Bình,place_of_worship,hcmc,10.821445,106.677756,0
+n3116339965,Lăng Lê Văn Duyệt,historic,hcmc,10.803081,106.706623,30000
+n3164015111,Chùa Bửu Long,place_of_worship,hcmc,10.768924,106.59096,0
+n3198064128,Tổ Đình Kim Sơn,place_of_worship,hcmc,10.799667,106.685093,0
+n3230436393,Nam Thiên Nhất Trụ,place_of_worship,hcmc,10.843459,106.762787,0
+n3246442149,Chùa Wat Chantaransay,place_of_worship,hcmc,10.786371,106.682883,0
+n3313813773,Chùa Từ Quang,place_of_worship,hcmc,10.884929,106.772326,0
+n3375861775,Nhà Thờ Tân Lập,place_of_worship,hcmc,10.786766,106.778822,0
+n3377464221,Tịnh xá Ngọc Thanh,place_of_worship,hcmc,10.792511,106.77653,0
+n3377491738,Nhà Thờ Mỹ Hòa,place_of_worship,hcmc,10.784833,106.777558,0
+n3462993568,Trụ Sở Công An P.17 Q.Phú Nhuận,place_of_worship,hcmc,10.792849,106.680443,0
+n3482730475,Tank 390,historic,hcmc,10.778158,106.695546,30000
+n3482730476,Tank 843,historic,hcmc,10.778207,106.695836,30000
+n3608610063,Chùa Phước Lâm,place_of_worship,hcmc,10.809343,106.683172,0
+n3614214188,Giáo xứ Bác Ái,place_of_worship,hcmc,10.810326,106.683935,0
+n3630818123,Chùa Kim Cương,place_of_worship,hcmc,10.790305,106.679689,0
+n3812282642,Đài Kỷ Niệm Thích Quảng Đức,historic,hcmc,10.774988,106.686616,30000
+n4110078089,Bảo Tàng FITO,museum,hcmc,10.776283,106.671968,40000
+n4110079092,Bảo tàng Tranh 3D Artinus,artwork,hcmc,10.742963,106.694676,0
+n4110081290,Chùa Chantarangsay,place_of_worship,hcmc,10.785464,106.681997,0
+n4111509589,Công Viên Ven Sông An Phú Hưng,attraction,hcmc,10.736246,106.709995,20000
+n411926448,Bia ghi công Mặt trận Cầu Kiệu,historic,hcmc,10.793201,106.686044,30000
+n4122275990,Tượng Bồ Tát Thích Quảng Đức,historic,hcmc,10.775448,106.686755,30000
+n4131348091,Chùa Vạn Phật,place_of_worship,hcmc,10.752992,106.675382,0
+n4131348092,Bảo Tàng Áo Dài,museum,hcmc,10.809752,106.849758,40000
+n4131348295,Tara & Kys Art Gallery,gallery,hcmc,10.776407,106.704865,30000
+n4131498489,Bảo Tàng Tư Nhân Đức Minh,museum,hcmc,10.84084,106.765554,40000
+n4131658297,Chùa Giác Ngộ,place_of_worship,hcmc,10.760955,106.672757,0
+n4131719809,Chùa Sắc Tứ Trường Thọ,place_of_worship,hcmc,10.826455,106.680237,0
+n4131725789,Địa Đạo Phú Thọ Hòa,attraction,hcmc,10.78422,106.631267,20000
+n4131725795,Chùa Phước Tường,place_of_worship,hcmc,10.844301,106.786656,0
+n4131725796,Đình Phú Nhuận,place_of_worship,hcmc,10.796185,106.672413,0
+n4131745690,Nhà Thờ Thánh Phaolô,place_of_worship,hcmc,10.755402,106.599153,0
+n4187322590,Lăng Trương Vĩnh Ký,historic,hcmc,10.755687,106.681564,30000
+n4211585189,Anh Tường Mỹ Thuật,artwork,hcmc,10.784062,106.620094,0
+n4220779696,Tượng đài Công Nông Binh,historic,hcmc,10.767687,106.674395,30000
+n4223398172,Khu Du Lịch Bình Qưới,attraction,hcmc,10.829499,106.739254,20000
+n4223495589,Sàn Art,artwork,hcmc,10.789904,106.709926,0
+n4246194826,Tượng Mary,artwork,hcmc,10.77215,106.710807,0
+n4290033103,Giáo xứ thánh tâm,place_of_worship,hcmc,10.843966,106.773939,0
+n4290033201,Nhà Thờ Giáo Xứ Thánh Linh,place_of_worship,hcmc,10.843235,106.781406,0
+n4355457194,마누라집,historic,hcmc,10.749074,106.72973,30000
+n4423122039,Nhà Thờ Đức Mẹ Hằng Cứu Giúp,place_of_worship,hcmc,10.849508,106.67174,0
+n4423122041,Nhà Thờ Thạch Đà,place_of_worship,hcmc,10.850527,106.653951,0
+n4450362196,Nam Thành Thánh Thất,place_of_worship,hcmc,10.763983,106.689519,0
+n4452998291,Cảng cát lái,viewpoint,hcmc,10.763819,106.793458,0
+n4469531489,Chùa Viên Minh,place_of_worship,hcmc,10.724033,106.660475,0
+n4472920894,Bia Liệt Sĩ,historic,hcmc,10.832324,106.570521,30000
+n4527079991,Chùa Pháp Bảo,place_of_worship,hcmc,10.843503,106.659075,0
+n4531908000,Chùa Vạn Đức,place_of_worship,hcmc,10.863806,106.743022,0
+n4593881691,Chùa Từ Thoàn,place_of_worship,hcmc,10.731564,106.641227,0
+n4593932295,Chùa Thiên Phước,place_of_worship,hcmc,10.758938,106.689654,0
+n4594340509,Chùa Phật Ấn,place_of_worship,hcmc,10.756967,106.686831,0
+n4596325693,Chùa Từ Hiếu,place_of_worship,hcmc,10.741017,106.687442,0
+n4603007782,Pháp Viện Minh Đăng Quang,place_of_worship,hcmc,10.802698,106.751281,0
+n4615672718,Nhà Thờ Đức Bà Fatima,place_of_worship,hcmc,10.764801,106.686191,0
+n4674922391,Nhà Thờ Phát Diệm,place_of_worship,hcmc,10.802848,106.67846,0
+n4674945189,Tu Viện Truyền GiáoThánh Vinh Sơn,place_of_worship,hcmc,10.836403,106.577836,0
+n4708210889,Chùa Chưởng Thánh,place_of_worship,hcmc,10.704802,106.687928,0
+n4720321393,គុយទាវ Hong Phat,attraction,hcmc,10.771466,106.683335,20000
+n4746301227,Cà Phê Điêu Thuyền,attraction,hcmc,10.843978,106.655331,20000
+n4801267622,Thánh Đường Hồi Giáo Jamiul Anwar,place_of_worship,hcmc,10.747124,106.690491,0
+n4813074210,Chùa Sùng Chính,place_of_worship,hcmc,10.718384,106.623699,0
+n4813074237,Chùa Quan Thế Âm,place_of_worship,hcmc,10.720323,106.629192,0
+n4813087459,Đài Tưởng Niệm Liệt Sĩ Quận 8,historic,hcmc,10.706551,106.627077,30000
+n4815676514,Nhà Thờ Tin Lành Thiên Giang,place_of_worship,hcmc,10.690579,106.578352,0
+n4818216280,Chùa Quan Âm,place_of_worship,hcmc,10.665074,106.594116,0
+n4828147520,Dốc Shakespeare,viewpoint,hcmc,10.879755,106.797814,0
+n4865404721,Giáo xứ Công Lý,place_of_worship,hcmc,10.791983,106.683468,0
+n4865404836,Tượng Bồ tát Quan Thế Âm Avalokitesvara,artwork,hcmc,10.790569,106.682448,0
+n4865522503,Bia Liệt Sĩ Xã Vĩnh Lộc A,historic,hcmc,10.813597,106.577769,30000
+n4889894025,Chùa Đại Bi,place_of_worship,hcmc,10.752143,106.649323,0
+n4935595399,Miếu Cây Cầy,place_of_worship,hcmc,10.861896,106.788029,0
+n4938463134,Nhà Thờ Phanxicô Xavier,place_of_worship,hcmc,10.872474,106.746004,0
+n4952591321,nhà quân,artwork,hcmc,10.896218,106.717234,0
+n4960234436,Cầu vượt Sóng Thần,viewpoint,hcmc,10.875882,106.75112,0
+n5001495621,Nhà Thờ Trung Chánh,place_of_worship,hcmc,10.861258,106.609738,0
+n5001800277,Chùa Phước Hòa,place_of_worship,hcmc,10.766052,106.649388,0
+n5076808823,Chủng Viện Scalabrinian Seminary,place_of_worship,hcmc,10.87981,106.725858,0
+n5137981655,Disco Travel - Du lịch Quốc Tế Khám Phá,attraction,hcmc,10.815166,106.673482,20000
+n5211390921,Hiền tài là nguyên khí quốc gia,historic,hcmc,10.78588,106.702651,30000
+n5238585659,Tượng Phan Đình Phùng,artwork,hcmc,10.750759,106.659158,0
+n5238614066,F5E Fighter Aircraft,historic,hcmc,10.778526,106.69504,30000
+n5293847327,Đến Thánh Phêrôthi,place_of_worship,hcmc,10.784967,106.661935,0
+n5293847367,Đền Thánh Micae,place_of_worship,hcmc,10.784617,106.656907,0
+n5309941724,Tượng đài Trần Văn Ơn,historic,hcmc,10.776708,106.699416,30000
+n5362836921,Miếu Ngũ Hành,place_of_worship,hcmc,10.842942,106.742858,0
+n5378089323,Sculpture Garden,attraction,hcmc,10.774734,106.693817,20000
+n5382283921,Tanaka Tei,museum,hcmc,10.800788,106.643463,40000
+n5388462723,Công viên bờ sông Sài Gòn,attraction,hcmc,10.771667,106.709736,20000
+n5419192721,Nhà thờ Fatima Bình Triệu,place_of_worship,hcmc,10.829139,106.710384,0
+n5430822321,Chùa Sùng Đức,place_of_worship,hcmc,10.754521,106.641559,0
+n5433188023,Cầu Đi Bộ Số 7,attraction,hcmc,10.745829,106.654333,20000
+n5568791023,Chùa Vạn Thọ,place_of_worship,hcmc,10.795824,106.686113,0
+n5741177614,Tịnh Thất Ngọc Chơn,place_of_worship,hcmc,10.865344,106.806798,0
+n5777165478,Nhà Thờ An Phú,place_of_worship,hcmc,10.739365,106.696956,0
+n5838288123,Tu viện Khánh An,place_of_worship,hcmc,10.861371,106.705191,0
+n6021312106,Miếu Quan Âm,place_of_worship,hcmc,10.702825,106.608232,0
+n6045632728,Động vật bò sát,attraction,hcmc,10.790134,106.705884,20000
+n6045633938,Hươu cao cổ,attraction,hcmc,10.788095,106.707801,20000
+n6045633961,Cá sấu,attraction,hcmc,10.786256,106.708476,20000
+n6045634869,Voi,attraction,hcmc,10.78865,106.707167,20000
+n6209535522,Tượng Bác Hồ Với Thiếu Nhi,artwork,hcmc,10.784254,106.689203,0
+n6220729003,Nhà Hàng Ý Capricciosa,artwork,hcmc,10.794736,106.721231,0
+n6315671636,Tượng Đài Tượng Niệm - Công Viên Văn Lang,historic,hcmc,10.756378,106.667271,30000
+n6315672812,Tịnh Xá Di Đà,place_of_worship,hcmc,10.757426,106.674346,0
+n6315673314,Chùa Phú Thanh,place_of_worship,hcmc,10.790906,106.676701,0
+n6315692186,Miếu Bà Thiên Hậu Thánh Mẫu,place_of_worship,hcmc,10.77327,106.688924,0
+n6319111467,Chùa Vĩnh Phước,place_of_worship,hcmc,10.831918,106.621807,0
+n6361818785,Đài Tưởng Niệm Liệt Sỹ Ấp Doi,historic,hcmc,10.855708,106.673641,30000
+n6361818787,Miếu Năm Bà Ngũ Hành,place_of_worship,hcmc,10.855738,106.673639,0
+n6390690759,Miếu Ngũ Hành,place_of_worship,hcmc,10.759436,106.695961,0
+n6393868878,Miếu Ngũ Hành,place_of_worship,hcmc,10.758184,106.694298,0
+n6406557718,Linh Công Tự,place_of_worship,hcmc,10.761224,106.708372,0
+n6538573183,Chùa Liên Hoa,place_of_worship,hcmc,10.753292,106.605046,0
+n6539020486,Đền Thờ Hẻm 182 Lê Văn Sỹ,place_of_worship,hcmc,10.794079,106.671094,0
+n6604890385,Đền Thờ Quan Đệ Nhị,place_of_worship,hcmc,10.748817,106.634592,0
+n6770305218,Nhà Thờ Xóm Thuốc,place_of_worship,hcmc,10.829345,106.671277,0
+n6788701449,vòng xoay,attraction,hcmc,10.839473,106.81082,20000
+n6909743958,Tượng Quách Thị Trang,historic,hcmc,10.776293,106.699021,30000
+n6924180585,Nhà Thờ Mai Khôi,place_of_worship,hcmc,10.777723,106.683645,0
+n6990220513,Immolation de Thích Quảng Đức,historic,hcmc,10.775042,106.686796,30000
+n7017406575,Chùa Viên Giác,place_of_worship,hcmc,10.802079,106.686638,0
+n7436115483,Miếu Chiến Sĩ,place_of_worship,hcmc,10.728737,106.640955,0
+n7436144222,Miễu Bà Chúa Xứ Rạch Su,place_of_worship,hcmc,10.722688,106.649192,0
+n7501051345,Bia Kỷ Niệm Lễ Độc Lập,historic,hcmc,10.780318,106.697875,30000
+n7501164417,Đức Mẹ Maria,historic,hcmc,10.781846,106.703369,30000
+n7513022915,Di Tích Chuồng Chim Bồ Câu Người Ấn Tamil,historic,hcmc,10.774019,106.701397,30000
+n7532265269,Bia Kỷ Niệm Sự Kiện Đấu Tranh Ngày 19/3/1950,historic,hcmc,10.768733,106.695794,30000
+n7537965273,Thánh Đường Masjid Nurul Islam,place_of_worship,hcmc,10.794697,106.704198,0
+n7537965274,Thánh Đường Masjid Jamiul Muwahidin,place_of_worship,hcmc,10.824038,106.767023,0
+n7540613475,Đền Thờ Trần Hưng Đạo,place_of_worship,hcmc,10.757548,106.706714,0
+n7540854074,Tượng Maria,artwork,hcmc,10.753338,106.710143,0
+n7559549347,Nhà Thờ The Well International,place_of_worship,hcmc,10.764244,106.703901,0
+n7561041146,Chùa Bồ Đề,place_of_worship,hcmc,10.762409,106.701338,0
+n759625207,Chùa Huê Nghiêm Giảng,place_of_worship,hcmc,10.800235,106.689876,0
+n7619622746,Chùa Huyền Trang,place_of_worship,hcmc,10.83924,106.647699,0
+n7787717363,Nhứt Nguyên Bửu Tự,place_of_worship,hcmc,10.872093,106.702483,0
+n8038799186,Tạp hóa,artwork,hcmc,10.767043,106.694801,0
+n860702421,Tượng Đức Thánh Trần Hưng Đạo,artwork,hcmc,10.775286,106.706468,0
+n9584599328,Nhà thờ Hưng Phú,place_of_worship,hcmc,10.745687,106.672064,0
+n9584673029,Nhà thờ Bình Hòa,place_of_worship,hcmc,10.810031,106.69439,0
+n9584806607,Chùa Hải Tuệ,place_of_worship,hcmc,10.785635,106.680044,0
+n9584806608,Chùa Minh Đạo,place_of_worship,hcmc,10.784118,106.682423,0
+n9584833427,Tịnh Xá Tòng Lâm,place_of_worship,hcmc,10.774035,106.689632,0
+n9584833458,Nhà Thờ Giáo Xứ Vườn Chuối,place_of_worship,hcmc,10.775258,106.684822,0
+n9584833460,Chùa Phật Đà,place_of_worship,hcmc,10.775216,106.684495,0
+n9584833461,Chùa Thiên Bản,place_of_worship,hcmc,10.772681,106.686834,0
+n9584833479,Chùa Tân Phước,place_of_worship,hcmc,10.76147,106.703125,0
+n9584833487,Chùa Đức Quang,place_of_worship,hcmc,10.79346,106.693599,0
+n9584833488,Chùa Tam Bảo,place_of_worship,hcmc,10.792977,106.694322,0
+n9584838626,Chùa An Lạc,place_of_worship,hcmc,10.768577,106.694461,0
+n9584838627,Chùa Trường Thạnh,place_of_worship,hcmc,10.768489,106.696757,0
+n9584841102,Nhà thờ Phú Hòa,place_of_worship,hcmc,10.776913,106.645375,0
+n9584888586,Nhà Thờ Thánh Gia,place_of_worship,hcmc,10.793757,106.688243,0
+n9584888587,Nhà Thờ Xóm Lách,place_of_worship,hcmc,10.789051,106.683341,0
+n9584888588,Chùa Thích Ca,place_of_worship,hcmc,10.790138,106.677437,0
+n9584888591,Nhà Thờ Mân Côi,place_of_worship,hcmc,10.816727,106.680964,0
+n9584911959,Chùa Kỳ Viên,place_of_worship,hcmc,10.769404,106.681295,0
+n9584911961,Chùa Nguyên Hương,place_of_worship,hcmc,10.771699,106.684431,0
+n9584911962,Chùa Quảng Đức,place_of_worship,hcmc,10.771019,106.678533,0
+n9584911963,Tổ Đình Phật Bửu,place_of_worship,hcmc,10.771069,106.681856,0
+n9585048352,Nhà Thờ Thái Hòa,place_of_worship,hcmc,10.790946,106.659204,0
+n9585048353,Nhà Thờ An Tôn,place_of_worship,hcmc,10.789536,106.658424,0
+n9585091200,Chùa Long Vĩnh,place_of_worship,hcmc,10.788721,106.677215,0
+n9585091201,Nhà Thờ An Phú,place_of_worship,hcmc,10.786137,106.672751,0
+n9585091203,Chùa Bát Nhã,place_of_worship,hcmc,10.785526,106.672621,0
+n9585091204,Chùa Hưng Phước,place_of_worship,hcmc,10.786548,106.667931,0
+n9585091205,Chùa Khánh Hưng,place_of_worship,hcmc,10.783763,106.67218,0
+n9585091206,Chùa Phước Quang,place_of_worship,hcmc,10.785338,106.674013,0
+n9585108825,Chùa Đại Hạnh,place_of_worship,hcmc,10.767818,106.676486,0
+n9585108828,Nhà thờ Phú Hải,place_of_worship,hcmc,10.796465,106.683623,0
+n9585108829,Nhà thờ Phú Lộc,place_of_worship,hcmc,10.794639,106.678897,0
+n9585160205,Nhà Thờ Bình Lợi,place_of_worship,hcmc,10.826662,106.706584,0
+n9585453810,Chùa Minh Nguyệt,place_of_worship,hcmc,10.750505,106.656717,0
+n9585835378,Nhà Thờ Môi Khôi,place_of_worship,hcmc,10.754476,106.727955,0
+n9585835379,Nhà Thờ Đông Quang,place_of_worship,hcmc,10.830838,106.626243,0
+n9585835382,Nhà thờ Tắc Rỗi,place_of_worship,hcmc,10.736953,106.715224,0
+n9585983484,Chùa Thiện Hạnh,place_of_worship,hcmc,10.788591,106.700692,0
+n9586251040,Chùa Kỳ Quang 3,place_of_worship,hcmc,10.801536,106.736689,0
+n9586251042,Tịnh Xá Linh Quang,place_of_worship,hcmc,10.755083,106.696465,0
+n9586838814,Nhà Thờ Phú Hiền,place_of_worship,hcmc,10.79821,106.692966,0
+n9586838815,Nhà thờ Thánh Mẫu,place_of_worship,hcmc,10.798366,106.690689,0
+n9586883314,Nhà Thờ Tử Đình,place_of_worship,hcmc,10.854769,106.665691,0
+n9586952136,Chùa Thiện Mỹ,place_of_worship,hcmc,10.754,106.683061,0
+n9587016888,Chùa Thiên Tôn,place_of_worship,hcmc,10.751785,106.672069,0
+n9587016889,Tịnh Xá Quan Âm,place_of_worship,hcmc,10.754235,106.670618,0
+n9587042692,Nhà Thờ Chính Lộ,place_of_worship,hcmc,10.797053,106.701594,0
+n9587042695,Nhà thờ Đức Tin,place_of_worship,hcmc,10.83346,106.668778,0
+n9587171463,Nhà Thờ Bà Điểm,place_of_worship,hcmc,10.840971,106.599984,0
+n9587171478,Nhà thờ Bình Minh,place_of_worship,hcmc,10.738822,106.645301,0
+n9587171479,Nhà Thờ Bình Thái,place_of_worship,hcmc,10.737239,106.650869,0
+n9587171491,Nhà Thờ Tân Hưng Quận 12,place_of_worship,hcmc,10.856554,106.638681,0
+n9587204850,Thiền Viện Nguyên Thủy,place_of_worship,hcmc,10.780275,106.764219,0
+n9587246058,Nhà Thờ Vĩnh Hòa,place_of_worship,hcmc,10.76878,106.646135,0
+n9587252983,Nhà Thờ Tân Đức,place_of_worship,hcmc,10.815354,106.77455,0
+n9587253810,Nhà Thờ Tân Mỹ,place_of_worship,hcmc,10.857459,106.604215,0
+n9587253811,Nhà Thờ Gò Mây,place_of_worship,hcmc,10.815672,106.601697,0
+n9587268685,Khu du lịch Văn Thánh,attraction,hcmc,10.798286,106.71563,20000
+n9587300724,Nhà Thờ Nhân Hòa,place_of_worship,hcmc,10.805733,106.632481,0
+n9587300726,Tịnh thất An Hòa,place_of_worship,hcmc,10.805874,106.731429,0
+n9587309953,Chùa Trung Hòa,place_of_worship,hcmc,10.782867,106.673889,0
+n9587309954,Chùa Vạn Quốc,place_of_worship,hcmc,10.781879,106.67647,0
+n9587309957,Nhà thờ Văn Côi,place_of_worship,hcmc,10.794337,106.648999,0
+n9587309958,Nhà thờ Đắc Lộ,place_of_worship,hcmc,10.795065,106.649211,0
+n9587309959,Nhà Thờ Tân Châu,place_of_worship,hcmc,10.794581,106.65151,0
+n9587309960,Nhà Thờ Tân Việt,place_of_worship,hcmc,10.796378,106.646096,0
+n9587329640,Chùa Niết Bàn,place_of_worship,hcmc,10.758554,106.701637,0
+n9587329641,Chùa Phước An,place_of_worship,hcmc,10.758534,106.704955,0
+n9587375644,Ni viện Phước Long,place_of_worship,hcmc,10.829814,106.766175,0
+n9587419906,Phòng Trưng Bày Chloe,gallery,hcmc,10.724045,106.720567,30000
+n9587486341,호치민 지구촌 교회,place_of_worship,hcmc,10.733865,106.70675,0
+n9587486346,Ni Viện Pháp Hoa,place_of_worship,hcmc,10.762496,106.692214,0
+n9587486349,Chùa Phụng Sơn,place_of_worship,hcmc,10.766448,106.698399,0
+n9587493567,Nhà thờ Xuân Hiệp,place_of_worship,hcmc,10.88029,106.765873,0
+n9587536842,Nhà Thờ Chợ Cầu,place_of_worship,hcmc,10.853581,106.638655,0
+n9587536843,Nhà Thờ Thánh Giuse Thợ,place_of_worship,hcmc,10.828926,106.764927,0
+n9587536845,Nhà Thờ Bùi Môn,place_of_worship,hcmc,10.867933,106.59638,0
+n9587618721,Nhà thờ Thiên Ân,place_of_worship,hcmc,10.780682,106.623645,0
+n9587618730,Chùa Diệu Tràng,place_of_worship,hcmc,10.822039,106.76128,0
+n9587618736,Chùa Phước Thái,place_of_worship,hcmc,10.818224,106.769219,0
+n9587618754,Tu Viện Vĩnh Đức,place_of_worship,hcmc,10.784317,106.765809,0
+n9593196276,Chùa Thiền Tịnh,place_of_worship,hcmc,10.798767,106.746807,0
+n9593196286,Tịnh Xá Ngọc Bình,place_of_worship,hcmc,10.785571,106.759061,0
+n9593196287,Nhà Thờ Lam Sơn,place_of_worship,hcmc,10.853996,106.658634,0
+n9593240655,Nhà thờ Lạng Sơn,place_of_worship,hcmc,10.851864,106.660796,0
+n9593240656,Nhà Thờ Thái Bình,place_of_worship,hcmc,10.852738,106.664975,0
+n9593240657,Nhà Thờ Hà Nội,place_of_worship,hcmc,10.851033,106.664829,0
+n9593240658,Nhà Thờ Hợp An,place_of_worship,hcmc,10.854596,106.664399,0
+n9593240661,Chùa Thanh Long,place_of_worship,hcmc,10.833755,106.775279,0
+n9593358307,Tịnh Thất Vĩnh Phú,place_of_worship,hcmc,10.781844,106.799994,0
+n9593358312,Nhà thờ Phú Xuân,place_of_worship,hcmc,10.694065,106.740682,0
+n9593358313,Nhà thờ Bình Thuận,place_of_worship,hcmc,10.713864,106.630392,0
+n9593358315,Chùa Đông Thạnh,place_of_worship,hcmc,10.77536,106.79528,0
+n9593386621,Chùa Tân Hòa,place_of_worship,hcmc,10.860104,106.801026,0
+n9593386628,Nhà thờ Phú Hữu,place_of_worship,hcmc,10.791843,106.801259,0
+n9593386631,Chùa Thiền Tôn 2,place_of_worship,hcmc,10.777286,106.771045,0
+n9593386632,Nhà thờ Long Thạnh Mỹ,place_of_worship,hcmc,10.844432,106.826358,0
+n9593386633,Chùa Quang Bửu,place_of_worship,hcmc,10.845406,106.829863,0
+n9593386635,Chùa Bửu Thành,place_of_worship,hcmc,10.851237,106.811836,0
+n9593386638,Nhà thờ Ba Thôn,place_of_worship,hcmc,10.878754,106.678781,0
+n9593386639,Chùa Tổ Đình Bửu Long,place_of_worship,hcmc,10.878858,106.836214,0
+n9593578322,Nhà Thờ Hóc Môn,place_of_worship,hcmc,10.887564,106.597705,0
+n9593578331,Khu Tưởng Niệm Liệt sĩ - Ngã Ba Giồng,historic,hcmc,10.867505,106.56008,30000
+n9593797946,Nhà Thờ Bình Chiểu,place_of_worship,hcmc,10.881398,106.730543,0
+n9593797949,Phước Thạnh Cổ Tự,place_of_worship,hcmc,10.819815,106.805878,0
+n9593946635,Nhà Thờ Thánh Gẫm,place_of_worship,hcmc,10.839518,106.823161,0
+n9593946637,Tịnh Thất Thanh Định,place_of_worship,hcmc,10.834183,106.781418,0
+n9593946643,Chùa Bà Châu Đốc 2,place_of_worship,hcmc,10.672175,106.762013,0
+n9593946648,Nhà Thờ Trung Mỹ Tây,place_of_worship,hcmc,10.865991,106.610414,0
+n9593946656,Nhà Thờ Tân Hiệp,place_of_worship,hcmc,10.899234,106.578062,0
+n9671017353,Hải Ấn Ni Tự,place_of_worship,hcmc,10.797296,106.636686,0
+n9696470992,Tượng đài Tôn Đức Thắng,artwork,hcmc,10.731967,106.699523,0
+n9733973018,Tượng đài Công an nhân dân,artwork,hcmc,10.764916,106.681006,0
+r17758150,Bảo tàng Lịch sử Thành phố Hồ Chí Minh,museum,hcmc,10.787962,106.704918,40000
+r20714368,Đình Bình Hòa,place_of_worship,hcmc,10.811734,106.696432,0
+r20714369,Đình thần Linh Đông,place_of_worship,hcmc,10.853371,106.760294,0
+r2552505,Chợ Bình Tây,attraction,hcmc,10.749331,106.651068,20000
+r4589744,Sống Vĩ Đại Chết Vinh Quang,historic,hcmc,10.868132,106.560494,30000
+w1003660713,Chùa Liên Hoa,place_of_worship,hcmc,10.759667,106.706424,0
+w1008094016,Đình thần Đồng An,place_of_worship,hcmc,10.895613,106.719676,0
+w1015757071,Đình thần Bình Lợi,place_of_worship,hcmc,10.751577,106.752139,0
+w1015757072,Đình Mỹ Thủy,place_of_worship,hcmc,10.76776,106.77609,0
+w1019040791,Bảo tàng Phụ nữ Nam Bộ,museum,hcmc,10.784169,106.687398,0
+w1023126419,Công viên giải trí VinWonders Grand Park,theme_park,hcmc,10.842089,106.845603,150000
+w1023704926,Nhà Truyền Thống Thủ Đức,museum,hcmc,10.850975,106.760213,40000
+w1041009964,Khánh Nam Phật Đường,place_of_worship,hcmc,10.801117,106.689068,0
+w1041022594,Đình thần Hanh Thông,place_of_worship,hcmc,10.824886,106.686635,0
+w1041025309,Đình Thái Hưng,place_of_worship,hcmc,10.769336,106.69574,0
+w1041089265,Chùa Phước Viên,place_of_worship,hcmc,10.800902,106.711917,0
+w1041090695,Nhà Thờ Thánh Giuse,place_of_worship,hcmc,10.825545,106.686011,0
+w1041093306,Chùa Bảo Minh,place_of_worship,hcmc,10.811182,106.715062,0
+w1042554070,Đình Tân Thới Nhứt,place_of_worship,hcmc,10.841144,106.598995,0
+w1042554071,Đình thần Phú An,place_of_worship,hcmc,10.790778,106.716608,0
+w1042789394,Chùa Linh Chưởng,place_of_worship,hcmc,10.766899,106.67889,0
+w1042849147,Nhà Thờ Phanxicô Đa Kao,place_of_worship,hcmc,10.789571,106.700306,0
+w1043320330,Đình Bình Long,place_of_worship,hcmc,10.749622,106.688389,0
+w1043365165,Đình Chí Hòa,place_of_worship,hcmc,10.781393,106.673094,0
+w1043365166,Đình Tân Sơn Nhì,place_of_worship,hcmc,10.802501,106.629984,0
+w1043435432,Nhà Thờ Tống Viết Bường,place_of_worship,hcmc,10.782794,106.662984,0
+w1044717963,Đình Tứ Xuân,place_of_worship,hcmc,10.750084,106.681374,0
+w1046746189,Miếu Sa Tân,place_of_worship,hcmc,10.829691,106.69169,0
+w1058541280,Đình Bình Thượng,place_of_worship,hcmc,10.661186,106.57532,0
+w1063154010,Đình Hiệp Ân,place_of_worship,hcmc,10.740307,106.657719,0
+w1063154011,Đình Hòa Lục,place_of_worship,hcmc,10.732167,106.632408,0
+w1063154013,Đình Thới Hòa,place_of_worship,hcmc,10.828856,106.585509,0
+w1063154031,Đình thần Xuân Hòa,place_of_worship,hcmc,10.833929,106.563203,0
+w1063154036,Đình thần Vĩnh Lộc,place_of_worship,hcmc,10.792346,106.572018,0
+w1064336014,Đình Phú Lạc,place_of_worship,hcmc,10.710801,106.653644,0
+w1065767687,Đình Khánh Bình,place_of_worship,hcmc,10.741556,106.682976,0
+w1065767693,Đình Tân Hòa Đông,place_of_worship,hcmc,10.75892,106.629487,0
+w1070123346,Đình Hậu Mỹ,place_of_worship,hcmc,10.691903,106.623474,0
+w1081726703,Đình Tân Thuận,place_of_worship,hcmc,10.747115,106.729761,0
+w1086980078,Từ đường Phước Kiến,place_of_worship,hcmc,10.756953,106.674881,0
+w1088370266,Nhà thờ Vườn Xoài,place_of_worship,hcmc,10.78906,106.675113,0
+w1098141677,Miếu Bà Ngũ Hành Phú Hoà,place_of_worship,hcmc,10.795776,106.759743,0
+w1098290854,Chùa Đông Hưng,place_of_worship,hcmc,10.798016,106.778872,0
+w1098290855,Chùa Từ Phong,place_of_worship,hcmc,10.797705,106.778815,0
+w1098298112,Đình Tân Kiều,place_of_worship,hcmc,10.695925,106.611583,0
+w1099958814,Nhà thờ Giáo xứ Nghĩa Sơn,place_of_worship,hcmc,10.897902,106.832523,0
+w1104647425,Đình Tân Thị,place_of_worship,hcmc,10.720629,106.649977,0
+w1110176551,Thánh thất Tân Định,place_of_worship,hcmc,10.794433,106.691971,0
+w1111711083,Đền tưởng niệm Rạch Già,place_of_worship,hcmc,10.692094,106.623411,0
+w1115082373,Đan Viện Biển Đức Thiên Phước,place_of_worship,hcmc,10.869226,106.741375,0
+w1116582922,Bảo tàng Tôn Đức Thắng,museum,hcmc,10.77742,106.706366,40000
+w1125567704,Xưởng đóng tàu Ba Son,historic,hcmc,10.782963,106.70877,30000
+w1139091053,Bảo tàng Quân đoàn 4,museum,hcmc,10.883767,106.742822,40000
+w1140751919,Nhà thờ Tin Lành Bình Thới,place_of_worship,hcmc,10.763312,106.643758,0
+w1144380310,Chùa Pháp Trì,place_of_worship,hcmc,10.897663,106.789974,0
+w1144380312,An Linh Cổ Tự,place_of_worship,hcmc,10.896788,106.785123,0
+w1144380313,Miếu Cây Da Xề,place_of_worship,hcmc,10.893109,106.781434,0
+w1144380314,Chùa Tây Thiên,place_of_worship,hcmc,10.891187,106.7739,0
+w1144380315,Miếu Thầy Cai,place_of_worship,hcmc,10.897322,106.776538,0
+w1144380316,Chùa Ông - Ấp Tây,place_of_worship,hcmc,10.899016,106.779981,0
+w1144380324,Miếu Ngũ Hành,place_of_worship,hcmc,10.897205,106.76488,0
+w1144380325,Chùa An Linh,place_of_worship,hcmc,10.897681,106.767051,0
+w1144380326,Miếu Ngũ Hành Bà Tùng,place_of_worship,hcmc,10.899701,106.765615,0
+w1154085685,Dòng Đức Bà - Giáo Xứ Regina Mundi,place_of_worship,hcmc,10.784273,106.690605,0
+w1154098816,Tu viện Vĩnh Nghiêm,place_of_worship,hcmc,10.874388,106.646244,0
+w1154556140,Đình thần An Khánh,place_of_worship,hcmc,10.775653,106.710707,0
+w1156119270,Tòa Tổng Giám mục Sài Gòn,place_of_worship,hcmc,10.779806,106.690715,0
+w1161279409,Đình Hưng Phú,place_of_worship,hcmc,10.748165,106.670388,0
+w1163531668,Đình Mỹ Phú,place_of_worship,hcmc,10.71233,106.581358,0
+w1171508434,Chùa Nam Tông,place_of_worship,hcmc,10.745541,106.617177,0
+w1171510655,Chùa Di Lặc,place_of_worship,hcmc,10.793717,106.614517,0
+w1175259950,Đình thần Bình Phước,place_of_worship,hcmc,10.866595,106.714529,0
+w1183911032,Đình Phong Đước,place_of_worship,hcmc,10.704228,106.630015,0
+w1183911034,Đình Phước Thới,place_of_worship,hcmc,10.724419,106.691594,0
+w1185443921,Đình Thông Tây Hội,place_of_worship,hcmc,10.839974,106.664782,0
+w1190725791,Hội Dòng Đức Bà Truyền Giáo,place_of_worship,hcmc,10.851658,106.76181,0
+w1208021755,Đình Tân Đông,place_of_worship,hcmc,10.70373,106.572252,0
+w1208021756,Đình Đại Thạnh,place_of_worship,hcmc,10.67719,106.562092,0
+w1208021757,Đình thần Tân Xuân,place_of_worship,hcmc,10.702443,106.556888,0
+w1208021758,Đình Thạnh Hòa,place_of_worship,hcmc,10.694546,106.58288,0
+w1208021759,Đình Bình Điền,place_of_worship,hcmc,10.68386,106.599888,0
+w1208694835,Nhà thờ Nguyễn Duy Khang,place_of_worship,hcmc,10.799189,106.709933,0
+w1209671828,Đình Phú Lâm,place_of_worship,hcmc,10.753064,106.641294,0
+w1209795107,Chùa Phước Long,place_of_worship,hcmc,10.750008,106.641027,0
+w1209974487,Tịnh xá Ngọc Hòa,place_of_worship,hcmc,10.755045,106.633055,0
+w1210071518,Thánh đường Jamia Al Sa'adah,place_of_worship,hcmc,10.740478,106.642602,0
+w1210315493,Chùa Giác Hải,place_of_worship,hcmc,10.752878,106.636324,0
+w1210315494,Chùa Thiên Trước,place_of_worship,hcmc,10.752689,106.637302,0
+w1210315498,Chùa Liên Hoa,place_of_worship,hcmc,10.748101,106.6392,0
+w1210315501,Đình Phú Hòa,place_of_worship,hcmc,10.747647,106.639167,0
+w1210315518,Chùa Thiên Đức,place_of_worship,hcmc,10.743541,106.641148,0
+w1210468034,Đình Bình Hòa,place_of_worship,hcmc,10.737779,106.63524,0
+w1210579529,Nhà thờ Tin Lành Bình Tây,place_of_worship,hcmc,10.74625,106.649509,0
+w1210579544,Chùa Hồng Thanh,place_of_worship,hcmc,10.737484,106.635627,0
+w1210802406,Chùa Pháp Hải,place_of_worship,hcmc,10.742027,106.644231,0
+w1210929562,Tịnh xá Giác Thông,place_of_worship,hcmc,10.741073,106.642636,0
+w1210929567,Tịnh thất Viên Quang,place_of_worship,hcmc,10.739822,106.641069,0
+w1211031821,Thổ Công Miếu,place_of_worship,hcmc,10.74295,106.646531,0
+w1211305600,Đình Nghi Hòa,place_of_worship,hcmc,10.755718,106.624285,0
+w1211305603,Miếu Da Sà,place_of_worship,hcmc,10.757195,106.624962,0
+w1211305611,Ẩn Trúc Lâm,place_of_worship,hcmc,10.745165,106.651306,0
+w1211892308,Đình Tân Nghĩa,place_of_worship,hcmc,10.756057,106.655274,0
+w1212006785,Đình Bình Yên,place_of_worship,hcmc,10.753565,106.68328,0
+w1212006792,Tu viện Mến Thánh Giá Chợ Quán,place_of_worship,hcmc,10.756278,106.681629,0
+w1212252287,Chùa Liên Tông,place_of_worship,hcmc,10.765457,106.694276,0
+w1213393835,Đình Tân Hòa Tây,place_of_worship,hcmc,10.760798,106.63062,0
+w1213777937,Quan Âm Các,place_of_worship,hcmc,10.757319,106.674686,0
+w1214284149,Nhà thờ Tin Lành Bàn Cờ,place_of_worship,hcmc,10.773786,106.679996,0
+w1215108852,Tịnh xá Như Lai,place_of_worship,hcmc,10.769642,106.75942,0
+w1215418794,Nhà thờ An Bình,place_of_worship,hcmc,10.749714,106.673632,0
+w1215418797,Đền thờ Thánh Giuse,place_of_worship,hcmc,10.74947,106.673659,0
+w1215418823,Chùa Chí Thành,place_of_worship,hcmc,10.752461,106.647307,0
+w1215418828,Chùa Đại Bi,place_of_worship,hcmc,10.752109,106.649248,0
+w1215518803,Nhà thờ Bình Thuận,place_of_worship,hcmc,10.791474,106.604102,0
+w1215596723,Thánh thất Bình Trưng,place_of_worship,hcmc,10.787597,106.758074,0
+w1215596734,Chùa Thiền Tịnh,place_of_worship,hcmc,10.798829,106.746992,0
+w1216154851,Đình Bình Chánh,place_of_worship,hcmc,10.66975,106.570147,0
+w1216840358,Chùa Huê Nghiêm Giảng Tự,place_of_worship,hcmc,10.800302,106.689929,0
+w1216840362,Chùa Vạn Thọ,place_of_worship,hcmc,10.795658,106.686111,0
+w1216840364,Thánh đường Cơ Đốc Phục lâm Phú Nhuận,place_of_worship,hcmc,10.799509,106.679717,0
+w1216845858,Thánh thất Trung Hiền,place_of_worship,hcmc,10.789665,106.643639,0
+w1216845863,Nhà thờ Tân Thành,place_of_worship,hcmc,10.796206,106.642668,0
+w1216969595,Bia tưởng niệm liệt sĩ phường An Lạc,historic,hcmc,10.726559,106.612259,30000
+w1216969601,Đền thờ Võ Tánh,place_of_worship,hcmc,10.802143,106.675224,0
+w1216969605,Đền thờ Trương Tấn Bửu,place_of_worship,hcmc,10.796165,106.67559,0
+w1216969607,Đền thờ Võ Di Nguy,place_of_worship,hcmc,10.795808,106.682897,0
+w1219698158,Tu viện Tường Vân,place_of_worship,hcmc,10.694919,106.584918,0
+w1219698159,Chùa Tam Bửu,place_of_worship,hcmc,10.696889,106.595164,0
+w1219698168,Đình Long Bình - Bàu Môn,place_of_worship,hcmc,10.697143,106.589107,0
+w1221371378,Chùa Hưng Phước,place_of_worship,hcmc,10.786602,106.66797,0
+w1221686021,Đình thần Bình Quới Đông,place_of_worship,hcmc,10.848275,106.747521,0
+w1221686024,Chùa Quan Âm,place_of_worship,hcmc,10.847293,106.748127,0
+w1221686026,Chùa Giác Lâm,place_of_worship,hcmc,10.77803,106.64923,0
+w1221686032,Thiền Đường Hải Tịnh,place_of_worship,hcmc,10.778859,106.64885,0
+w1223405327,Phù Châu Miếu,place_of_worship,hcmc,10.832948,106.691232,0
+w1225163272,Chùa Hải Quang,place_of_worship,hcmc,10.794754,106.661497,0
+w1225233354,Chùa Vĩnh Xương,place_of_worship,hcmc,10.784572,106.672999,0
+w1225233356,Nhà thờ An Phú,place_of_worship,hcmc,10.786062,106.672632,0
+w1225233361,Chùa Bửu Long,place_of_worship,hcmc,10.785553,106.671526,0
+w1225234972,Chùa Báo Ân,place_of_worship,hcmc,10.793908,106.657126,0
+w1230637669,Di tích Lịch sử Văn hóa mộ Phan Châu Trinh,historic,hcmc,10.804298,106.6619,30000
+w1232490706,Giáo xứ Thánh Martinô,place_of_worship,hcmc,10.793105,106.628942,0
+w1232939478,Chùa Thiền Quang,place_of_worship,hcmc,10.798376,106.642076,0
+w1233983136,Đình Phú Nhuận,place_of_worship,hcmc,10.795432,106.673738,0
+w1234609610,Chùa Tân Hòa,place_of_worship,hcmc,10.787345,106.637105,0
+w1235220367,Chùa Thiên Chánh,place_of_worship,hcmc,10.780775,106.642711,0
+w1235472350,Nhà thờ Đắc Lộ,place_of_worship,hcmc,10.794858,106.649052,0
+w1235472354,Đền Công Chính,place_of_worship,hcmc,10.793814,106.650498,0
+w1235472357,Tu viện nhà thờ Mân Côi,place_of_worship,hcmc,10.793255,106.650818,0
+w1236540515,Đình thần Hòa Thới,place_of_worship,hcmc,10.715004,106.584614,0
+w1236634389,Thánh đường Giáo xứ Phú Trung,place_of_worship,hcmc,10.788132,106.650387,0
+w1236634391,Chùa Bodhivangsa,place_of_worship,hcmc,10.784688,106.647911,0
+w1237558225,Tháp Chăm,place_of_worship,hcmc,10.774257,106.692063,0
+w1239797870,Đình Tân Nhiễu,place_of_worship,hcmc,10.682737,106.608049,0
+w1265945865,Vườn bướm,attraction,hcmc,10.78763,106.706456,20000
+w1267828465,Đình Tân An,place_of_worship,hcmc,10.791544,106.700664,0
+w1272225917,Đình Tân Hóa,place_of_worship,hcmc,10.758265,106.636815,0
+w1272225941,Đình Mỹ Thuận,place_of_worship,hcmc,10.735205,106.622444,0
+w1272651080,Chùa Ngọc Hoàng,place_of_worship,hcmc,10.791528,106.697687,0
+w1275969816,Vườn hồng hạc,attraction,hcmc,10.788048,106.706241,20000
+w1281237377,Nhà thờ Tin Lành Tân Bình,place_of_worship,hcmc,10.800342,106.639848,0
+w1289066922,Chùa Phật Bà Quan Âm,place_of_worship,hcmc,10.773736,106.636858,0
+w1300683768,Đình thần Bình Phú,place_of_worship,hcmc,10.857658,106.742052,0
+w1306372803,Chùa Thiên Giác,place_of_worship,hcmc,10.793921,106.790319,0
+w1306372812,Chùa Vạn Đức,place_of_worship,hcmc,10.863569,106.74278,0
+w1306624189,Thiền viện Nguyên Thủy,place_of_worship,hcmc,10.780325,106.764205,0
+w1306624222,Tu viện Vĩnh Đức,place_of_worship,hcmc,10.784378,106.766008,0
+w1308397264,Pháp Võ Cổ Tự,place_of_worship,hcmc,10.683585,106.745108,0
+w1308615194,Chùa Linh Sơn Hải Hội,place_of_worship,hcmc,10.840802,106.637103,0
+w1308720666,Chùa Kỳ Quang 2,place_of_worship,hcmc,10.841515,106.673619,0
+w1308720681,Chùa Hưng Phước,place_of_worship,hcmc,10.847296,106.674312,0
+w1308839164,Tịnh xá Kỳ Hoàn,place_of_worship,hcmc,10.841148,106.662349,0
+w1308839165,Chùa Pháp Bảo,place_of_worship,hcmc,10.844131,106.659161,0
+w1309219494,Chùa Tường Quang,place_of_worship,hcmc,10.829114,106.614912,0
+w1309219495,Chùa Bửu Lâm,place_of_worship,hcmc,10.829356,106.614669,0
+w1309219514,Chùa Di Lặc,place_of_worship,hcmc,10.793635,106.614338,0
+w1309219515,Chùa Giác Hải,place_of_worship,hcmc,10.792588,106.614507,0
+w1309894113,Đình An Tài,place_of_worship,hcmc,10.709433,106.622511,0
+w1310615869,Chùa Diên Thọ,place_of_worship,hcmc,10.855518,106.691212,0
+w1313270534,Nhà bia liệt sĩ phường Tân Tạo A,historic,hcmc,10.746123,106.587785,30000
+w1313270569,Nhà bia ghi danh liệt sĩ phường Bình Trị Đông B,historic,hcmc,10.752885,106.608221,30000
+w1313432455,Dinh quận Hóc Môn,museum,hcmc,10.889148,106.595124,40000
+w1313432463,Đình Tân Thới Nhì,place_of_worship,hcmc,10.888784,106.595293,0
+w1313432468,Long Thái Hội Quán - Quan Đế Miếu,place_of_worship,hcmc,10.888619,106.595422,0
+w1313688005,Giáo xứ Bạch Đằng,place_of_worship,hcmc,10.857894,106.610405,0
+w1313916526,Chùa Bửu Quang,place_of_worship,hcmc,10.740906,106.672644,0
+w1313916553,Đình Thái Phong,place_of_worship,hcmc,10.739145,106.665318,0
+w1313995396,Chùa Pháp Thạnh,place_of_worship,hcmc,10.889498,106.64592,0
+w1314190858,Nhà bia ghi danh Anh hùng Liệt sĩ phường Hiệp Bình Phước,historic,hcmc,10.861158,106.723484,30000
+w1314190866,Tịnh xá Ngọc Đức,place_of_worship,hcmc,10.856159,106.748654,0
+w1314190873,Chùa Long Nhiễu,place_of_worship,hcmc,10.856442,106.752305,0
+w1314190883,Đình thần Bình Lợi Trung,place_of_worship,hcmc,10.833858,106.699914,0
+w1314396551,Chùa Giác Nguyên,place_of_worship,hcmc,10.891402,106.582727,0
+w1314396552,Chùa Phật Bửu,place_of_worship,hcmc,10.897318,106.576214,0
+w1314396570,Giáo xứ Hóc Môn,place_of_worship,hcmc,10.887576,106.597593,0
+w1314585487,Đình thần Trường Lộc,place_of_worship,hcmc,10.807727,106.833287,0
+w1323813535,Đình Chánh Hưng,place_of_worship,hcmc,10.742084,106.675324,0
+w1336757605,Đình An Nhơn,place_of_worship,hcmc,10.846004,106.67916,0
+w1336757608,Đình An Hội,place_of_worship,hcmc,10.842068,106.649619,0
+w1342039810,Đạo Tràng Bửu Nghiêm,place_of_worship,hcmc,10.886738,106.781449,0
+w1342714930,Thánh thất Thuận Kiều,place_of_worship,hcmc,10.838057,106.615209,0
+w1342714934,Thánh thất Hóc Môn,place_of_worship,hcmc,10.889535,106.5983,0
+w1342714936,Thánh thất Nhà Bè,place_of_worship,hcmc,10.696805,106.738871,0
+w1342714937,Thánh thất Chợ Lớn,place_of_worship,hcmc,10.763514,106.664778,0
+w1342714938,Thánh thất Tân Sơn Nhì,place_of_worship,hcmc,10.787656,106.625715,0
+w1342714940,Thánh thất Bình Thạnh,place_of_worship,hcmc,10.819862,106.726255,0
+w1344043010,Đình Bình Khánh,place_of_worship,hcmc,10.786807,106.733556,0
+w1348160029,Đình thần Linh Trung,place_of_worship,hcmc,10.851267,106.76455,0
+w1350608307,Chùa Thái Bình,place_of_worship,hcmc,10.826691,106.702836,0
+w1353113763,Nhà thờ Giáo xứ Bình Chánh,place_of_worship,hcmc,10.660972,106.566225,0
+w1360499366,Đình Mỹ Hòa,place_of_worship,hcmc,10.863745,106.601815,0
+w1360499367,Đình thần Tân Đông Thượng,place_of_worship,hcmc,10.858369,106.622847,0
+w1369853032,Đình Tân Hưng,place_of_worship,hcmc,10.861863,106.643514,0
+w1369853038,Đình Thới An,place_of_worship,hcmc,10.875873,106.650986,0
+w1375774496,Đình Long Vĩnh,place_of_worship,hcmc,10.74488,106.662147,0
+w1375774497,Đình Ưu Long,place_of_worship,hcmc,10.748437,106.662772,0
+w1381050637,Nhà thờ Tin Lành Tân Hòa Đông,place_of_worship,hcmc,10.759745,106.628383,0
+w1381050983,Miếu Bà Hiện (Miếu 5 Bà Ngũ Hành),place_of_worship,hcmc,10.799163,106.782595,0
+w1381826602,Đình Xuân Hòa,place_of_worship,hcmc,10.786517,106.68486,0
+w1388998256,Đình Cầu Sơn,place_of_worship,hcmc,10.81016,106.710809,0
+w1388998257,Đình Tân Trụ,place_of_worship,hcmc,10.822276,106.632179,0
+w1389035101,Đình Tân Thới,place_of_worship,hcmc,10.796158,106.616519,0
+w1389040138,Đình Tân Thới Tứ,place_of_worship,hcmc,10.898207,106.604414,0
+w1390651511,Đình thần Tân Tạo,place_of_worship,hcmc,10.758036,106.588169,0
+w1395672673,Đình thần Tân Sơn Hòa,place_of_worship,hcmc,10.794762,106.663918,0
+w1415343216,Chùa Long Vân,place_of_worship,hcmc,10.805529,106.705373,0
+w1424698027,Thánh thất Linh Đông,place_of_worship,hcmc,10.856854,106.758043,0
+w1427983377,Thánh thất Sài Gòn,place_of_worship,hcmc,10.754548,106.679525,0
+w1429659971,Bia tưởng niệm các anh hùng liệt sĩ Phường Thạnh Lộc (Cũ),historic,hcmc,10.87804,106.678241,30000
+w1431226292,Nhà truyền thống chiến khu An Phú Đông,historic,hcmc,10.861811,106.69245,30000
+w1444281620,Thánh thất Phú Nhuận,place_of_worship,hcmc,10.804386,106.681487,0
+w1444550199,Chùa Giác Thanh,place_of_worship,hcmc,10.758881,106.667086,0
+w1447167711,Đền thờ Nguyễn Ảnh Thủ,place_of_worship,hcmc,10.826875,106.612977,0
+w1448429854,Đình thần Giao Khẩu,place_of_worship,hcmc,10.876749,106.690942,0
+w1449964794,Tịnh xá Quan Âm,place_of_worship,hcmc,10.757543,106.662691,0
+w1451240924,Chùa Xá Lợi Phật Đài,place_of_worship,hcmc,10.892771,106.82567,0
+w1457808651,Nhà đèn Chợ Quán,historic,hcmc,10.753281,106.685909,30000
+w1460675589,Thánh Phao Lô,place_of_worship,hcmc,10.763422,106.676298,0
+w1468659844,Hội quán Quỳnh Phủ,place_of_worship,hcmc,10.752595,106.663343,0
+w1468659867,Thánh đường Jamial Chợ Lớn,place_of_worship,hcmc,10.753128,106.663078,0
+w1473644566,Đền Quan Đệ Tam,place_of_worship,hcmc,10.768986,106.710267,0
+w1473644568,Nhà nguyện Thánh Tâm,place_of_worship,hcmc,10.761235,106.722768,0
+w1473780182,Bửu Sơn Cổ Tự,place_of_worship,hcmc,10.752708,106.651961,0
+w1474294608,Nhà Thờ Khánh Hội,place_of_worship,hcmc,10.759261,106.706638,0
+w1481721902,Tịnh xá Sư Trúc Hiên,place_of_worship,hcmc,10.752462,106.653264,0
+w1482251693,Nhà thờ Giáo xứ Thánh Phanxicô Xaviê,place_of_worship,hcmc,10.752034,106.653947,0
+w1489994542,Hội quán Hà Chương,place_of_worship,hcmc,10.753203,106.657969,0
+w1491439860,Thiên đường giải trí Thỏ Trắng,theme_park,hcmc,10.785035,106.665276,150000
+w1497050780,Hội quán Tuệ Thành,place_of_worship,hcmc,10.753542,106.66119,0
+w1497591459,Đình Minh Hương Gia Thạnh,place_of_worship,hcmc,10.752384,106.661067,0
+w149904629,Chùa Long Hoa,place_of_worship,hcmc,10.717802,106.734329,0
+w1499809233,Hội quán Nghĩa An,place_of_worship,hcmc,10.753674,106.662121,0
+w1499844270,Miếu Ngũ Hành Tân Hoà,place_of_worship,hcmc,10.885283,106.783974,0
+w1502769172,Hội quán Tam Sơn,place_of_worship,hcmc,10.752543,106.661681,0
+w1508779595,Thiên Quang Ni Tự,place_of_worship,hcmc,10.885166,106.787244,0
+w1517347653,Hội quán Lệ Châu,place_of_worship,hcmc,10.752261,106.655213,0
+w1518080727,Di tích lưu niệm Chủ tịch Hồ Chí Minh,museum,hcmc,10.75115,106.658895,40000
+w1518080732,Chùa Kỳ Quang,place_of_worship,hcmc,10.796738,106.675839,0
+w1518080737,Chùa Sắc Tứ Trường Thọ,place_of_worship,hcmc,10.828444,106.684069,0
+w1518080743,Đình thần Xuân Hiệp,place_of_worship,hcmc,10.877797,106.765424,0
+w1518080758,Chùa Phước Tường,place_of_worship,hcmc,10.841971,106.788505,0
+w1518080762,Chùa Hội Sơn,place_of_worship,hcmc,10.871361,106.840913,0
+w1518107504,Bót Dây Thép,museum,hcmc,10.844332,106.793459,40000
+w1525476318,Đình Tân Kiểng,place_of_worship,hcmc,10.754952,106.67764,0
+w1530552216,Chùa Phú Long,place_of_worship,hcmc,10.794721,106.680953,0
+w1535744193,Đình thần Hưng Thái,place_of_worship,hcmc,10.715379,106.575385,0
+w1536253241,Nghĩa Từ Triều Châu,place_of_worship,hcmc,10.754399,106.671755,0
+w1536912834,Ngũ Hành Miếu,place_of_worship,hcmc,10.754905,106.674298,0
+w1538958794,Chùa Quang Minh,place_of_worship,hcmc,10.752954,106.66794,0
+w1540771314,The Commons Thu Thiem,attraction,hcmc,10.78209,106.713504,20000
+w1540936764,Nhà Thờ Giáo Xứ Tân Phước,place_of_worship,hcmc,10.774236,106.652697,0
+w155103528,Thánh Tịnh,place_of_worship,hcmc,10.807966,106.685693,0
+w155103538,Chùa Hải Quang,place_of_worship,hcmc,10.807336,106.687297,0
+w1557987423,Hải Ấn Ni Tự,place_of_worship,hcmc,10.797252,106.637074,0
+w165491089,Masjid Jamia al-Muslimin,place_of_worship,hcmc,10.776241,106.704269,0
+w165518958,Đền Sri Thenday Yutthapani,place_of_worship,hcmc,10.773604,106.701602,0
+w165518961,Trưng bày Từ Dinh Norodom đến Dinh Độc Lập,museum,hcmc,10.776584,106.697284,40000
+w165887838,Bảo tàng Chiến dịch Hồ Chí Minh,museum,hcmc,10.786983,106.704241,40000
+w166264577,Chùa Long Bửu,place_of_worship,hcmc,10.760362,106.698282,0
+w166344439,Nhà thờ Vĩnh Hội,place_of_worship,hcmc,10.762293,106.698406,0
+w166499256,Thánh tịnh Ngọc Minh Đài,place_of_worship,hcmc,10.753696,106.69525,0
+w166499268,Chùa Phật Bửu,place_of_worship,hcmc,10.762024,106.70225,0
+w186249226,Bảo tàng Chứng tích Chiến tranh,museum,hcmc,10.779379,106.692192,40000
+w186347714,Tượng Voi Vua Prajadhipok,artwork,hcmc,10.787438,106.70589,0
+w187895174,chung cư 42 Nguyễn Huệ,attraction,hcmc,10.77411,106.70422,20000
+w187949838,Đền Subramaniam Swamy,place_of_worship,hcmc,10.774242,106.699961,0
+w187949842,Đình Vĩnh Hội,place_of_worship,hcmc,10.759558,106.696001,0
+w187949849,Đền Sri Mariamman,place_of_worship,hcmc,10.772286,106.695558,0
+w188114098,Nhà thờ Xóm Chiếu,place_of_worship,hcmc,10.754814,106.710343,0
+w188114247,Tam giáo điện Minh Tân,place_of_worship,hcmc,10.760192,106.696915,0
+w189008790,Thánh Đường Jamiul Islamiyah,place_of_worship,hcmc,10.758109,106.687078,0
+w192214961,Nhà thờ Khánh Hội,place_of_worship,hcmc,10.75926,106.706654,0
+w197982839,Chùa Từ Tân,place_of_worship,hcmc,10.795834,106.652843,0
+w197995330,Bảo tàng Không quân phía Nam,museum,hcmc,10.805192,106.660638,40000
+w197995353,Nhà Thờ Tân Sa Châu,place_of_worship,hcmc,10.797063,106.663882,0
+w197995367,Nhà thờ Vinh Sơn - Ông Tạ,place_of_worship,hcmc,10.793262,106.661077,0
+w198047406,Đài tưởng niệm liệt sĩ quận Tân Bình,historic,hcmc,10.803638,106.636132,30000
+w206503686,Nhà thờ Bùi Phát,place_of_worship,hcmc,10.788351,106.672214,0
+w207445585,Nhà Thờ Phú Nhuận,place_of_worship,hcmc,10.798981,106.677274,0
+w225209627,Chùa Phật Học Xá Lợi,place_of_worship,hcmc,10.77808,106.686485,0
+w225528466,Chùa Quang Minh,place_of_worship,hcmc,10.705172,106.739126,0
+w226513026,Chùa Thới Hòa,place_of_worship,hcmc,10.837375,106.655918,0
+w238166771,Bảo tàng Không quân,museum,hcmc,10.80264,106.649363,40000
+w256404563,Nhà thờ Tân Thái Sơn,place_of_worship,hcmc,10.793119,106.61968,0
+w256497914,Giáo xứ Bình Thọ,place_of_worship,hcmc,10.848641,106.771218,0
+w262963858,Nhà thờ Hạnh Thông Tây,place_of_worship,hcmc,10.837078,106.658956,0
+w262963859,Nhà thờ Hạnh Thông Tây (phụ),place_of_worship,hcmc,10.837248,106.658714,0
+w262966599,Nhà thờ Báptít Ân Điển,place_of_worship,hcmc,10.795507,106.675135,0
+w263505858,Đền thờ Vua Hùng,place_of_worship,hcmc,10.787242,106.705709,0
+w263506126,Nhà thờ Mông Triệu,place_of_worship,hcmc,10.796838,106.705857,0
+w263506645,Kiều Đàm Ni Tự,place_of_worship,hcmc,10.74999,106.698782,0
+w263507378,Nhà thờ Đức Mẹ Hằng Cứu Giúp - Dòng Chúa Cứu Thế,place_of_worship,hcmc,10.781445,106.680951,0
+w277754754,Nhà thờ Tân Chí Linh,place_of_worship,hcmc,10.792156,106.663683,0
+w286297477,Cầu Mống,attraction,hcmc,10.768069,106.703669,20000
+w288734395,Nhà thờ An Nhơn,place_of_worship,hcmc,10.84216,106.674725,0
+w288810597,Đình Đông Minh,place_of_worship,hcmc,10.891346,106.773708,0
+w289041924,Đền thờ Tả quân Lê Văn Duyệt,place_of_worship,hcmc,10.802053,106.696985,0
+w290218588,Đình Tân Qui Đông,place_of_worship,hcmc,10.734403,106.704466,0
+w290483746,Chùa Pháp Bảo,place_of_worship,hcmc,10.863114,106.794094,0
+w290487269,Đền tưởng niệm Bến Nọc,historic,hcmc,10.849058,106.803981,30000
+w290729086,Giáo Xứ Cao Thái,place_of_worship,hcmc,10.88351,106.821441,0
+w290789271,Đình thần Bình Thắng,place_of_worship,hcmc,10.887951,106.813437,0
+w290789280,Đền Tử Sĩ,place_of_worship,hcmc,10.889476,106.816015,0
+w291493799,Đình thần Tân Quí,place_of_worship,hcmc,10.888559,106.780723,0
+w291493807,Miếu bà Ngũ Hành,place_of_worship,hcmc,10.883705,106.784721,0
+w291493820,Đình Đông Yên,place_of_worship,hcmc,10.89189,106.7867,0
+w291493841,Chùa Huỳnh Mai,place_of_worship,hcmc,10.898059,106.790952,0
+w291493847,Chùa Tiên Quang,place_of_worship,hcmc,10.899054,106.793033,0
+w291493854,Chùa Đức Hòa,place_of_worship,hcmc,10.900287,106.790882,0
+w291672863,Đình Tân Nhơn,place_of_worship,hcmc,10.858825,106.798986,0
+w291853367,Đình thần Bình Đường,place_of_worship,hcmc,10.871196,106.750369,0
+w292021993,Đình thần Xuân Vinh,place_of_worship,hcmc,10.869855,106.765627,0
+w292072051,Nhà Thờ Giáo Xứ Thánh Cẩm,place_of_worship,hcmc,10.84546,106.815701,0
+w292074917,Nhà thờ Gia Định,place_of_worship,hcmc,10.799991,106.700068,0
+w293227119,Giáo xứ Tam Hải,place_of_worship,hcmc,10.871509,106.742955,0
+w293824496,Chùa Báo Ân,place_of_worship,hcmc,10.78626,106.700581,0
+w301261207,Nhà thờ Tin Lành Thủ Đức,place_of_worship,hcmc,10.854585,106.750963,0
+w306551279,Chùa Ông,place_of_worship,hcmc,10.852309,106.755121,0
+w314225196,Chùa Thiên Minh,place_of_worship,hcmc,10.816122,106.774122,0
+w314226096,Giáo xứ Tân Đức Phước Bình,place_of_worship,hcmc,10.815248,106.774152,0
+w316829173,Chùa Viên Giác,place_of_worship,hcmc,10.794478,106.664925,0
+w316834301,Chùa Đại Giác,place_of_worship,hcmc,10.797677,106.672384,0
+w317499691,Tu viện Quảng đức,place_of_worship,hcmc,10.839327,106.766136,0
+w319471509,Tượng vua Quang Trung,artwork,hcmc,10.764361,106.6632,0
+w321938412,Giáo xứ Thủ Đức,place_of_worship,hcmc,10.851768,106.757043,0
+w323379917,Chùa Bửu Long,place_of_worship,hcmc,10.878668,106.834965,0
+w32578616,Đình Tân Thới Thượng,place_of_worship,hcmc,10.850783,106.589288,0
+w32579177,Đình thần Bình Hưng Hòa,place_of_worship,hcmc,10.817213,106.600132,0
+w32581970,Đình Phú Lễ,place_of_worship,hcmc,10.659139,106.690316,0
+w32582873,Đình Rạch Cát,place_of_worship,hcmc,10.706358,106.617879,0
+w32583621,Đình Đức Hưng,place_of_worship,hcmc,10.670973,106.730609,0
+w32588872,Đình thần Phước Thiện,place_of_worship,hcmc,10.849109,106.846715,0
+w32589169,Đình thần Xuân Thới Tây,place_of_worship,hcmc,10.861756,106.570736,0
+w326338832,Chùa Từ Quang,place_of_worship,hcmc,10.814614,106.68651,0
+w326846285,Nhà thờ Tin Lành Sài Gòn,place_of_worship,hcmc,10.766371,106.694339,0
+w327192426,Chùa Phụng Sơn,place_of_worship,hcmc,10.756823,106.644764,0
+w327192429,Hội Thánh Tin Lành Nguyễn Tri Phương,place_of_worship,hcmc,10.765872,106.664278,0
+w327192435,Văn Phòng Tổng Liên Hội,place_of_worship,hcmc,10.765924,106.664448,0
+w327262577,Hưng Minh Tự,place_of_worship,hcmc,10.736328,106.631267,0
+w32735046,Công viên Văn hóa Đầm Sen,theme_park,hcmc,10.764333,106.638533,150000
+w327447635,Giáo xứ Hà Nội,place_of_worship,hcmc,10.851042,106.664714,0
+w327447637,Giáo xứ Hợp An,place_of_worship,hcmc,10.854627,106.664335,0
+w327447640,Giáo xứ Lam Sơn,place_of_worship,hcmc,10.854157,106.658646,0
+w327447642,Giáo xứ Thái Bình,place_of_worship,hcmc,10.852796,106.664807,0
+w327447645,Giáo xứ Tử Đình,place_of_worship,hcmc,10.854784,106.665792,0
+w327447647,Nhà thờ Lạng Sơn,place_of_worship,hcmc,10.851719,106.660752,0
+w327452951,Nhà Thờ Nữ Vương Hòa Bình,place_of_worship,hcmc,10.857213,106.654358,0
+w327969756,Nhà thờ Mạc Ty Nho,place_of_worship,hcmc,10.786316,106.70103,0
+w328191705,Sống Vĩ Đại Chết Vinh Quang,historic,hcmc,10.868132,106.560507,30000
+w328191740,Đền thờ Liệt sĩ Ngã ba Giồng,place_of_worship,hcmc,10.868142,106.561124,0
+w330305509,Nhà thờ Đồng Tiến,place_of_worship,hcmc,10.771215,106.666183,0
+w33103437,Đình Bình Đông,place_of_worship,hcmc,10.727927,106.641472,0
+w332397849,Chùa Bửu Sơn,place_of_worship,hcmc,10.841748,106.824233,0
+w332397851,Giáo xứ Long Thạnh Mỹ,place_of_worship,hcmc,10.844518,106.826349,0
+w332397852,Giáo xứ Thánh Gẫm,place_of_worship,hcmc,10.83956,106.823077,0
+w341504305,Trụ sở Ủy ban nhân dân Thành phố Hồ Chí Minh,attraction,hcmc,10.776596,106.700955,20000
+w355866759,Chùa Quan Thế Âm,place_of_worship,hcmc,10.805665,106.682316,0
+w360849877,Thánh Thất Từ Vân,place_of_worship,hcmc,10.806459,106.681439,0
+w363255191,Đình thần Long Thới,place_of_worship,hcmc,10.658072,106.728137,0
+w363255214,Đình thần An Phú Đông,place_of_worship,hcmc,10.851516,106.698665,0
+w363255215,Đình Quới Xuân,place_of_worship,hcmc,10.866841,106.675919,0
+w363255217,Đình Quới An,place_of_worship,hcmc,10.879557,106.667,0
+w363255239,Đình thần Long Kiển,place_of_worship,hcmc,10.69738,106.706016,0
+w363255415,Đình Nhơn Đức,place_of_worship,hcmc,10.67854,106.703557,0
+w363255504,Đình Phước Long,place_of_worship,hcmc,10.700599,106.719902,0
+w366069915,Chùa Hoằng Pháp,place_of_worship,hcmc,10.900216,106.581813,0
+w366069919,Nhà Thờ Giáo xứ Châu Nam,place_of_worship,hcmc,10.892976,106.578612,0
+w366069920,Nhà Thờ Giáo xứ Nam Hưng,place_of_worship,hcmc,10.895278,106.577279,0
+w366105826,Nhà thờ Giáo xứ Thủ Thiêm,place_of_worship,hcmc,10.772986,106.710443,0
+w366651480,Chùa Phước Quang,place_of_worship,hcmc,10.77043,106.760257,0
+w369668989,Chùa Pháp Hoa,place_of_worship,hcmc,10.786363,106.681419,0
+w371278740,Nhà thờ Đa Minh - Ba Chuông,place_of_worship,hcmc,10.793848,106.669464,0
+w372306543,Đài tưởng niệm liệt sỹ quận Phú Nhuận,historic,hcmc,10.792466,106.680417,30000
+w373719793,Nhà thờ Tân Hòa,place_of_worship,hcmc,10.789962,106.668276,0
+w373721568,Nhà thờ Tân Dân,place_of_worship,hcmc,10.794472,106.656459,0
+w376923094,Bảo tàng Lực lượng Vũ trang miền Đông Nam Bộ,museum,hcmc,10.799371,106.665989,40000
+w377269804,Chùa Giác Huệ,place_of_worship,hcmc,10.753846,106.729823,0
+w377308555,Chùa Pháp Giới,place_of_worship,hcmc,10.767928,106.629317,0
+w377308559,Nhà thờ Giáo xứ Phú Thọ Hòa,place_of_worship,hcmc,10.774149,106.630384,0
+w377422765,Nhà thờ Thuận Phát,place_of_worship,hcmc,10.751755,106.715701,0
+w39514793,Bưu điện Trung tâm Sài Gòn,attraction,hcmc,10.779981,106.700021,20000
+w39514795,Chợ Bến Thành,attraction,hcmc,10.772571,106.698017,20000
+w39598493,Dinh Độc Lập,attraction,hcmc,10.777017,106.695403,20000
+w39619627,Nhà thờ Thánh Jeanne d'Arc,attraction,hcmc,10.757041,106.667369,20000
+w39619657,Nhà thờ Chợ Quán,place_of_worship,hcmc,10.757331,106.681733,0
+w39622250,Chùa Hoà Khánh,place_of_worship,hcmc,10.811164,106.695115,0
+w39622285,Chùa Bát Nhã,place_of_worship,hcmc,10.822617,106.704115,0
+w407413903,Đình Bình Trường,place_of_worship,hcmc,10.668766,106.568052,0
+w418085086,Chùa Giác Nguyên,place_of_worship,hcmc,10.759029,106.701709,0
+w419720003,Chùa Pháp Quang,place_of_worship,hcmc,10.739139,106.656671,0
+w420032386,Nhà thờ Chánh Hưng,place_of_worship,hcmc,10.740804,106.671767,0
+w420032397,Tu Viện Dòng Mến Thánh Giá Thủ Thiêm,place_of_worship,hcmc,10.771834,106.711458,0
+w420032416,Nhà thờ Nam Hải,place_of_worship,hcmc,10.737319,106.671754,0
+w420287563,Chùa An Phú,place_of_worship,hcmc,10.747431,106.668801,0
+w420287564,Chùa Huệ Lâm,place_of_worship,hcmc,10.7482,106.663954,0
+w420287565,Chùa Nam Phổ Đà,place_of_worship,hcmc,10.753286,106.646176,0
+w420287566,Chùa Phật Bảo,place_of_worship,hcmc,10.754563,106.646352,0
+w420287567,Chùa Tây Thiên,place_of_worship,hcmc,10.750379,106.646845,0
+w420287575,Nhà thờ Tin Lành Tuy Lý Vương,place_of_worship,hcmc,10.743631,106.65489,0
+w420287578,Hội quán Nghĩa Nhuận,place_of_worship,hcmc,10.749372,106.654387,0
+w420287580,Nhà thờ Bình Phước,place_of_worship,hcmc,10.740854,106.638856,0
+w420287581,Nhà thờ Hưng Phú,place_of_worship,hcmc,10.745678,106.672058,0
+w420287797,Đình Bình Tây,place_of_worship,hcmc,10.750791,106.647126,0
+w420287799,Đình Minh Phụng,place_of_worship,hcmc,10.754347,106.64529,0
+w420287800,Đình Vĩnh Hội,place_of_worship,hcmc,10.746952,106.65956,0
+w421603550,Chùa Bảo Quang,place_of_worship,hcmc,10.789381,106.636948,0
+w421603557,Nhà thờ Tân Phú,place_of_worship,hcmc,10.791368,106.634802,0
+w421970911,Chùa Hưng Quốc,place_of_worship,hcmc,10.772991,106.645392,0
+w421970912,Chùa Từ Ân,place_of_worship,hcmc,10.773467,106.645885,0
+w421970916,Dòng tu Khiết Tâm,place_of_worship,hcmc,10.772799,106.644252,0
+w421970917,Giáo xứ Vĩnh Hoà,place_of_worship,hcmc,10.768722,106.645955,0
+w421970959,Nhà thờ giáo xứ Phú Bình,place_of_worship,hcmc,10.773601,106.643844,0
+w421970999,Đình Tân Phước,place_of_worship,hcmc,10.773306,106.649387,0
+w425307157,Đình thần Trung Mỹ Tây,place_of_worship,hcmc,10.874376,106.614097,0
+w425307158,Đình thần Xuân Thới Đông,place_of_worship,hcmc,10.869142,106.58862,0
+w425307162,Đình An Phước,place_of_worship,hcmc,10.889608,106.690041,0
+w442698232,Đài Liệt Sĩ Gò Vấp,place_of_worship,hcmc,10.838881,106.675981,0
+w446319141,Chùa Giác Sanh,place_of_worship,hcmc,10.770589,106.649711,0
+w457601646,Giáo xứ Tân Phước,place_of_worship,hcmc,10.774149,106.652737,0
+w460757143,Chùa Giác Viên,place_of_worship,hcmc,10.762987,106.639157,0
+w463548000,Khu du lịch Suối Tiên,theme_park,hcmc,10.861912,106.80379,150000
+w465315182,Chùa Pháp Minh Quang,place_of_worship,hcmc,10.801902,106.75184,0
+w465820437,Chùa Lâm Tế,place_of_worship,hcmc,10.765654,106.6876,0
+w466316397,Chùa Long An,place_of_worship,hcmc,10.758131,106.684959,0
+w467053213,Chùa Phước Hậu,place_of_worship,hcmc,10.766157,106.691939,0
+w469354901,Đền tưởng niệm các Vua Hùng,place_of_worship,hcmc,10.773669,106.692281,0
+w485859145,Chùa Quang Minh,place_of_worship,hcmc,10.718348,106.598622,0
+w485859164,Chùa Giác Phước,place_of_worship,hcmc,10.732222,106.601197,0
+w489019398,Đình Đông Phú,place_of_worship,hcmc,10.716715,106.625715,0
+w489019402,Chùa Sùng Chính,place_of_worship,hcmc,10.718582,106.623675,0
+w489019405,Giáo xứ Bình Đông,place_of_worship,hcmc,10.723144,106.63048,0
+w489020905,Chùa Từ Quang,place_of_worship,hcmc,10.707295,106.621628,0
+w489591423,Thánh thất Cao đài An Phú Tây,place_of_worship,hcmc,10.681333,106.606851,0
+w489591426,Đình Châu Thới,place_of_worship,hcmc,10.680995,106.613705,0
+w493155224,Chùa Huệ Nghiêm,place_of_worship,hcmc,10.742805,106.616199,0
+w493157639,Giáo Xứ Bến Cát,place_of_worship,hcmc,10.82807,106.690432,0
+w493157644,Giáo Xứ Bến Hải,place_of_worship,hcmc,10.826083,106.695128,0
+w493174173,Chùa Phổ Quang,place_of_worship,hcmc,10.804941,106.668666,0
+w493174212,Giáo xứ Mân Côi Gò Vấp,place_of_worship,hcmc,10.816136,106.681316,0
+w493174213,Chùa Bảo Long,place_of_worship,hcmc,10.813729,106.680221,0
+w493251146,Nữ tu viện Dòng thánh Phaolô thành Chartres,place_of_worship,hcmc,10.784142,106.70637,0
+w494789246,Tịnh xá Ngọc Diệp,place_of_worship,hcmc,10.789378,106.685797,0
+w494789249,Chùa Vĩnh Nghiêm,place_of_worship,hcmc,10.790363,106.682294,0
+w494789261,Ni Viện Kiều Đàm,place_of_worship,hcmc,10.790862,106.68339,0
+w494789264,Thiền viện Quảng Đức,place_of_worship,hcmc,10.790449,106.683712,0
+w495697563,Nhà thờ Vinh Sơn,place_of_worship,hcmc,10.785161,106.657651,0
+w495697571,Nhà thờ Nghĩa Hòa,place_of_worship,hcmc,10.786629,106.65904,0
+w495697577,Nhà thờ Sao Mai,place_of_worship,hcmc,10.787045,106.658197,0
+w495697589,Tu viện Mân Côi,place_of_worship,hcmc,10.788829,106.657406,0
+w495697600,Giáo xứ Chí Hòa,place_of_worship,hcmc,10.788479,106.655244,0
+w495698482,Nhà Thờ Thánh Mẫu,place_of_worship,hcmc,10.787948,106.65769,0
+w495698484,Tu viện Mân Côi,place_of_worship,hcmc,10.788829,106.657406,0
+w495698491,Nhà thờ Chí Hòa,place_of_worship,hcmc,10.788358,106.655483,0
+w495771665,Nhà thờ Giáo xứ Đông Hòa,place_of_worship,hcmc,10.887425,106.777949,0
+w496059273,Giáo Xứ An Lạc,place_of_worship,hcmc,10.7889,106.664239,0
+w496910212,Đình Hanh Phú,place_of_worship,hcmc,10.842555,106.696789,0
+w497625731,Nhà thờ Tin Lành Hòa Hưng,place_of_worship,hcmc,10.785139,106.667469,0
+w498264577,Nhà thờ Nam Thái,place_of_worship,hcmc,10.789156,106.661175,0
+w498309666,Quan Âm Ni Tự,place_of_worship,hcmc,10.889125,106.768653,0
+w498309667,Chùa Từ Lâm,place_of_worship,hcmc,10.888845,106.768759,0
+w498309668,Tu viện Phước Minh,place_of_worship,hcmc,10.888765,106.768917,0
+w498309672,Chùa An Phước,place_of_worship,hcmc,10.893165,106.772364,0
+w498423483,Nhà thờ Tin Lành Chánh Hưng,place_of_worship,hcmc,10.747049,106.673613,0
+w498997222,Chùa Thái Hòa,place_of_worship,hcmc,10.790319,106.661893,0
+w499047936,Nhà thờ Nam Hòa,place_of_worship,hcmc,10.783501,106.659958,0
+w499426670,Chùa Huê Nghiêm,place_of_worship,hcmc,10.849123,106.759713,0
+w499426675,Hội Dòng Mến Thánh Giá Thủ Đức,place_of_worship,hcmc,10.848327,106.764818,0
+w499426676,Giáo xứ Từ Đức,place_of_worship,hcmc,10.847705,106.764185,0
+w502532627,Nhà Thờ Thăng Long,place_of_worship,hcmc,10.764951,106.65332,0
+w503146852,Hội dòng Đa Minh Rosa Lina - Miền Mẹ Vô nhiêm,place_of_worship,hcmc,10.844297,106.764634,0
+w503216450,Nhà Thờ Hiển Linh,place_of_worship,hcmc,10.861047,106.764087,0
+w503216480,Miễu Bà Chúa Xứ,place_of_worship,hcmc,10.86469,106.79297,0
+w503373114,Giáo xứ Bình Chiểu,place_of_worship,hcmc,10.881454,106.730638,0
+w503373118,Chùa Bửu Quang,place_of_worship,hcmc,10.873989,106.738352,0
+w503373120,Chùa Quảng Bình,place_of_worship,hcmc,10.877735,106.740459,0
+w503561767,Chùa Pháp Trí,place_of_worship,hcmc,10.884034,106.768214,0
+w503561771,Chùa Linh Phước,place_of_worship,hcmc,10.882289,106.766935,0
+w503561794,Dòng Mến Thánh Giá Khiết Tâm,place_of_worship,hcmc,10.875062,106.746655,0
+w503561800,Dòng Con Đức Mẹ Vô nhiễm,place_of_worship,hcmc,10.874545,106.742398,0
+w503561802,Tu hội Na Gia,place_of_worship,hcmc,10.873845,106.741961,0
+w503561809,Giáo xứ Khiết Tâm,place_of_worship,hcmc,10.875915,106.744154,0
+w504399217,Tu viện Thánh Giuse,place_of_worship,hcmc,10.861443,106.72208,0
+w505295889,Chùa Huê Nghiêm,place_of_worship,hcmc,10.788818,106.738764,0
+w505295938,Nhà thờ Tin Lành Thủ Thiêm,place_of_worship,hcmc,10.788161,106.728557,0
+w508351453,Giáo xứ Tân Hương,place_of_worship,hcmc,10.790231,106.624814,0
+w509355568,Giáo xứ Bình An Hạ,place_of_worship,hcmc,10.732177,106.642593,0
+w514840637,Thánh thất Tân Nhựt,place_of_worship,hcmc,10.696083,106.580094,0
+w516054327,Thánh thất Bình Chánh,place_of_worship,hcmc,10.76719,106.557371,0
+w516639140,Nhà tưởng niệm Nguyễn An Ninh,historic,hcmc,10.856708,106.612774,30000
+w518720097,Chùa Phước Hải,place_of_worship,hcmc,10.771896,106.676015,0
+w518855280,Nhà thờ Hòa Hưng,place_of_worship,hcmc,10.781688,106.670057,0
+w547931031,Nhà Thờ Lộc Hưng,place_of_worship,hcmc,10.785211,106.660873,0
+w548114715,Nhà thờ Xây dựng,place_of_worship,hcmc,10.788156,106.661055,0
+w561873630,Chùa Hưng Phú,place_of_worship,hcmc,10.746032,106.67345,0
+w563804464,Miễu Mạch Nước,place_of_worship,hcmc,10.898668,106.603188,0
+w569022243,Thánh thất Bình Hòa,place_of_worship,hcmc,10.811057,106.696556,0
+w570922769,Hội Thánh Tô Hiến Thành,place_of_worship,hcmc,10.774366,106.662319,0
+w583928347,Nhà thờ Giáo xứ Bến Gỗ,place_of_worship,hcmc,10.88885,106.84972,0
+w583931649,Chùa Long Phú,place_of_worship,hcmc,10.897588,106.844068,0
+w585932824,Chùa Ấn Quang,place_of_worship,hcmc,10.765834,106.671678,0
+w585932843,Nhà Thờ Vinh Sơn Phaolô,place_of_worship,hcmc,10.770287,106.672639,0
+w589315585,Chùa Một Cột,place_of_worship,hcmc,10.843484,106.763004,0
+w589315586,Chùa Nam Thiên Nhất Trụ,place_of_worship,hcmc,10.843592,106.763164,0
+w589901922,Chùa Ưu Đàm,place_of_worship,hcmc,10.829975,106.721892,0
+w589903329,Chùa Vân Sơn,place_of_worship,hcmc,10.836998,106.733329,0
+w589903336,Đình thần Bình Chánh,place_of_worship,hcmc,10.836918,106.733063,0
+w589903345,Chùa An Lạc,place_of_worship,hcmc,10.836815,106.732918,0
+w589933269,Giáo xứ Fatima Bình Triệu,place_of_worship,hcmc,10.82888,106.710314,0
+w596974770,Đình Tân Hội,place_of_worship,hcmc,10.842052,106.617302,0
+w60118189,Nhà thờ Tân Định,place_of_worship,hcmc,10.788349,106.690658,0
+w60118190,Nhà thờ Phú Hạnh,place_of_worship,hcmc,10.803152,106.684949,0
+w604112244,Đình thần Bình Thọ,place_of_worship,hcmc,10.82997,106.759061,0
+w604123278,Đình Ích Thạnh,place_of_worship,hcmc,10.826255,106.814462,0
+w604123296,Đình thần Linh Tây,place_of_worship,hcmc,10.85646,106.754678,0
+w604126559,Đình Tân Hồ,place_of_worship,hcmc,10.678181,106.578549,0
+w604136715,Đình thần Mỹ Thành,place_of_worship,hcmc,10.847647,106.81455,0
+w604136781,Đình Bình Chiểu,place_of_worship,hcmc,10.880764,106.72114,0
+w604428069,Đình Tân Thủy,place_of_worship,hcmc,10.686067,106.596429,0
+w604440778,Đình Trường Thọ,place_of_worship,hcmc,10.833674,106.756744,0
+w604541256,Đình thần Bình Đức,place_of_worship,hcmc,10.865694,106.742207,0
+w604845950,Đình An Phú,place_of_worship,hcmc,10.799469,106.741762,0
+w604897393,Đình Phong Phú,place_of_worship,hcmc,10.745325,106.660242,0
+w605281192,Chùa Quang Bửu,place_of_worship,hcmc,10.845381,106.829498,0
+w605281193,Chùa Tân Hòa,place_of_worship,hcmc,10.860041,106.801139,0
+w605281199,Giáo xứ Minh Đức,place_of_worship,hcmc,10.867291,106.806967,0
+w605281202,Chùa Kiều Đàm,place_of_worship,hcmc,10.866497,106.807407,0
+w605458749,Đình thần Phú Thọ,place_of_worship,hcmc,10.822796,106.760189,0
+w606893652,Đình Phục Đức,place_of_worship,hcmc,10.699371,106.574474,0
+w606957397,Nhà thờ Giáo xứ Thị Nghè,place_of_worship,hcmc,10.79324,106.708419,0
+w607211735,Đình Tân Túc,place_of_worship,hcmc,10.691776,106.5724,0
+w608345310,Chùa Bửu Thạnh,place_of_worship,hcmc,10.799879,106.81406,0
+w608509396,Đình Tri Hòa,place_of_worship,hcmc,10.704355,106.595596,0
+w608509398,Đình Tân Kiên,place_of_worship,hcmc,10.703183,106.595625,0
+w609063637,Nhà thờ Tân Phú Hòa,place_of_worship,hcmc,10.772486,106.640412,0
+w612105703,Đình Chánh Đa Phước,place_of_worship,hcmc,10.674224,106.650598,0
+w612105729,Đình Chánh Phước Cơ,place_of_worship,hcmc,10.664182,106.652622,0
+w612178010,Nhà thờ Cầu Kho,place_of_worship,hcmc,10.759692,106.691204,0
+w612469370,Đình Tân Nhựt,place_of_worship,hcmc,10.702853,106.565103,0
+w612843369,Đình thần Hưng Nhơn,place_of_worship,hcmc,10.712512,106.597335,0
+w612875523,Đình Hòa Thạnh,place_of_worship,hcmc,10.776433,106.634218,0
+w613622974,Đình Bình Giao,place_of_worship,hcmc,10.676239,106.616341,0
+w614636407,Đình Phú Xuân,place_of_worship,hcmc,10.698375,106.735011,0
+w615100220,Đình Phú Định,place_of_worship,hcmc,10.735285,106.631033,0
+w616464935,Đình Sơn Trà,place_of_worship,hcmc,10.791469,106.692043,0
+w616650519,Bảo Tháp Tu Viện Khánh An,place_of_worship,hcmc,10.860982,106.705083,0
+w616650520,Chánh điện,place_of_worship,hcmc,10.861372,106.705183,0
+w627779300,Nhà thờ Giáo xứ Phú Long,place_of_worship,hcmc,10.893119,106.703755,0
+w639395407,Chùa Pháp Truyền,place_of_worship,hcmc,10.696598,106.606193,0
+w648662983,Đình Ích Phú,place_of_worship,hcmc,10.805065,106.729069,0
+w666569008,Hội quán Nhị Phủ,place_of_worship,hcmc,10.751397,106.65726,0
+w669863010,Hội quán Phước An,place_of_worship,hcmc,10.754999,106.658867,0
+w675572227,Chùa Vĩnh Phước,place_of_worship,hcmc,10.832029,106.62137,0
+w675750811,Chùa Trúc Lâm,place_of_worship,hcmc,10.874999,106.630457,0
+w675758915,Đình An Lạc,place_of_worship,hcmc,10.728261,106.603829,0
+w675760353,Chùa Huê Lâm,place_of_worship,hcmc,10.754595,106.642165,0
+w675760354,Chùa Tuyền Lâm,place_of_worship,hcmc,10.754083,106.640498,0
+w675945696,Đài tưởng niệm Căn cứ Hố Bần,historic,hcmc,10.735057,106.625982,30000
+w680569909,Chùa Hải Đức,place_of_worship,hcmc,10.797405,106.68609,0
+w680569913,Quan Âm Tu Viện,place_of_worship,hcmc,10.796167,106.688792,0
+w680569927,Chùa Linh Quang,place_of_worship,hcmc,10.755209,106.6436,0
+w680569931,Chùa Sùng Đức,place_of_worship,hcmc,10.754757,106.641415,0
+w682250552,Nhà thờ Thánh Giuse Thợ,place_of_worship,hcmc,10.753376,106.704925,0
+w682250577,Chùa Linh Hương,place_of_worship,hcmc,10.754408,106.700825,0
+w682250584,Ngũ Hành Miễu,place_of_worship,hcmc,10.753074,106.691178,0
+w682250585,Chùa Phật Quang,place_of_worship,hcmc,10.753523,106.695362,0
+w682412596,Chùa Long Nguyên,place_of_worship,hcmc,10.754832,106.704955,0
+w682412598,Chùa Liên Trì,place_of_worship,hcmc,10.755116,106.704196,0
+w682412599,Thánh thất Quận 4,place_of_worship,hcmc,10.755448,106.703218,0
+w682412610,Đền Hoàng Sơn,place_of_worship,hcmc,10.754031,106.70478,0
+w682412611,Nhà thờ Thánh Giuse,place_of_worship,hcmc,10.753502,106.704295,0
+w682689458,Linh Quang Tịnh Xá,place_of_worship,hcmc,10.754918,106.696468,0
+w683113614,Đình Lý Nhơn,historic,hcmc,10.761629,106.69816,30000
+w683113618,Chùa Kim Liên,place_of_worship,hcmc,10.761018,106.700885,0
+w683113629,Chùa Giác Quang,place_of_worship,hcmc,10.759213,106.700714,0
+w683697157,Đình Khánh Hội,place_of_worship,hcmc,10.764238,106.708187,0
+w683697174,Miếu Khánh An,place_of_worship,hcmc,10.765611,106.705992,0
+w683697179,Chùa Linh Sơn,place_of_worship,hcmc,10.765953,106.705438,0
+w683910618,Chùa Đức Quang,place_of_worship,hcmc,10.760582,106.711208,0
+w683910622,Đền Đức Thánh Trần,place_of_worship,hcmc,10.760387,106.709655,0
+w683910654,Hưng Hội Tự,place_of_worship,hcmc,10.761338,106.707201,0
+w683910661,Hội thánh Tin Lành Khánh Hội,place_of_worship,hcmc,10.764154,106.704015,0
+w683910665,Chùa Tường Quang,place_of_worship,hcmc,10.762401,106.705116,0
+w683917138,Hội thánh Tin lành Tôn Thất Thuyết,place_of_worship,hcmc,10.753491,106.713894,0
+w683917144,Nhà thờ Thánh Tâm,place_of_worship,hcmc,10.758203,106.709223,0
+w683917145,Chùa Phước Duyên,place_of_worship,hcmc,10.758125,106.709658,0
+w684156656,Chùa Bát Nhã,place_of_worship,hcmc,10.756666,106.717182,0
+w684291658,Nhà thờ Thánh An Tôn,place_of_worship,hcmc,10.758253,106.714951,0
+w686255392,Chùa Nhựt Quang (chùa Nghệ sĩ),place_of_worship,hcmc,10.841772,106.662134,0
+w686792761,Thảo Đường Thiền tự,place_of_worship,hcmc,10.740539,106.628239,0
+w692147048,chùa Bà Thiên Hậu,place_of_worship,hcmc,10.784471,106.757196,0
+w693086309,Đình thần Bình Khánh,place_of_worship,hcmc,10.792321,106.611594,0
+w693086312,Miếu An Hòa,place_of_worship,hcmc,10.747505,106.672092,0
+w693903111,Chùa Thiền Tôn 1,place_of_worship,hcmc,10.778566,106.764283,0
+w695629371,Hội dòng nữ Đa Minh Rosa Lima - Tu viện Mẹ Thiên Chúa,place_of_worship,hcmc,10.880141,106.770238,0
+w695895031,Chủ tịch Hồ Chí Minh,historic,hcmc,10.776033,106.701538,30000
+w697210201,Nhà Thờ Lạc Quang,place_of_worship,hcmc,10.834878,106.618819,0
+w707041186,Nhà Thờ Thánh Nguyễn Duy Khang,place_of_worship,hcmc,10.857833,106.745442,0
+w707041187,Hội dòng nữ Đa Minh Rosa Lima - Tu viện Thánh Martino,place_of_worship,hcmc,10.857584,106.744716,0
+w709982598,Đình thần Bình An,place_of_worship,hcmc,10.899116,106.809995,0
+w709982620,Đình thần Tân Thới,place_of_worship,hcmc,10.776393,106.593193,0
+w714029573,Đình thần Bình Quới Tây,place_of_worship,hcmc,10.814607,106.74932,0
+w716770254,Đình Bình Thới,place_of_worship,hcmc,10.763169,106.640408,0
+w716770255,Đình Bình Tiên,place_of_worship,hcmc,10.750286,106.642529,0
+w717669406,Đình Bình Trị Đông,place_of_worship,hcmc,10.758385,106.606359,0
+w723231899,Đình Phước Trường,place_of_worship,hcmc,10.818224,106.81162,0
+w724384514,Phanxicô Xaviê,place_of_worship,hcmc,10.719964,106.634116,0
+w725148877,Nhà thờ Tin Lành Gò Vấp,place_of_worship,hcmc,10.816733,106.688846,0
+w727014725,Việt Nam Quốc tự,place_of_worship,hcmc,10.772071,106.673279,0
+w730144831,Đình Long Bình,place_of_worship,hcmc,10.864732,106.837356,0
+w734527238,Đình Tân Thới Tam,place_of_worship,hcmc,10.88942,106.601407,0
+w734527240,Đình Thới Tam Đông,place_of_worship,hcmc,10.882997,106.615611,0
+w734532403,Đình thần Tân Thới Trung,place_of_worship,hcmc,10.874656,106.596972,0
+w734532411,Đình thần Thuận Kiều,place_of_worship,hcmc,10.835551,106.615358,0
+w748630920,Chùa Pháp Vân,place_of_worship,hcmc,10.787001,106.626456,0
+w749707960,Nhà thờ Tin Lành Bình Đông,place_of_worship,hcmc,10.72943,106.636713,0
+w750619593,Chùa Châu Hưng,place_of_worship,hcmc,10.860164,106.738222,0
+w752685430,Chùa Pháp Bửu,place_of_worship,hcmc,10.760407,106.694085,0
+w759193012,Đình Chánh Thôn Qui Đức,place_of_worship,hcmc,10.65088,106.646045,0
+w771397970,Đình Hòa Mỹ,place_of_worship,hcmc,10.791138,106.69583,0
+w771414913,Đình Tân Khai,place_of_worship,hcmc,10.770175,106.610365,0
+w771415504,Đình Thái Bình,place_of_worship,hcmc,10.882448,106.829814,0
+w771449013,Đình Phú Hòa,place_of_worship,hcmc,10.791392,106.689864,0
+w771691984,Đình Nam Chơn,place_of_worship,hcmc,10.792168,106.694942,0
+w771710580,Đình Nghi Xuân,place_of_worship,hcmc,10.769665,106.620391,0
+w77183584,Chuồng khỉ,attraction,hcmc,10.787941,106.70684,20000
+w773611872,Đình Phú Thạnh,place_of_worship,hcmc,10.777789,106.624143,0
+w794223490,Đình thần Bình Trưng,place_of_worship,hcmc,10.783438,106.765585,0
+w796360470,Đình Phú Trung,place_of_worship,hcmc,10.779362,106.650138,0
+w801710792,Nhà hát Thành phố,attraction,hcmc,10.776711,106.703219,20000
+w801950766,Nhà thờ Đức Bà Sài Gòn,attraction,hcmc,10.779771,106.699058,20000
+w802105071,Bảo tàng Thành phố Hồ Chí Minh,museum,hcmc,10.775916,106.699673,40000
+w802157397,Masjid Al Rahim,place_of_worship,hcmc,10.769991,106.701295,0
+w802157419,Thánh đường Đức Mẹ Hoà Bình,place_of_worship,hcmc,10.770093,106.700259,0
+w802157425,Bảo tàng Mỹ thuật Thành phố Hồ Chí Minh,museum,hcmc,10.769646,106.699247,40000
+w804926030,Đan viện Cát Minh Sài Gòn,place_of_worship,hcmc,10.783065,106.704246,0
+w804926041,Nhà nguyện Thánh Giuse,place_of_worship,hcmc,10.782785,106.703976,0
+w806359774,Chùa Phước An,place_of_worship,hcmc,10.756593,106.705909,0
+w806359775,Nhà Thờ Tin Lành Tôn Đản,place_of_worship,hcmc,10.757485,106.706549,0
+w806663473,Chùa Thái Nguyên,place_of_worship,hcmc,10.787645,106.756436,0
+w806860786,Chùa Phụng Sơn,place_of_worship,hcmc,10.766447,106.698381,0
+w806860791,Biệt thự Nguyễn Văn Hảo,attraction,hcmc,10.768733,106.696841,20000
+w806860809,Nhà Thờ Thánh An Tôn,place_of_worship,hcmc,10.766292,106.696871,0
+w806860835,Chùa Trường Thạnh,place_of_worship,hcmc,10.768361,106.696619,0
+w807297543,Đình Nhơn Hòa,place_of_worship,hcmc,10.764312,106.696666,0
+w807297567,Hội quán Quảng Triệu,place_of_worship,hcmc,10.765214,106.699013,0
+w807545211,Đình Lương Hòa,place_of_worship,hcmc,10.743242,106.653177,0
+w807577737,Điện thờ Phật mẫu Thái Hoà,place_of_worship,hcmc,10.764385,106.694704,0
+w808022726,Bảo tàng Hồ Chí Minh,museum,hcmc,10.768251,106.706807,40000
+w808033616,Khu Di tích Bến Nhà Rồng,historic,hcmc,10.768235,106.706587,30000
+w818502187,Đình Phú Thạnh,place_of_worship,hcmc,10.775146,106.685248,0
+w818875751,Đình thần Phú Long,place_of_worship,hcmc,10.895423,106.695692,0
+w822326407,Nhà thờ Tin Lành Tân Phú,place_of_worship,hcmc,10.783804,106.624165,0
+w822357451,Đình Chánh An Phú,place_of_worship,hcmc,10.683713,106.651122,0
+w824263113,Đình Tân Tảo,place_of_worship,hcmc,10.688267,106.559681,0
+w825928787,Nhà thờ Tin Lành Gia Định,place_of_worship,hcmc,10.8037,106.685917,0
+w825942481,Nhà thờ Tin Lành Trương Minh Giảng,place_of_worship,hcmc,10.78807,106.678442,0
+w827035656,Đình Chánh Hưng Long,place_of_worship,hcmc,10.67805,106.634081,0
+w829864820,Nhà Thờ Khiết Tâm,place_of_worship,hcmc,10.785334,106.655697,0
+w830892120,Đình Phong Thuận,place_of_worship,hcmc,10.701091,106.664598,0
+w831299507,Đình Phú Mỹ,place_of_worship,hcmc,10.713187,106.730637,0
+w831361161,Đình Tân Liêm,place_of_worship,hcmc,10.683049,106.642032,0
+w832342508,Đình Long Hòa,place_of_worship,hcmc,10.844828,106.830649,0
+w833965977,Đình thần Tân Liễu,place_of_worship,hcmc,10.653191,106.635136,0
+w834920039,Nhà Thờ Tân Hưng,place_of_worship,hcmc,10.849244,106.667204,0
+w834920040,Nhà Thờ Hoàng Mai,place_of_worship,hcmc,10.849006,106.667827,0
+w834920043,Nhà Thờ Bắc Dũng,place_of_worship,hcmc,10.852208,106.666051,0
+w834920044,Nhà Thờ Trung Bắc,place_of_worship,hcmc,10.849563,106.666343,0
+w834920045,Nhà Thờ Hà Đông,place_of_worship,hcmc,10.848592,106.664924,0
+w835803240,Đình Tăng Phú,place_of_worship,hcmc,10.837854,106.796367,0
+w836194130,Đình Phước Bình,place_of_worship,hcmc,10.658373,106.590469,0
+w837742407,Đền thờ Lễ Thành hầu Nguyễn Hữu Cảnh,place_of_worship,hcmc,10.885777,106.829451,0
+w838400065,Nhà Thờ Thuận Phát,place_of_worship,hcmc,10.751278,106.715044,0
+w840854415,Đình thần Tân Điền,place_of_worship,hcmc,10.792701,106.801164,0
+w846926729,Tượng Buddha,artwork,hcmc,10.816429,106.682266,0
+w852913483,Đình thần Long Tân,place_of_worship,hcmc,10.794422,106.831524,0
+w853382374,Tu viện Huệ Quang,place_of_worship,hcmc,10.769845,106.635062,0
+w853382380,Chùa Sắc Tứ Từ Ân,place_of_worship,hcmc,10.755446,106.636908,0
+w856455192,Chùa Thiền Lâm,place_of_worship,hcmc,10.753605,106.631792,0
+w856455193,Tịnh xá Trung tâm,place_of_worship,hcmc,10.753789,106.631998,0
+w856455221,Chùa Diệu Pháp,place_of_worship,hcmc,10.74513,106.627615,0
+w857523781,Đình thần Ngãi Thắng,place_of_worship,hcmc,10.900063,106.826962,0
+w875447287,Nhà thờ Thiên Thần,place_of_worship,hcmc,10.807287,106.753664,0
+w897888816,Đình Tân Lạc,place_of_worship,hcmc,10.668755,106.639445,0
+w897942012,Đình Bình Thái,place_of_worship,hcmc,10.812906,106.77623,0
+w898029671,Đình Phước Cơ,place_of_worship,hcmc,10.655748,106.673954,0
+w899712058,Đình Thái Bình,place_of_worship,hcmc,10.72595,106.687549,0
+w899754205,Đình Bình Lộc,place_of_worship,hcmc,10.715918,106.656794,0
+w900599303,Đình Phước Lộc,place_of_worship,hcmc,10.701253,106.684577,0
+w905779140,Đình thần Bình Triệu,place_of_worship,hcmc,10.834664,106.7093,0
+w906434459,Giáo xứ Bình Lợi,place_of_worship,hcmc,10.82689,106.706603,0
+w907280822,Nhà thờ Huyện Sỹ,place_of_worship,hcmc,10.768614,106.688957,0
+w907285040,Nhà Thờ Thánh Martino,place_of_worship,hcmc,10.796088,106.709709,0
+w907748789,Đình thần Vĩnh Phú,place_of_worship,hcmc,10.879152,106.692622,0
+w907748791,Đình thần Phú Hội,place_of_worship,hcmc,10.889087,106.709604,0
+w907748815,Đình Thới Đông,place_of_worship,hcmc,10.893803,106.594983,0
+w907748840,Đình thần Long Phú,place_of_worship,hcmc,10.798367,106.810478,0
+w907748874,Đình Quảng Hòa,place_of_worship,hcmc,10.75374,106.680796,0
+w907749052,Đình thần Phú Thạnh,place_of_worship,hcmc,10.723318,106.844224,0
+w907749053,Đình Phước Lương,place_of_worship,hcmc,10.740259,106.775434,0
+w907749054,Đình Phước Khánh,place_of_worship,hcmc,10.677194,106.788356,0
+w907749079,Đình Tân Đông,place_of_worship,hcmc,10.787459,106.773851,0
+w907749080,Đình thần Tân Thiện,place_of_worship,hcmc,10.807994,106.798433,0
+w907749082,Đình thần Gò Cát,place_of_worship,hcmc,10.789082,106.797095,0
+w907749113,Nhà thờ Tin Lành Tân Thới Hòa,place_of_worship,hcmc,10.768341,106.629534,0
+w907749114,Nhà thờ Tin Lành Thông Tây Hội,place_of_worship,hcmc,10.842835,106.641609,0
+w907749115,Nhà thờ Tin Lành Phú Thọ Hòa,place_of_worship,hcmc,10.781453,106.649879,0
+w907749118,Nhà thờ Tin Lành Tân Trụ,place_of_worship,hcmc,10.825752,106.63546,0
+w907749161,Nhà thờ Tin Lành Thị Nghè,place_of_worship,hcmc,10.794018,106.70601,0
+w907749170,Chùa Văn Thánh,place_of_worship,hcmc,10.792322,106.713989,0
+w910459936,Đình Phong Phú,place_of_worship,hcmc,10.831876,106.783215,0
+w915391554,Miếu Lương Phú,place_of_worship,hcmc,10.677455,106.553579,0
+w920751900,Nhà thờ Tin Lành Phú Lâm,place_of_worship,hcmc,10.74771,106.632575,0
+w952526935,Đình Bình Đăng,place_of_worship,hcmc,10.731052,106.656615,0
+w961345426,Chùa Pháp Hoa,place_of_worship,hcmc,10.748584,106.645172,0
+w993528569,Đình Bình Thạnh,place_of_worship,hcmc,10.781262,106.759978,0
