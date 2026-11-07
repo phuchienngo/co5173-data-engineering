@@ -120,7 +120,7 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT round(100 * countIf(sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews",
+          "rawSql": "SELECT round(100 * countIf(sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews WHERE sentiment_label != 'non_english'",
           "refId": "A"
         }
       ],
@@ -462,7 +462,7 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT d.room_type, count() AS reviews, countIf(f.sentiment_label = 'positive') AS positive_reviews, round(100 * countIf(f.sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews f INNER JOIN dim_airbnb_listing d USING listing_id GROUP BY d.room_type ORDER BY reviews DESC LIMIT 10",
+          "rawSql": "SELECT d.room_type, count() AS reviews, countIf(f.sentiment_label = 'positive') AS positive_reviews, round(100 * countIf(f.sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews f INNER JOIN dim_airbnb_listing d USING listing_id WHERE f.sentiment_label != 'non_english' GROUP BY d.room_type ORDER BY reviews DESC LIMIT 10",
           "refId": "A"
         }
       ],
@@ -888,7 +888,7 @@
           "editorType": "sql",
           "format": 1,
           "queryType": "table",
-          "rawSql": "SELECT d.neighbourhood, count() AS reviews, round(100 * countIf(f.sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews f INNER JOIN dim_airbnb_listing d USING listing_id GROUP BY d.neighbourhood ORDER BY reviews DESC, positive_rate DESC LIMIT 10",
+          "rawSql": "SELECT d.neighbourhood, count() AS reviews, round(100 * countIf(f.sentiment_label = 'positive') / greatest(count(), 1), 2) AS positive_rate FROM fact_reviews f INNER JOIN dim_airbnb_listing d USING listing_id WHERE f.sentiment_label != 'non_english' GROUP BY d.neighbourhood ORDER BY reviews DESC, positive_rate DESC LIMIT 10",
           "refId": "A"
         }
       ],
@@ -997,6 +997,58 @@
         }
       ],
       "title": "BR4 Highest Revenue Bookings",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 29
+      },
+      "id": 17,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT kw AS keyword, count() AS mentions FROM fact_reviews ARRAY JOIN keywords AS kw WHERE sentiment_label = 'negative' GROUP BY kw ORDER BY mentions DESC LIMIT 15",
+          "refId": "A"
+        }
+      ],
+      "title": "BR3 Top Complaint Keywords",
       "type": "table"
     }
   ],

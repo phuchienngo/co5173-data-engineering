@@ -1,0 +1,28 @@
+stopwords loaded: 181
+BR3: topic bench_br3_200000 has 200000 messages, 200000 expected after the dim join
+{'br': '3', 'engine': 'spark', 'rep': 0, 'rows': 200000, 'first_row_s': 16.91, 'end_to_end_s': 106.22, 'rows_per_s': 1883, 'peak_mem_mib': 3302, 'mean_cpu_pct': 115.0, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4718, 'p95_ms': 6954, 'p99_ms': 7241, 'live_peak_mem_mib': 2734, 'live_mean_cpu_pct': 78.4}
+{'br': '3', 'engine': 'clickhouse', 'rep': 0, 'rows': 200000, 'first_row_s': 5.19, 'end_to_end_s': 19.01, 'rows_per_s': 10523, 'peak_mem_mib': 973, 'mean_cpu_pct': 80.2, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4247, 'p95_ms': 7897, 'p99_ms': 8227, 'live_peak_mem_mib': 896, 'live_mean_cpu_pct': 15.6}
+{'br': '3', 'engine': 'spark', 'rep': 1, 'rows': 200000, 'first_row_s': 16.92, 'end_to_end_s': 105.98, 'rows_per_s': 1887, 'peak_mem_mib': 2874, 'mean_cpu_pct': 115.0, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4619, 'p95_ms': 6934, 'p99_ms': 7242, 'live_peak_mem_mib': 2760, 'live_mean_cpu_pct': 72.5}
+{'br': '3', 'engine': 'clickhouse', 'rep': 1, 'rows': 200000, 'first_row_s': 5.18, 'end_to_end_s': 18.48, 'rows_per_s': 10822, 'peak_mem_mib': 883, 'mean_cpu_pct': 81.5, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4068, 'p95_ms': 7693, 'p99_ms': 8071, 'live_peak_mem_mib': 930, 'live_mean_cpu_pct': 16.5}
+{'br': '3', 'engine': 'spark', 'rep': 2, 'rows': 200000, 'first_row_s': 16.94, 'end_to_end_s': 107.34, 'rows_per_s': 1863, 'peak_mem_mib': 3268, 'mean_cpu_pct': 113.5, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4626, 'p95_ms': 6925, 'p99_ms': 7332, 'live_peak_mem_mib': 2988, 'live_mean_cpu_pct': 77.8}
+{'br': '3', 'engine': 'clickhouse', 'rep': 2, 'rows': 200000, 'first_row_s': 5.19, 'end_to_end_s': 18.07, 'rows_per_s': 11070, 'peak_mem_mib': 1024, 'mean_cpu_pct': 79.9, 'live_rows': 60000, 'live_expected': 60000, 'p50_ms': 4185, 'p95_ms': 7790, 'p99_ms': 8108, 'live_peak_mem_mib': 954, 'live_mean_cpu_pct': 13.7}
+BR4: topic bench_br4_50000 has 50000 messages, 49964 expected after the dim join
+{'br': '4', 'engine': 'spark', 'rep': 0, 'rows': 49964, 'first_row_s': 11.29, 'end_to_end_s': 28.85, 'rows_per_s': 1732, 'peak_mem_mib': 2750, 'mean_cpu_pct': 135.2, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 3087, 'p95_ms': 5450, 'p99_ms': 5770, 'live_peak_mem_mib': 2563, 'live_mean_cpu_pct': 46.5}
+{'br': '4', 'engine': 'clickhouse', 'rep': 0, 'rows': 49964, 'first_row_s': 4.18, 'end_to_end_s': 4.18, 'rows_per_s': 11947, 'peak_mem_mib': 898, 'mean_cpu_pct': 9.5, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 3984, 'p95_ms': 7274, 'p99_ms': 7581, 'live_peak_mem_mib': 967, 'live_mean_cpu_pct': 14.3}
+{'br': '4', 'engine': 'spark', 'rep': 1, 'rows': 49964, 'first_row_s': 11.25, 'end_to_end_s': 27.26, 'rows_per_s': 1833, 'peak_mem_mib': 2541, 'mean_cpu_pct': 131.8, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 3029, 'p95_ms': 5403, 'p99_ms': 5720, 'live_peak_mem_mib': 2751, 'live_mean_cpu_pct': 43.6}
+{'br': '4', 'engine': 'clickhouse', 'rep': 1, 'rows': 49964, 'first_row_s': 4.16, 'end_to_end_s': 4.16, 'rows_per_s': 12024, 'peak_mem_mib': 919, 'mean_cpu_pct': 28.1, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 3953, 'p95_ms': 7346, 'p99_ms': 7641, 'live_peak_mem_mib': 958, 'live_mean_cpu_pct': 15.6}
+{'br': '4', 'engine': 'spark', 'rep': 2, 'rows': 49964, 'first_row_s': 11.28, 'end_to_end_s': 27.31, 'rows_per_s': 1830, 'peak_mem_mib': 2688, 'mean_cpu_pct': 138.4, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 3093, 'p95_ms': 5456, 'p99_ms': 5889, 'live_peak_mem_mib': 2809, 'live_mean_cpu_pct': 46.2}
+{'br': '4', 'engine': 'clickhouse', 'rep': 2, 'rows': 49964, 'first_row_s': 4.15, 'end_to_end_s': 4.15, 'rows_per_s': 12047, 'peak_mem_mib': 621, 'mean_cpu_pct': 8.4, 'live_rows': 59958, 'live_expected': 59958, 'p50_ms': 4065, 'p95_ms': 7342, 'p99_ms': 7641, 'live_peak_mem_mib': 778, 'live_mean_cpu_pct': 17.5}
+| BR | Engine | Rows | end_to_end_s | first_row_s | rows_per_s | peak_mem_mib | mean_cpu_pct | p50_ms | p95_ms | p99_ms | live_peak_mem_mib | live_mean_cpu_pct |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BR3 | spark | 200000 | 106.22 | 16.92 | 1883 | 3268 | 115 | 4626 | 6934 | 7242 | 2760 | 77.8 |
+| BR3 | clickhouse | 200000 | 18.48 | 5.19 | 10822 | 973 | 80.2 | 4185 | 7790 | 8108 | 930 | 15.6 |
+| BR4 | spark | 49964 | 27.31 | 11.28 | 1830 | 2688 | 135.2 | 3087 | 5450 | 5770 | 2751 | 46.2 |
+| BR4 | clickhouse | 49964 | 4.16 | 4.16 | 12024 | 898 | 9.5 | 3984 | 7342 | 7641 | 958 | 15.6 |
+
+Median of 3 runs. Spark maxOffsetsPerTrigger = 10000; live: 1000 msg/s for 60 s, latency = ingested_at - Kafka timestamp.
+
+Correctness (backlog outputs joined on id, Spark vs ClickHouse):
+- BR3: 199998/200000 rows with identical keywords; 199999/200000 with the same English/non-English decision
+- BR4: 49964/49964 rows with identical revenue and bucket
+- Row counts (count, distinct ids): {'fact_reviews': (200000, 200000), 'fact_reviews_ch': (200000, 200000), 'fact_bookings': (49964, 49964), 'fact_bookings_ch': (49964, 49964)}

@@ -40,19 +40,21 @@ kafka_bootstrap = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
 raw = (
     spark.readStream.format("kafka")
     .option("kafka.bootstrap.servers", kafka_bootstrap)
-    .option("subscribe", "bookings")
-    .option("startingOffsets", "earliest")
-    .option("maxOffsetsPerTrigger", "500")
+    .option("subscribe", os.environ.get("KAFKA_TOPIC", "bookings"))
+    .option("startingOffsets", os.environ.get("STARTING_OFFSETS", "earliest"))
+    .option("maxOffsetsPerTrigger", os.environ.get("MAX_OFFSETS_PER_TRIGGER", "500"))
     .load()
 )
 
 bookings = raw.select(
-    F.from_json(F.col("value").cast("string"), BOOKING_SCHEMA).alias("data")
+    F.from_json(F.col("value").cast("string"), BOOKING_SCHEMA).alias("data"),
+    F.col("timestamp").alias("event_time"),
 ).select(
     F.col("data.id").alias("booking_id"),
     F.col("data.listing_id").alias("listing_id"),
     F.col("data.revenue").cast("double").alias("event_revenue"),
     F.col("data.nights_booked").cast("int").alias("nights_booked"),
+    "event_time",
 )
 
 fact = (
@@ -65,7 +67,7 @@ fact = (
         ),
     )
     .withColumn("revenue_bucket", bucket_udf(F.col("revenue")))
-    .select("booking_id", "listing_id", "revenue", "revenue_bucket")
+    .select("booking_id", "listing_id", "revenue", "revenue_bucket", "event_time")
 )
 
 fact.explain()
