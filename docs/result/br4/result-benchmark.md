@@ -30,27 +30,27 @@ Mỗi phép đo lặp 3 lần, báo median [min - max].
 ## Chạy lại
 Xem `docs/result/br3/result-benchmark.md` (một lệnh chạy cả hai BR).
 
-## Kết quả (median [min - max] của 3 lần, nền `main`)
+## Kết quả (median [min - max] của 3 lần, nền `main`, đo lại 2026-11-08)
 
 Xả backlog 50.000 booking (49.964 dòng sau inner join với `dim_listing_pricing`; 36 booking có `Property_ID` không có trong dim):
 
 | Engine | End-to-end (s) | Dòng đầu tiên (s) | rows/s | RAM đỉnh (MiB) | CPU TB (%) |
 |---|---|---|---|---|---|
-| Spark | 27,3 [27,3 - 28,9] | 11,3 | 1.830 [1.732 - 1.833] | 2.688 [2.541 - 2.750] | 135 [132 - 138] |
-| ClickHouse MV | 4,2 [4,2 - 4,2] | 4,2 | 12.024 [11.947 - 12.047] | 898 [621 - 919] | 10 [8 - 28] |
+| Spark | 29,2 [28,9 - 31,5] | 15,0 | 1.708 [1.586 - 1.728] | 2.576 [2.563 - 2.595] | 171 [155 - 176] |
+| ClickHouse MV | 4,1 [4,1 - 5,0] | 4,1 | 12.097 [10.058 - 12.131] | 858 [824 - 870] | 12 [11 - 15] |
 
 Chạy liên tục 1.000 msg/s trong 60 s (59.958/59.958 dòng tới đủ ở cả hai, cả 3 lần):
 
 | Engine | p50 (ms) | p95 (ms) | p99 (ms) | RAM đỉnh (MiB) | CPU TB (%) |
 |---|---|---|---|---|---|
-| Spark | 3.087 [3.029 - 3.093] | 5.450 [5.403 - 5.456] | 5.770 [5.720 - 5.889] | 2.751 | 46 |
-| ClickHouse MV | 3.984 [3.953 - 4.065] | 7.342 [7.274 - 7.346] | 7.641 [7.581 - 7.641] | 958 | 16 |
+| Spark | 3.252 [3.177 - 3.320] | 5.501 [5.490 - 5.533] | 5.865 [5.792 - 6.169] | 2.672 | 48 |
+| ClickHouse MV | 3.878 [3.829 - 3.906] | 7.286 [7.284 - 7.312] | 7.595 [7.570 - 7.644] | 864 | 13 |
 
 Độ đúng: 49.964/49.964 dòng có `revenue` và `revenue_bucket` giống hệt; mỗi bên 49.964 dòng, không trùng `booking_id`.
 
 ## Nhận xét
 - Kết quả giống nhau 100%: logic BR4 (join + công thức doanh thu + chia nhóm) chuyển sang SQL của ClickHouse không mất gì.
-- Xả backlog: ClickHouse MV nhanh hơn khoảng 6,6 lần, dùng khoảng 1/3 RAM và rất ít CPU. ClickHouse ghi cả 50k dòng trong một lần flush (dòng đầu và dòng cuối cùng lúc 4,2 s); Spark tốn ~11 s khởi động và chạy 1 core.
+- Xả backlog: ClickHouse MV nhanh hơn khoảng 7,1 lần, dùng khoảng 1/3 RAM và rất ít CPU. ClickHouse ghi cả 50k dòng trong một lần flush (dòng đầu và dòng cuối cùng lúc 4,1 s); Spark tốn ~15 s khởi động và chạy 1 core.
 - Chạy liên tục: Spark có độ trễ thấp hơn ở mọi phân vị (p95 5,5 s so với 7,3 s), do trigger 5 s ngắn hơn chu kỳ flush mặc định ~7,5 s của ClickHouse. Hai giá trị này chỉnh được (Spark `trigger`, ClickHouse `kafka_flush_interval_ms`) nhưng chưa thử.
 - Đánh đổi: ClickHouse MV gọn, rẻ tài nguyên, phù hợp logic SQL như BR4; Spark linh hoạt hơn (Python, ML, mở rộng nhiều worker) và có độ trễ đuôi thấp hơn ở cấu hình mặc định.
 
@@ -59,7 +59,13 @@ Chạy liên tục 1.000 msg/s trong 60 s (59.958/59.958 dòng tới đủ ở c
 |---|---|---|
 | 1-2 (nền cũ `320140e`) | BR4 lúc đó dùng dữ liệu Airbnb (doanh thu ước tính); đo được ClickHouse 10,7 s vs Spark 21,8 s, kết quả trùng 100% | `main` đổi BR4 sang `Fact_Bookings.csv`, viết lại `clickhouse_br4.sql` theo công thức mới và đo lại |
 | 3 (nền `main`) | Spark không ghi được dòng nào sau 20 phút (timeout). Nguyên nhân: driver JVM của lần chạy demo trước vẫn sống và giữ đủ 2/2 core trên Spark master (`pkill -f spark-submit` chỉ giết launcher, không giết `org.apache.spark.deploy.SparkSubmit`), app benchmark không được cấp executor | Dừng driver bằng `pkill -f /opt/jobs/br`; script chờ master không còn app active trước mỗi lần submit và ghi log Spark vào `docs/result/br3/benchmark/logs/` |
-| 4 (nền `main`) | Chạy đủ 3 lần, không lỗi ở BR4 | Dùng số liệu lần này |
+| 4 (nền `main`) | Chạy đủ 3 lần, không lỗi ở BR4 | Số liệu lần 4 |
+| 5 (nền `main`, 2026-11-08) | Đo lại sau khi rebase lên `main` mới, 3 lần lặp, không lỗi. Spark 29,2 s so với ClickHouse 4,1 s, trùng 100% | Dùng số liệu lần này |
+
+## Dashboard sau khi chạy (49.964 booking)
+![BR4 dashboard](screenshots/br4-data-result.jpg)
+
+Ảnh chụp bằng Playwright từ `br4-data-result` sau lần đo ngày 2026-11-08.
 
 ## Hạn chế
 - Một máy, 8 GB; kết quả phụ thuộc giới hạn RAM/CPU.

@@ -36,29 +36,29 @@ make br3-bench REPS=3        # khoảng 40 phút
 ```
 Kết quả thô: `docs/result/br3/benchmark/benchmark_runs.csv`, `docs/result/br3/benchmark/summary.md`.
 
-## Kết quả (median [min - max] của 3 lần, nền `main`)
+## Kết quả (median [min - max] của 3 lần, nền `main`, đo lại 2026-11-08)
 
 Xả backlog 200.000 review:
 
 | Engine | End-to-end (s) | Dòng đầu tiên (s) | rows/s | RAM đỉnh (MiB) | CPU TB (%) |
 |---|---|---|---|---|---|
-| Spark | 106,2 [106,0 - 107,3] | 16,9 | 1.883 [1.863 - 1.887] | 3.268 [2.874 - 3.302] | 115 [114 - 115] |
-| ClickHouse MV | 18,5 [18,1 - 19,0] | 5,2 | 10.822 [10.523 - 11.070] | 973 [883 - 1.024] | 80 [80 - 82] |
+| Spark | 114,6 [113,0 - 120,8] | 21,3 | 1.745 [1.656 - 1.770] | 3.007 [2.855 - 3.253] | 130 [125 - 130] |
+| ClickHouse MV | 20,0 [18,4 - 22,6] | 5,2 | 9.997 [8.869 - 10.875] | 788 [659 - 798] | 80 [74 - 81] |
 
 Chạy liên tục 1.000 msg/s trong 60 s (60.000/60.000 dòng tới đủ ở cả hai, cả 3 lần):
 
 | Engine | p50 (ms) | p95 (ms) | p99 (ms) | RAM đỉnh (MiB) | CPU TB (%) |
 |---|---|---|---|---|---|
-| Spark | 4.626 [4.619 - 4.718] | 6.934 [6.925 - 6.954] | 7.242 [7.241 - 7.332] | 2.760 | 78 |
-| ClickHouse MV | 4.185 [4.068 - 4.247] | 7.790 [7.693 - 7.897] | 8.108 [8.071 - 8.227] | 930 | 16 |
+| Spark | 5.044 [4.942 - 5.150] | 7.418 [7.321 - 7.496] | 8.085 [7.882 - 8.209] | 2.920 | 92 |
+| ClickHouse MV | 4.334 [4.326 - 4.443] | 7.857 [7.839 - 7.951] | 8.214 [8.169 - 8.471] | 626 | 14 |
 
 Độ đúng (200.000 dòng, nối theo `review_id`; mỗi bên 200.000 dòng, không trùng id):
 - `keywords` giống hệt: 199.998/200.000 (99,999%); quyết định tiếng Anh giống: 199.999/200.000.
 - 3 dòng lệch đều là review tiếng Thổ Nhĩ Kỳ có chữ `İ`: Java/Python hạ thành `i` + dấu chấm kết hợp nên tách thêm được chữ `i`; `lower()` của ClickHouse chỉ hạ chữ ASCII nên giữ `İ`.
 
 ## Nhận xét
-- Xả backlog: ClickHouse MV nhanh hơn khoảng 5,7 lần, dùng khoảng 1/3,4 RAM. Spark tốn ~17 s khởi động (JVM, nạp 31k listing, kết nối cluster) rồi xử lý ~2.200 dòng/s với 1 core (`spark.cores.max=1` theo cấu hình của repo) vì phải chạy VADER bằng Python UDF.
-- Chạy liên tục: độ trễ hai bên cùng cỡ 4-8 s; ClickHouse thấp hơn ở p50, Spark thấp hơn ở p95/p99. Độ trễ chủ yếu do chu kỳ gom mặc định (Spark trigger 5 s, ClickHouse flush ~7,5 s), chưa phải tốc độ xử lý. ClickHouse dùng CPU ít hơn khoảng 5 lần khi chạy liên tục.
+- Xả backlog: ClickHouse MV nhanh hơn khoảng 5,7 lần, dùng khoảng 1/3,8 RAM. Spark tốn ~21 s khởi động (JVM, nạp 31k listing, kết nối cluster) rồi xử lý ~2.100 dòng/s với 1 core (`spark.cores.max=1` theo cấu hình của repo) vì phải chạy VADER bằng Python UDF.
+- Chạy liên tục: độ trễ hai bên cùng cỡ 4-8 s; ClickHouse thấp hơn ở p50, Spark thấp hơn ở p95/p99. Độ trễ chủ yếu do chu kỳ gom mặc định (Spark trigger 5 s, ClickHouse flush ~7,5 s), chưa phải tốc độ xử lý. ClickHouse dùng CPU ít hơn khoảng 6,5 lần khi chạy liên tục.
 - So sánh BR3 không hoàn toàn tương đương: Spark làm thêm phân loại cảm xúc VADER, ClickHouse không làm được bằng SQL. Vì vậy giữ Spark làm giải pháp chính cho BR3; ClickHouse MV hợp cho phần tách từ khóa nếu cần tiết kiệm tài nguyên.
 - So với lần đo trên nền cũ (Spark 51,6 s với 2 core, executor 640 MB), Spark chậm hơn vì repo hiện giới hạn 1 core và executor 512 MB.
 
@@ -68,7 +68,13 @@ Chạy liên tục 1.000 msg/s trong 60 s (60.000/60.000 dòng tới đủ ở c
 | 1 (nền cũ `320140e`) | Kafka engine mặc định gom ~1 triệu dòng một khối; 200k review dài vượt 1 GB RAM, `MEMORY_LIMIT_EXCEEDED` 105 lần, xả mất 202 s | `kafka_max_block_size = 10000` |
 | 2 (nền cũ) | Đo lại: ClickHouse 18,4 s, Spark 51,6 s; 199.998/200.000 dòng trùng `keywords` | Chuyển sang nền `main` và đo lại (lần 3) |
 | 3 (nền `main`) | Spark không ghi được dòng nào sau 20 phút (timeout). Nguyên nhân: driver JVM của lần chạy demo trước vẫn sống và giữ đủ 2/2 core trên Spark master (`pkill -f spark-submit` chỉ giết launcher, không giết `org.apache.spark.deploy.SparkSubmit`), app benchmark không được cấp executor | Dừng driver bằng `pkill -f /opt/jobs/br`; script chờ master không còn app active trước mỗi lần submit và ghi log Spark vào `docs/result/br3/benchmark/logs/` |
+| 5 (nền `main`, 2026-11-08) | Đo lại sau khi rebase lên `main` mới (code của Nghĩa và Tiến), Docker 8 CPU / 8 GB, 3 lần lặp, không lỗi, không `MEMORY_LIMIT_EXCEEDED`. Kết quả cùng kết luận với lần 4: Spark 114,6 s so với ClickHouse 20,0 s | Dùng số liệu lần này |
 | 4 (nền `main`) | Chạy đủ 3 lần. ClickHouse ghi 4 lỗi `MEMORY_LIMIT_EXCEEDED` lúc 17:12 UTC (lần xả BR3 đầu), nhưng thời gian lần đó (18,1 s) ngang các lần khác | Dùng số liệu lần này; RAM đỉnh BR3 ClickHouse chạm 1.024 MiB, nên tăng giới hạn nếu xả backlog lớn hơn |
+
+## Dashboard sau khi chạy (200.000 review)
+![BR3 dashboard](screenshots/br3-data-result.jpg)
+
+Ảnh chụp bằng Playwright từ `br3-data-result` sau lần đo ngày 2026-11-08. Hai biểu đồ theo thời gian hiện ít đường vì cả 200.000 dòng được nạp trong vài phút.
 
 ## Hạn chế
 - Một máy, 8 GB; kết quả phụ thuộc giới hạn RAM/CPU trong `docker-compose.yml`.
