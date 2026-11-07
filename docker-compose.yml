@@ -21,6 +21,27 @@ configs:
           </prometheus>
       </clickhouse>
 
+  # system.metric_log has about 2,100 columns, and each of its background
+  # merges peaks at about 730 MiB, which with the 1g limit makes parallel
+  # inserts fail at random (docs/result/br6/result-pipeline.md). Nothing here
+  # reads it: Grafana scrapes the Prometheus endpoint above, run figures read
+  # system.query_log.
+  clickhouse-system-logs-xml:
+    content: |
+      <clickhouse>
+          <metric_log remove="1"/>
+      </clickhouse>
+
+  # ClickHouse server-level settings (need a ClickHouse restart). To use:
+  # uncomment this config and its entry under the clickhouse service's
+  # `configs:`, then follow docs/guide/br5/config-guide.md.
+  # clickhouse-server-xml:
+  #   content: |
+  #     <clickhouse>
+  #         <max_server_memory_usage_to_ram_ratio>0.9</max_server_memory_usage_to_ram_ratio>
+  #         <background_pool_size>4</background_pool_size>
+  #     </clickhouse>
+
   clickhouse-mysql-xml:
     content: |
       <clickhouse>
@@ -57,6 +78,13 @@ configs:
           metrics_path: /metrics/prometheus/
           static_configs:
             - targets: ["spark-worker:8081"]
+
+        # BR5: CPU and memory per container (docker/docker-stats). Shorter
+        # interval, since a BR5 run lasts about 30 s.
+        - job_name: docker-stats
+          scrape_interval: 5s
+          static_configs:
+            - targets: ["docker-stats:9417"]
 
         - job_name: spark-driver
           metrics_path: /metrics/prometheus/
@@ -106,6 +134,27 @@ configs:
           updateIntervalSeconds: 30
           options:
             path: /var/lib/grafana/dashboards
+        # BR5 dashboards, in their own folder and directory (the provider above
+        # reads its directory recursively).
+        - name: BR5
+          orgId: 1
+          folder: BR5
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br5
+        # BR6 dashboards (docs/plan/br6/plan-monitoring.md, H3).
+        - name: BR6
+          orgId: 1
+          folder: BR6
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br6
 
 services:
   # ------------------------------------------------------------------
@@ -115,7 +164,8 @@ services:
     image: clickhouse/clickhouse-server:26.8
     container_name: clickhouse
     mem_limit: 1g
-    cpus: 1.0
+    # BR5_CLICKHOUSE_CPUS: the BR5 benchmark's ClickHouse sizes (docs/plan/br5/plan-benchmark.md); default 1.
+    cpus: ${BR5_CLICKHOUSE_CPUS:-1}
     ulimits:
       nofile:
         soft: 262144
@@ -135,6 +185,10 @@ services:
     configs:
       - source: clickhouse-prometheus-xml
         target: /etc/clickhouse-server/config.d/prometheus.xml
+      - source: clickhouse-system-logs-xml
+        target: /etc/clickhouse-server/config.d/system-logs.xml
+      # - source: clickhouse-server-xml
+      #   target: /etc/clickhouse-server/config.d/server-tuning.xml
       - source: clickhouse-mysql-xml
         target: /etc/clickhouse-server/config.d/mysql.xml
     networks:
@@ -255,7 +309,8 @@ services:
     container_name: spark-worker
     profiles: ["full"]
     mem_limit: 2500m
-    cpus: 2.0
+    # BR5_WORKER_CORES: the BR5 benchmark's start-up sizes (docs/plan/br5/plan-benchmark.md); default 2.
+    cpus: ${BR5_WORKER_CORES:-2}
     user: "0:0"
     depends_on:
       - spark-master
@@ -263,7 +318,7 @@ services:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_CORES=${BR5_WORKER_CORES:-2}
       - SPARK_DAEMON_MEMORY=256m
       - PYTHONPATH=/opt/jobs/common
     configs:
@@ -304,6 +359,100 @@ services:
     networks:
       - data-net
 
+  # BR5 web app (Streamlit). Same image as spark-local, so it can launch
+  # spark-submit itself; the driver runs here, hence the fixed hostname.
+  br5-app:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: br5-app
+    hostname: br5-app
+    profiles: ["br5", "br6"]
+    mem_limit: 2g
+    cpus: 1.0
+    user: "0:0"
+    depends_on:
+      - clickhouse
+    entrypoint:
+      - python3
+      - -m
+      - streamlit
+      - run
+      - /opt/apps/br5/app.py
+      - --server.port=8501
+      - --server.address=0.0.0.0
+      - --server.headless=true
+      - --browser.gatherUsageStats=false
+      - --client.toolbarMode=minimal
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_DRIVER_HOST=br5-app
+      - CLICKHOUSE_HOST=clickhouse
+      - PYTHONPATH=/opt/jobs/common:/opt/jobs/br5_promotion:/opt/jobs/br6_route
+      - BR5_LOG_DIR=/opt/logs/br5
+      - BR6_LOG_DIR=/opt/logs/br6
+    volumes:
+      - ./apps:/opt/apps
+      - ./jobs:/opt/jobs
+      - ./data:/opt/data
+      - ./logs:/opt/logs
+      - ./tests:/opt/tests:ro
+    ports:
+      - "8501:8501"
+      - "4040:4040"   # live Spark page of the run in progress
+    networks:
+      - data-net
+
+  # BR5 monitoring (docs/plan/br5/plan-monitoring.md).
+  # Spark history server: keeps each BR5 run's Spark page after the run ends.
+  spark-history:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: spark-history
+    profiles: ["br5", "br6"]
+    mem_limit: 512m
+    cpus: 0.5
+    user: "0:0"
+    entrypoint:
+      - bash
+      - -c
+      - mkdir -p /opt/logs/spark-events && exec /opt/bitnami/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+    environment:
+      - SPARK_DAEMON_MEMORY=256m
+      - >-
+        SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:/opt/logs/spark-events
+        -Dspark.history.fs.update.interval=5s
+        -Dspark.history.fs.cleaner.enabled=true
+        -Dspark.history.fs.cleaner.maxAge=30d
+    volumes:
+      - ./logs:/opt/logs
+    ports:
+      - "18080:18080"
+    networks:
+      - data-net
+
+  # CPU and memory per container for Prometheus (cAdvisor can't map containers
+  # on this Docker host). Reads the Docker socket; read-only use.
+  docker-stats:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    image: co5173-spark-demo:local
+    container_name: docker-stats
+    profiles: ["br5", "br6"]
+    mem_limit: 128m
+    cpus: 0.25
+    user: "0:0"
+    entrypoint: ["python3", "-u", "/opt/docker-stats/exporter.py"]
+    volumes:
+      - ./docker/docker-stats:/opt/docker-stats:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - data-net
+
   # ------------------------------------------------------------------
   # Prometheus
   # ------------------------------------------------------------------
@@ -316,6 +465,11 @@ services:
     configs:
       - source: prometheus-yml
         target: /etc/prometheus/prometheus.yml
+    # Image defaults plus a longer retention (BR5 run history, plan B6).
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=90d
     volumes:
       - prometheus-data:/prometheus
     ports:
@@ -347,6 +501,8 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/dashboards-br5:/var/lib/grafana/dashboards-br5:ro
+      - ./grafana/dashboards-br6:/var/lib/grafana/dashboards-br6:ro
     ports:
       - "3000:3000"
     networks:

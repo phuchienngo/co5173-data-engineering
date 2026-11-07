@@ -1,4 +1,5 @@
 import argparse
+import ast
 import os
 import re
 import subprocess
@@ -12,6 +13,7 @@ SPARK_KAFKA_PACKAGE = (
     "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0,"
     "org.apache.kafka:kafka-clients:3.9.0"
 )
+JOB_MODES = ("stream", "batch")
 
 
 def run(cmd):
@@ -104,6 +106,9 @@ def report_exited(procs, label, ok_completed=False):
 
 
 def build_image():
+    # Without build attestations an unchanged build keeps the same image ID,
+    # so `compose up` doesn't recreate (and kill jobs in) the Spark containers.
+    os.environ.setdefault("BUILDX_NO_DEFAULT_ATTESTATIONS", "1")
     run(["docker", "compose", "build", "spark-local"])
 
 
@@ -148,7 +153,9 @@ def clickhouse_query(sql):
     ])
 
 
-def create_clickhouse_tables(br):
+def create_clickhouse_tables(br, truncate=True):
+    # Stream BRs start from empty fact tables on every run; batch BRs keep
+    # their data and replace it themselves.
     ddl = REPO_ROOT / "sql" / "clickhouse" / f"ddl_br{br}.sql"
     if not ddl.exists():
         sys.exit(f"Missing DDL file: {ddl}")
@@ -158,6 +165,8 @@ def create_clickhouse_tables(br):
     ]
     print(f"$ {' '.join(cmd)} < {ddl}")
     subprocess.run(cmd, check=True, cwd=REPO_ROOT, input=ddl.read_text(), text=True)
+    if not truncate:
+        return
     for table in fact_tables_in(ddl):
         clickhouse_query(f"TRUNCATE TABLE IF EXISTS {table}")
 
@@ -171,11 +180,43 @@ def job_path(br):
     return matches[0]
 
 
+def job_mode(br):
+    # A job declares MODE = "batch" at module level to run to completion
+    # without a producer; anything else (or no MODE) is a streaming job.
+    job = job_path(br)
+    tree = ast.parse(job.read_text())
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(isinstance(target, ast.Name) and target.id == "MODE" for target in node.targets):
+            continue
+        if isinstance(node.value, ast.Constant) and node.value.value in JOB_MODES:
+            return node.value.value
+        sys.exit(f"{job}: MODE must be one of {', '.join(JOB_MODES)}")
+    return "stream"
+
+
+def run_batch_job(br, spark_master):
+    log_file = LOG_DIR / f"br{br}-spark.log"
+    name = f"BR{br}"
+    print(f"{name} Spark log: {log_file}")
+    proc = popen(spark_submit_cmd(br, spark_master), log_file)
+    try:
+        proc.wait()
+    except KeyboardInterrupt:
+        print("\nStopping...")
+        proc.terminate()
+        proc.wait()
+        sys.exit(f"{name} batch job interrupted.")
+    if report_exited([(name, proc, log_file)], "batch Spark job", ok_completed=True):
+        sys.exit(f"{name} batch job failed.")
+
+
 def py_files_for(job):
     common = sorted((REPO_ROOT / "jobs" / "common").glob("*.py"))
     siblings = sorted(p for p in job.parent.glob("*.py") if p != job)
     files = common + siblings
-    return ",".join("/opt/" + str(path.relative_to(REPO_ROOT)) for path in files)
+    return ",".join("/opt/" + path.relative_to(REPO_ROOT).as_posix() for path in files)
 
 
 def passthrough_env():
@@ -186,8 +227,9 @@ def passthrough_env():
     return flags
 
 
-def spark_submit_cmd(br, spark_master):
+def spark_submit_cmd(br, spark_master, job_args=(), packages=SPARK_KAFKA_PACKAGE):
     job = job_path(br)
+    package_args = ["--packages", packages] if packages else []
     return [
         "docker",
         "exec",
@@ -221,11 +263,11 @@ def spark_submit_cmd(br, spark_master):
         "spark.metrics.conf.master.sink.prometheusServlet.path=/metrics/master/prometheus",
         "--conf",
         "spark.metrics.conf.applications.sink.prometheusServlet.path=/metrics/applications/prometheus",
-        "--packages",
-        SPARK_KAFKA_PACKAGE,
+        *package_args,
         "--py-files",
         py_files_for(job),
-        "/opt/" + str(job.relative_to(REPO_ROOT)),
+        "/opt/" + job.relative_to(REPO_ROOT).as_posix(),
+        *job_args,
     ]
 
 
@@ -299,14 +341,28 @@ def main():
         print("\nNo BR selected — infra is ready, stopping here.")
         return
 
+    batch_brs = [n for n in selected if job_mode(n) == "batch"]
+    stream_brs = [n for n in selected if n not in batch_brs]
+
     print(f"\n=== 3. Creating ClickHouse tables for {', '.join('BR' + n for n in selected)} ===")
     for n in selected:
-        create_clickhouse_tables(n)
-
-    print(f"\n=== 4. Starting Spark job(s) for {', '.join('BR' + n for n in selected)} ===")
+        create_clickhouse_tables(n, truncate=n in stream_brs)
     spark_master = "spark://spark-master:7077"
+
+    # Batch jobs run first so they are not starved of cores by streaming
+    # jobs, which hold theirs until stopped.
+    if batch_brs:
+        print(f"\n=== 4a. Running batch Spark job(s) for {', '.join('BR' + n for n in batch_brs)} ===")
+        for n in batch_brs:
+            run_batch_job(n, spark_master)
+
+    if not stream_brs:
+        print("\nBatch job(s) finished; no streaming BR selected.")
+        return
+
+    print(f"\n=== 4b. Starting streaming Spark job(s) for {', '.join('BR' + n for n in stream_brs)} ===")
     spark_procs = []
-    for n in selected:
+    for n in stream_brs:
         log_file = LOG_DIR / f"br{n}-spark.log"
         print(f"BR{n} Spark log: {log_file}")
         name = f"BR{n}"
@@ -321,9 +377,9 @@ def main():
                 running_proc.wait()
             sys.exit(f"{name} Spark startup failed; producers were not started.")
 
-    print(f"\n=== 5. Starting producer(s) for {', '.join('BR' + n for n in selected)} ===")
+    print(f"\n=== 5. Starting producer(s) for {', '.join('BR' + n for n in stream_brs)} ===")
     producer_procs = []
-    for n in selected:
+    for n in stream_brs:
         log_file = LOG_DIR / f"br{n}-producer.log"
         print(f"BR{n} producer log: {log_file}")
         producer_procs.append(
