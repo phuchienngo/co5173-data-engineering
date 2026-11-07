@@ -108,7 +108,7 @@ def verify_grafana():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rules-only", action="store_true", help="Only run isolated ClickHouse rule tests")
-    parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument("--timeout", type=int, default=300)
     args = parser.parse_args()
     verify_rules()
     if not args.rules_only:

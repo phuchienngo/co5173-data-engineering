@@ -108,7 +108,7 @@ def build(args):
         "latitude", "longitude",
     )
     out_dir.mkdir(parents=True, exist_ok=True)
-    # One sorted file keeps historical replay ordered. max_places bounds this demo.
+    # One sorted file keeps historical replay ordered. Full snapshot is ~108k visits; region/max_places shrink it for a quick demo.
     visits.select(
         "event_id", "user_id", "place_id", "visit_date",
         F.date_format("visit_time", "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'").alias("visit_time"), "raw_checkins",
@@ -133,8 +133,8 @@ def build(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--region", default=os.environ.get("BR8_REGION", "Q1490"), help="Destination Wikidata ID; Q1490=Tokyo, ALL=all destinations")
-    parser.add_argument("--max-places", type=int, default=int(os.environ.get("BR8_MAX_PLACES", "20")), help="Top named attractions by distinct visitors; 0=all")
+    parser.add_argument("--region", default=os.environ.get("BR8_REGION", "ALL"), help="Destination Wikidata ID; ALL=all destinations, Q1490=Tokyo")
+    parser.add_argument("--max-places", type=int, default=int(os.environ.get("BR8_MAX_PLACES", "0")), help="Top named attractions by distinct visitors; 0=all (default)")
     parser.add_argument("--refresh", action="store_true", help="Rebuild prepared visits from the pinned source")
     parser.add_argument("--build", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--download-only", action="store_true", help="Only download and verify source files")
