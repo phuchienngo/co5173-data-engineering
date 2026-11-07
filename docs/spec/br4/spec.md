@@ -54,4 +54,4 @@ Revenue forecasting, currency conversion, refunds and cancellations.
 
 ## 8. Open decisions
 
-1. **The intent file describes cancellation monitoring** (flag late cancellations), but the implemented pipeline monitors revenue. The team has to decide which one BR4 is; if cancellations, the job, DDL, dashboard and benchmark change.
+None.

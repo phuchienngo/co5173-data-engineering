@@ -50,4 +50,3 @@ make demo-br BR=4
 ## 7. Not done
 
 - No `pipeline_runs` table or run history.
-- The intent describes cancellation monitoring; the job monitors revenue (see spec section 8).
