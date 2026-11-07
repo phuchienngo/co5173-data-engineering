@@ -116,6 +116,7 @@ def start_stack():
     services = [
         "clickhouse",
         "kafka",
+        "tour-map",
         "spark-local",
         "grafana",
         "prometheus",
@@ -131,9 +132,9 @@ def create_topics():
 
 def fact_tables_in(ddl):
     tables = []
-    for match in re.finditer(r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z0-9_]+)", ddl.read_text(), re.IGNORECASE):
+    for match in re.finditer(r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z0-9_.]+)", ddl.read_text(), re.IGNORECASE):
         table = match.group(1)
-        if table.startswith("fact_"):
+        if table.split(".")[-1].startswith("fact_"):
             tables.append(table)
     return tables
 
@@ -144,12 +145,10 @@ def clickhouse_query(sql):
         "exec",
         "-i",
         "clickhouse",
-        "clickhouse-client",
-        "--user",
-        "default",
-        "--password",
-        "clickhouse",
-        "--query",
+        "bash",
+        "-c",
+        'exec clickhouse-client --user default --password "$CLICKHOUSE_PASSWORD" --query "$1"',
+        "--",
         sql,
     ])
 
@@ -160,13 +159,12 @@ def create_clickhouse_tables(br, truncate=True):
     ddl = REPO_ROOT / "sql" / "clickhouse" / f"ddl_br{br}.sql"
     if not ddl.exists():
         sys.exit(f"Missing DDL file: {ddl}")
-    cmd = (
-        "docker exec -i clickhouse clickhouse-client "
-        "--user default --password clickhouse --multiquery "
-        f"< {ddl}"
-    )
-    print(f"$ {cmd}")
-    subprocess.run(cmd, check=True, cwd=REPO_ROOT, shell=True)
+    cmd = [
+        "docker", "exec", "-i", "clickhouse", "bash", "-c",
+        'exec clickhouse-client --user default --password "$CLICKHOUSE_PASSWORD" --multiquery',
+    ]
+    print(f"$ {' '.join(cmd)} < {ddl}")
+    subprocess.run(cmd, check=True, cwd=REPO_ROOT, input=ddl.read_text(), text=True)
     if not truncate:
         return
     for table in fact_tables_in(ddl):
@@ -221,6 +219,14 @@ def py_files_for(job):
     return ",".join("/opt/" + path.relative_to(REPO_ROOT).as_posix() for path in files)
 
 
+def passthrough_env():
+    flags = []
+    for key, value in sorted(os.environ.items()):
+        if re.match(r"^(BR\d+_|MAX_OFFSETS$)", key):
+            flags += ["-e", f"{key}={value}"]
+    return flags
+
+
 def spark_submit_cmd(br, spark_master, job_args=(), packages=SPARK_KAFKA_PACKAGE):
     job = job_path(br)
     package_args = ["--packages", packages] if packages else []
@@ -228,6 +234,7 @@ def spark_submit_cmd(br, spark_master, job_args=(), packages=SPARK_KAFKA_PACKAGE
         "docker",
         "exec",
         "-i",
+        *passthrough_env(),
         "spark-local",
         "spark-submit",
         "--master",
@@ -242,6 +249,20 @@ def spark_submit_cmd(br, spark_master, job_args=(), packages=SPARK_KAFKA_PACKAGE
         f"spark.cores.max={os.environ.get('SPARK_CORES_MAX', '1')}",
         "--conf",
         f"spark.sql.shuffle.partitions={os.environ.get('SPARK_SHUFFLE_PARTITIONS', '4')}",
+        "--conf",
+        "spark.ui.prometheus.enabled=true",
+        "--conf",
+        "spark.sql.streaming.metricsEnabled=true",
+        "--conf",
+        f"spark.metrics.namespace=br{br}",
+        "--conf",
+        "spark.metrics.conf.*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet",
+        "--conf",
+        "spark.metrics.conf.*.sink.prometheusServlet.path=/metrics/prometheus",
+        "--conf",
+        "spark.metrics.conf.master.sink.prometheusServlet.path=/metrics/master/prometheus",
+        "--conf",
+        "spark.metrics.conf.applications.sink.prometheusServlet.path=/metrics/applications/prometheus",
         *package_args,
         "--py-files",
         py_files_for(job),
@@ -261,6 +282,7 @@ def producer_cmd(br, interval, events, loop_producers):
         "docker",
         "exec",
         "-i",
+        *passthrough_env(),
         "spark-local",
         "bash",
         "-c",
@@ -272,7 +294,7 @@ def producer_cmd(br, interval, events, loop_producers):
     ]
 
 
-def wait_for_spark_ready(name, proc, log_file, timeout=180):
+def wait_for_spark_ready(name, proc, log_file, timeout=int(os.environ.get("SPARK_READY_TIMEOUT", "180"))):
     deadline = time.time() + timeout
     while time.time() < deadline:
         if proc.poll() is not None:

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BR1 Tour Route Optimization</title>
+<style>
+  :root {
+    --text: #1f2328;
+    --muted: #57606a;
+    --border: #d0d7de;
+    --zebra: #f6f8fa;
+    --code-bg: #eff1f3;
+    --accent: #0969da;
+    --warn-bg: #fff8c5;
+    --warn-border: #d4a72c;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    margin: 0;
+    padding: 0 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    color: var(--text);
+    background: #ffffff;
+    line-height: 1.55;
+  }
+  main, header, footer, nav {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  header { padding: 32px 0 16px; border-bottom: 2px solid var(--border); }
+  header h1 { margin: 0 0 4px; font-size: 2rem; }
+  header .subtitle { margin: 0; color: var(--muted); font-size: 1.05rem; }
+  header .meta { margin: 8px 0 0; color: var(--muted); font-size: 0.9rem; }
+  nav.toc { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 8px; }
+  nav.toc ol { margin: 0; padding-left: 1.4em; columns: 2; column-gap: 32px; }
+  nav.toc li { margin: 2px 0; break-inside: avoid; }
+  h2 { font-size: 1.5rem; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+  h3 { font-size: 1.15rem; margin: 24px 0 8px; }
+  section { padding-bottom: 8px; }
+  a { color: var(--accent); }
+  p, ul, ol, dl { margin: 0 0 14px; }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 12px 14px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin: 8px 0 16px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 18px;
+    font-size: 0.93rem;
+    display: block;
+    overflow-x: auto;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+                                                                                                        vertical-align: top;
+  }
+  th { background: #e9edf1; font-weight: 600; }
+  tbody tr:nth-child(even) { background: var(--zebra); }
+  dl dt { font-weight: 600; margin-top: 10px; }
+  dl dd { margin: 2px 0 0 0; }
+  .flow { margin: 12px 0 20px; }
+  .step {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 14px;
+    background: #ffffff;
+  }
+  .step .label {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .step .desc { display: block; color: var(--muted); font-size: 0.93rem; }
+  .arrow {
+    text-align: center;
+    color: var(--muted);
+    line-height: 1;
+    padding: 2px 0;
+    font-size: 1.1rem;
+    position: relative;
+  }
+  .arrow::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+    transform: translateX(-0.5px);
+    z-index: -1;
+  }
+  .callout {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-left: 6px solid var(--warn-border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 16px 0;
+  }
+  .callout h3 { margin-top: 0; }
+  .callout ol { margin-bottom: 0; }
+  .quote { font-style: normal; font-family: inherit; }
+  footer {
+    margin-top: 40px;
+    padding: 16px 0 32px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  @media print {
+    body { padding: 0; font-size: 11pt; }
+    header, nav, section, footer { max-width: none; }
+    h2 { page-break-before: auto; }
+    section { page-break-inside: auto; }
+    .step, .callout, table, pre { page-break-inside: avoid; }
+    nav.toc { display: none; }
+    a { color: inherit; text-decoration: none; }
+    pre { white-space: pre-wrap; overflow: visible; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BR1 Tour Route Optimization</h1>
+  <p class="subtitle">CO5173 Data Engineering, Business Requirement 1 · Date: 2026-10-10</p>
+  <p class="meta">What the business requirement is and how the tour pipeline works.</p>
+</header>
+
+<nav class="toc" aria-label="Table of contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#business-requirement">Business requirement</a></li>
+    <li><a href="#how-it-works-in-one-paragraph">How it works in one paragraph</a></li>
+    <li><a href="#architecture-data-lake-vs-data-warehouse">Architecture: Data Lake vs Data Warehouse</a></li>
+    <li><a href="#data-flow">Data flow</a></li>
+    <li><a href="#algorithm-and-cost-model">Algorithm and cost model</a></li>
+    <li><a href="#big-data-processing-optimization">Big Data processing optimization</a></li>
+    <li><a href="#clickhouse-schema">ClickHouse schema</a></li>
+    <li><a href="#data-sources">Data sources</a></li>
+    <li><a href="#runbook">Runbook</a></li>
+    <li><a href="#serving">Serving</a></li>
+    <li><a href="#assumptions-and-limitations">Assumptions and limitations</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<p><strong>Business Requirement:</strong> Tối ưu lịch trình di chuyển và tour (Phụ trách: Tiến). The platform takes the coordinates of tourist landmarks from OpenStreetMap and an estimated cost per stop (taxi fare plus entry ticket). Spark computes the shortest sequential route through each set of stops and adds up the expected cost of the tour. The tourist map shows the route and a cost summary.</p>
+<section id="business-requirement">
+  <h2>1. Business requirement</h2>
+<p><strong>Input:</strong> landmark coordinates (lat/lon) from OpenStreetMap, plus the estimated cost per stop: ticket price (<code>ticket_vnd</code>) and taxi fare between stops.</p>
+<p><strong>Pipeline:</strong> PySpark computes the pairwise distance matrix (the BigQuery equivalent is <code>ST_DISTANCE</code>, see Section 5), finds a short visiting order for each tour request, and accumulates the cost leg by leg.</p>
+<p><strong>Serving:</strong> a Leaflet route map plus an info box with the total tour cost, served to tourists from <code>serving/index.html</code>.</p>
+  <h3>What the business gets</h3>
+<ul><li>A precomputed set of suggested tours per city, filterable by number of stops and budget.</li><li>A custom tour: a tourist picks up to 8 landmarks and gets the shortest route with its cost.</li><li>A cost breakdown per leg (taxi fare and ticket for each stop).</li><li>A Grafana view comparing naive and optimized processing time.</li></ul>
+</section>
+<section id="how-it-works-in-one-paragraph">
+  <h2>2. How it works in one paragraph</h2>
+<p><code>scripts/fetch_osm_landmarks.py</code> writes 1,954 landmarks in three cities to <code>data/br1/landmarks.csv</code>. <code>ingestion/producers/produce_br1.py</code> generates seeded tour requests (4 to 8 stops each) and publishes them to Kafka topic <code>tour.requests</code>. <code>jobs/br1_tour_route/job.py</code> loads the landmarks, builds the distance matrix for all pairs within each city, and loads both into ClickHouse. It then streams the requests from Kafka, solves each one with nearest neighbour followed by 2-opt, and writes the results to <code>tour.fact_tour</code> and <code>tour.fact_tour_leg</code>. After the stream is running, the job runs a benchmark: the same requests are solved with a naive plan and with an optimized plan, and the timings go to <code>tour.job_run</code>. The tourist map and Grafana both read from ClickHouse.</p>
+</section>
+<section id="architecture-data-lake-vs-data-warehouse">
+  <h2>3. Architecture: Data Lake vs Data Warehouse</h2>
+<figure style="margin:16px 0">
+<svg style="max-width:100%;height:auto" viewBox="0 0 1400 840" width="1400" height="840" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="br1-architecture-title br1-architecture-desc">
+<title id="br1-architecture-title">BR1 Tour Route Optimization — Architecture</title>
+<desc id="br1-architecture-desc">Layered data-flow diagram of the BR1 tour route pipeline, contrasting a Spark data lake of Parquet files with a ClickHouse data warehouse that serves the tourist map and Grafana.</desc>
+<defs>
+<style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');</style>
+<marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+<marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+<marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="1400" height="840" fill="#f5f5f5"/>
+<text x="24" y="28" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">CO5173 · DATA ENGINEERING · ARCHITECTURE</text>
+<text x="24" y="64" fill="#2d3142" font-size="28" font-family="'Instrument Serif', serif">BR1 Tour Route Optimization — Architecture</text>
+<text x="24" y="90" fill="#4f5d75" font-size="16" font-family="'Geist', sans-serif">Data Lake (files, schema-on-read, Spark) vs Data Warehouse (ClickHouse, schema-on-write, serving)</text>
+<text x="24" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">1 · SOURCES</text>
+<text x="208" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">2 · INGESTION</text>
+<text x="416" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">3 · DATA LAKE</text>
+<text x="672" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">4 · PROCESSING — SPARK</text>
+<text x="948" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">5 · DATA WAREHOUSE</text>
+<text x="1192" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">6 · SERVING</text>
+<line x1="24" y1="134" x2="1376" y2="134" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+<rect x="416" y="148" width="196" height="552" rx="8" fill="rgba(46,90,168,0.06)" stroke="rgba(46,90,168,0.35)" stroke-width="0.8"/>
+<rect x="948" y="148" width="184" height="552" rx="8" fill="rgba(45,49,66,0.06)" stroke="rgba(45,49,66,0.35)" stroke-width="0.8"/>
+<text x="428" y="168" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.12em">ZONE · FILES</text>
+<text x="960" y="168" fill="#2d3142" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.12em">ZONE · DATABASE</text>
+<line x1="176" y1="256" x2="208" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="376" y1="232" x2="428" y2="232" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="176" y1="376" x2="208" y2="376" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="376" y1="360" x2="672" y2="360" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="600" y1="216" x2="672" y2="216" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="672" y1="292" x2="600" y2="292" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="600" y1="324" x2="960" y2="324" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<path d="M672,532 H644 Q636,532 636,524 V508 Q636,500 628,500 H600" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M500,200 V192 Q500,184 508,184 H1032 Q1040,184 1040,192 V200" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="1120" y1="300" x2="1192" y2="300" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="888" y1="380" x2="960" y2="380" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="888" y1="556" x2="960" y2="556" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M1120,380 H1232 Q1240,380 1240,372 V340" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M1120,552 H1148 Q1156,552 1156,544 V488 Q1156,480 1164,480 H1192" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="388" y="214" width="28" height="12" rx="2" fill="#f5f5f5"/>
+<text x="402" y="223" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">CSV</text>
+<rect x="378" y="328" width="36" height="24" rx="2" fill="#f5f5f5"/>
+<text x="396" y="338" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">KAFKA</text>
+<text x="396" y="348" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">JSON</text>
+<rect x="618" y="199" width="32" height="11" rx="2" fill="#f5f5f5"/>
+<text x="634" y="208" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">READ</text>
+<rect x="614" y="256" width="44" height="30" rx="2" fill="#f5f5f5"/>
+<text x="636" y="268" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">PARQUET</text>
+<text x="636" y="280" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">WRITE</text>
+<rect x="708" y="304" width="140" height="12" rx="2" fill="#f5f5f5"/>
+<text x="778" y="313" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">HTTP INSERT · JSONEachRow</text>
+<rect x="904" y="362" width="40" height="11" rx="2" fill="#f5f5f5"/>
+<text x="924" y="370" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">INSERT</text>
+<rect x="904" y="538" width="40" height="11" rx="2" fill="#f5f5f5"/>
+<text x="924" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">INSERT</text>
+<rect x="1124" y="264" width="64" height="26" rx="2" fill="#f5f5f5"/>
+<text x="1156" y="274" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">HTTP query</text>
+<text x="1156" y="284" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">(CORS)</text>
+<rect x="24" y="200" width="152" height="112" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="34" y="208" width="26" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="47.0" y="218" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+<text x="34" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">OSM Overpass API</text>
+<text x="34" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">landmarks · name</text>
+<text x="34" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">lat/lon · tourism</text>
+<text x="34" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">historic tags · fee</text>
+<rect x="24" y="336" width="152" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="34" y="344" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="49.5" y="354" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+<text x="34" y="370" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Tour requests</text>
+<text x="34" y="385" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">synthetic producer</text>
+<text x="34" y="398" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">4–8 stops per request</text>
+<rect x="208" y="208" width="168" height="96" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="218" y="216" width="40" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="238.0" y="226" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SCRIPT</text>
+<text x="218" y="242" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fetch_osm_landmarks</text>
+<text x="218" y="257" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ data/br1/landmarks.csv</text>
+<text x="218" y="270" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">1,954 landmarks:</text>
+<text x="218" y="283" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">HCMC · Hà Nội · Đà Nẵng</text>
+<rect x="208" y="336" width="168" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="218" y="344" width="50" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="243.0" y="354" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PRODUCER</text>
+<text x="218" y="370" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">produce_br1.py</text>
+<text x="218" y="385" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ Kafka topic</text>
+<text x="218" y="398" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">tour.requests</text>
+<rect x="428" y="200" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="208" width="26" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="451.0" y="218" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CSV</text>
+<text x="438" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">landmarks.csv</text>
+<text x="438" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">raw / bronze</text>
+<rect x="428" y="284" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="292" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="302" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="318" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/dist_matrix/</text>
+<text x="438" y="333" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">~1.75M rows · km + fare</text>
+<rect x="428" y="368" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="376" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="386" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/tour_requests/</text>
+<text x="438" y="417" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mode=naive | optimized</text>
+<rect x="428" y="452" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="460" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="470" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/fact_tour/</text>
+<text x="438" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mode=naive | optimized</text>
+<rect x="428" y="536" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="544" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="456.0" y="554" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+<text x="438" y="570" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">checkpoints/</text>
+<text x="438" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">stream offsets</text>
+<text x="428" y="628" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Raw + processed files on disk.</text>
+<text x="428" y="644" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Parquet by city / mode: cheap,</text>
+<text x="428" y="660" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">append-only, read by Spark.</text>
+<text x="428" y="676" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Schema-on-read.</text>
+<rect x="672" y="200" width="216" height="100" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="208" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="700.0" y="218" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SPARK</text>
+<text x="682" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Stage 1 · distance matrix</text>
+<text x="682" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">jobs/br1_tour_route/job.py</text>
+<text x="682" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">native haversine ≈ ST_DISTANCE</text>
+<text x="682" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">city-partitioned self-join</text>
+<rect x="672" y="340" width="216" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="348" width="40" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="702.0" y="358" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STREAM</text>
+<text x="682" y="374" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Structured Streaming</text>
+<text x="682" y="389" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Kafka tour.requests → foreachBatch</text>
+<text x="682" y="402" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">5 s trigger</text>
+<rect x="672" y="428" width="216" height="80" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="436" width="40" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="702.0" y="446" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SOLVER</text>
+<text x="682" y="462" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Stage 2 · route solver</text>
+<text x="682" y="477" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">nearest-neighbour + 2-opt</text>
+<text x="682" y="490" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mapInPandas + broadcast coords</text>
+<text x="682" y="503" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">cost = taxi fare + tickets</text>
+<rect x="672" y="520" width="216" height="92" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="528" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="700.0" y="538" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">BENCH</text>
+<text x="682" y="554" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Benchmark run</text>
+<text x="682" y="569" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">naive: row UDF, 200 partitions</text>
+<text x="682" y="582" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">optimized: Arrow, broadcast, AQE</text>
+<text x="682" y="595" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ job_run timings</text>
+<rect x="960" y="200" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="208" width="26" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="983.0" y="218" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DIM</text>
+<text x="970" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">dim_landmark</text>
+<text x="970" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · star dim</text>
+<rect x="960" y="284" width="160" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="970" y="292" width="45" height="14" rx="2" fill="none" stroke="#eb6c36" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="992.5" y="302" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVING</text>
+<text x="970" y="318" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">dist_matrix</text>
+<text x="970" y="333" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">serving copy · MergeTree</text>
+<rect x="960" y="368" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="376" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="386" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FACT</text>
+<text x="970" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fact_tour</text>
+<text x="970" y="417" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · per run</text>
+<rect x="960" y="452" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="460" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="470" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FACT</text>
+<text x="970" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fact_tour_leg</text>
+<text x="970" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · per leg</text>
+<rect x="960" y="536" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="544" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="554" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">META</text>
+<text x="970" y="570" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">job_run</text>
+<text x="970" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">+ v_latest_run view</text>
+<text x="960" y="628" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Columnar MergeTree tables.</text>
+<text x="960" y="644" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Star schema: dim + fact.</text>
+<text x="960" y="660" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Sub-second queries for apps.</text>
+<text x="960" y="676" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Schema-on-write.</text>
+<rect x="1192" y="200" width="184" height="140" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="1202" y="208" width="26" height="14" rx="2" fill="none" stroke="#eb6c36" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1215.0" y="218" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+<text x="1202" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Tourist map</text>
+<text x="1202" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Leaflet + nginx :8090</text>
+<text x="1202" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">route polyline + cost box</text>
+<text x="1202" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">custom tour via dist_matrix</text>
+<rect x="1192" y="452" width="184" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="1202" y="460" width="55" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1229.5" y="470" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DASHBOARD</text>
+<text x="1202" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Grafana :3000</text>
+<text x="1202" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">naive vs optimized timings</text>
+<text x="1202" y="514" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">speedup · row counts</text>
+<rect x="1192" y="616" width="184" height="60" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="1202" y="624" width="50" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1227.0" y="634" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OPTIONAL</text>
+<text x="1202" y="650" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Looker Studio</text>
+<text x="1202" y="665" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">via MySQL :9004</text>
+<line x1="24" y1="724" x2="1376" y2="724" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="24" y="744" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="180" y="734" width="20" height="12" rx="2" fill="rgba(46,90,168,0.06)" stroke="rgba(46,90,168,0.35)"/>
+<text x="208" y="744" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Data Lake zone colour = files / Spark</text>
+<rect x="780" y="734" width="20" height="12" rx="2" fill="rgba(45,49,66,0.06)" stroke="rgba(45,49,66,0.35)"/>
+<text x="808" y="744" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Data Warehouse zone colour = database / queries</text>
+<text x="24" y="768" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Storage</text>
+<text x="180" y="768" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Files on disk (Parquet): cheap, append-only</text>
+<text x="780" y="768" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Columnar tables (ClickHouse MergeTree): indexed</text>
+<text x="24" y="790" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Schema</text>
+<text x="180" y="790" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Schema-on-read: Spark interprets at query time</text>
+<text x="780" y="790" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Schema-on-write: fixed star schema (dim + fact)</text>
+<text x="24" y="812" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Consumer</text>
+<text x="180" y="812" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Spark jobs: batch, streaming, benchmark</text>
+<text x="780" y="812" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Dashboards (Grafana) and the tourist app</text>
+</svg>
+<figcaption>Figure 1. BR1 architecture: Data Lake (Parquet files) feeds Spark, which writes to the ClickHouse data warehouse that serves the tourist map and Grafana.</figcaption>
+</figure>
+<p>The diagram shows two storage layers with different jobs. Both are used in this project; they are not alternatives.</p>
+  <h3>Data lake (files, Spark-facing)</h3>
+<p>The lake is the set of files under <code>data/br1/</code>:</p>
+<ul><li><strong>Bronze:</strong> <code>data/br1/landmarks.csv</code>, the raw OpenStreetMap extract, one row per landmark.</li><li><strong>Lake (Parquet, gitignored):</strong> Spark writes <code>data/br1/lake/dist_matrix/mode=optimized/city=…/</code>, <code>data/br1/lake/tour_requests/mode=naive|optimized/</code>, and <code>data/br1/lake/fact_tour/mode=naive|optimized/</code>.</li><li><strong>Checkpoints:</strong> <code>data/br1/lake/checkpoints/tour_requests/</code> holds the Structured Streaming progress for the request stream.</li></ul>
+<p>Properties:</p>
+<ul><li>Cheap file storage, and the data stays in open formats.</li><li>Schema-on-read: Spark infers or applies the schema when it reads.</li><li>Partitioned by folder. <code>dist_matrix</code> is partitioned by city; the request and fact outputs are partitioned by run mode.</li><li>Written by jobs in overwrite mode, so each run replaces its own output.</li><li>Keeps raw and intermediate data, so results can be recomputed without re-fetching OSM.</li></ul>
+<p>In production this directory would live on S3, GCS or HDFS.</p>
+  <h3>Data warehouse (ClickHouse, consumer-facing)</h3>
+<p>The warehouse is the ClickHouse database <code>tour</code>, with tables defined in <code>sql/clickhouse/ddl_br1.sql</code>:</p>
+<ul><li><code>tour.dim_landmark</code>: the landmark dimension.</li><li><code>tour.fact_tour</code> and <code>tour.fact_tour_leg</code>: one row per solved tour and one row per leg.</li><li><code>tour.dist_matrix</code>: precomputed pairwise distances, used for serving.</li><li><code>tour.job_run</code>: timings of the benchmark stages.</li></ul>
+<p>Properties:</p>
+<ul><li>Columnar MergeTree tables with a fixed schema and sort keys (<code>ORDER BY</code>).</li><li>Schema-on-write: the DDL defines types before any data arrives.</li><li>Indexed for fast analytical queries, so the map and Grafana can respond in well under a second.</li><li>Read by dashboards and the tourist app, not by Spark.</li></ul>
+<p>In production this role would be played by BigQuery, Snowflake or ClickHouse Cloud.</p>
+  <h3>Comparison</h3>
+<table>
+<thead><tr><th></th><th>Data lake (<code>data/br1/</code>)</th><th>Data warehouse (ClickHouse <code>tour</code>)</th></tr></thead>
+<tbody>
+<tr><td>Storage</td><td>Files: CSV, Parquet, checkpoints</td><td>Columnar tables with sort keys</td></tr>
+<tr><td>Schema</td><td>On read, applied by Spark</td><td>On write, fixed by DDL</td></tr>
+<tr><td>Consumer</td><td>Spark jobs, re-runs and recomputation</td><td>Leaflet map, Grafana, SQL users</td></tr>
+<tr><td>Cost and scale</td><td>Very cheap per TB; slow for ad-hoc queries</td><td>More expensive per TB; fast for queries</td></tr>
+<tr><td>Typical tools</td><td>S3/GCS/HDFS, Parquet, Spark, Delta</td><td>BigQuery, Snowflake, ClickHouse</td></tr>
+</tbody>
+</table>
+<p>Flow: sources (OpenStreetMap, synthetic requests) → ingestion (<code>fetch_osm_landmarks.py</code>, Kafka producer <code>produce_br1.py</code>) → lake (Parquet under <code>data/br1/lake/</code>) → Spark processing (<code>job.py</code>) → warehouse (ClickHouse, HTTP <code>JSONEachRow</code> inserts) → serving (Leaflet map on nginx :8090, Grafana on :3000).</p>
+</section>
+<section id="data-flow">
+  <h2>4. Data flow</h2>
+<ol><li><strong><code>scripts/fetch_osm_landmarks.py</code></strong> queries the Overpass API for three bounding boxes (hcmc, hanoi, danang), keeps named elements, and writes <code>data/br1/landmarks.csv</code>. Columns: <code>osm_id,name,category,city,lat,lon,ticket_vnd</code>.</li><li><strong><code>ingestion/producers/produce_br1.py</code></strong> reads <code>landmarks.csv</code>, groups stops by city (cities with at least 4 stops), and publishes one JSON request per message to Kafka topic <code>tour.requests</code>. Stops are sampled with <code>random.Random(BR1_SEED)</code>.</li><li><strong><code>jobs/br1_tour_route/job.py</code>, load:</strong> <code>spark.read</code> loads <code>landmarks.csv</code>, which is also inserted into <code>dim_landmark</code> (ClickHouse). The job then starts the Kafka stream right away, so <code>start.py</code>'s readiness wait is short.</li><li><strong>Stream:</strong> <code>readStream</code> from <code>tour.requests</code>, <code>from_json</code> with <code>REQUEST_DDL</code>, then <code>mapInPandas(solve_batches)</code> solves each request (nearest neighbour + 2-opt) using the broadcast landmark coordinates. Malformed records, unknown cities and unknown stop ids are dropped, and the dropped count is logged. <code>foreachBatch</code> inserts into <code>tour.fact_tour</code> and explodes the legs into <code>tour.fact_tour_leg</code>. Trigger: 5 seconds.</li><li><strong>Distance matrix:</strong> the job builds the distance matrix for all ordered pairs within each city with native Spark expressions (haversine, <code>EARTH_KM = 6371.0088</code>), writes <code>lake/dist_matrix/mode=optimized/</code> partitioned by city, and inserts into <code>tour.dist_matrix</code>. It runs while the stream is already live.</li><li><strong>Benchmark:</strong> the same requests are generated twice from a deterministic hash (<code>F.hash(request_id, seed, i)</code>), once per mode. Each mode writes <code>lake/tour_requests/mode=…</code>, solves them, and writes <code>lake/fact_tour/mode=…</code>. Stage timings go to <code>tour.job_run</code>.</li></ol>
+<p>Kafka message example (one request):</p>
+<pre><code>{"request_id": 0, "city": "hcmc", "stop_ids": ["n11494677859", "w1214284149", "w1154085685", "w1308720666"], "requested_at": "2026-10-10T08:00:00Z"}</code></pre>
+</section>
+<section id="algorithm-and-cost-model">
+  <h2>5. Algorithm and cost model</h2>
+<p><strong>Distance (haversine).</strong> With φ and λ in radians and R = <code>EARTH_KM = 6371.0088</code> km:</p>
+<pre><code>h = sin²((φ2 − φ1)/2) + cos φ1 · cos φ2 · sin²((λ2 − λ1)/2)
+d = 2 · R · asin(√h)</code></pre>
+<p>The Spark job (<code>job.py</code>, <code>dist_matrix</code> stage) implements this with <code>F.sin</code>, <code>F.cos</code>, <code>F.asin</code> and <code>F.sqrt</code>. The BigQuery equivalent is <code>ST_DISTANCE(ST_GEOGPOINT(lon, lat), ST_GEOGPOINT(lon, lat)) / 1000</code>, shown in <code>sql/bigquery/br1_tour_distance.sql</code>. That file is documentation only and is not executed in this repo. ST_DISTANCE uses a spherical Earth model, so the two values agree closely but not necessarily to the last digit.</p>
+<p><strong>Route.</strong> The route is an open path that starts at the first stop. The Spark solver uses nearest neighbour from node 0, then 2-opt until no swap shortens the path (<code>solve_order</code>). The browser solves custom tours of up to 8 stops by brute force over all permutations of the remaining stops (7! = 5,040 at most), with ties broken by fare.</p>
+<p><strong>Fare per leg.</strong> <code>leg_fare_vnd = 11,000 + 15,000 × km</code> (VND), constants <code>FARE_FLAG_VND</code> and <code>FARE_PER_KM_VND</code> in <code>job.py</code>. Python rounds with <code>floor(x + 0.5)</code>; the Spark matrix uses <code>F.round</code>.</p>
+<p><strong>Ticket per stop.</strong> Taken from the OSM <code>fee</code> and <code>charge</code> tags: <code>fee=no</code> gives 0; otherwise <code>charge</code> must be an integer, optionally with thousands separators, and is used as is. Any other <code>charge</code> value is ignored. If no usable tag applies, the category default from <code>TICKET_DEFAULT_VND</code> in <code>fetch_osm_landmarks.py</code> is used:</p>
+<table>
+<thead><tr><th>Category</th><th>Default ticket (VND)</th></tr></thead>
+<tbody>
+<tr><td>museum</td><td>40,000</td></tr>
+<tr><td>gallery</td><td>30,000</td></tr>
+<tr><td>zoo</td><td>60,000</td></tr>
+<tr><td>theme_park</td><td>150,000</td></tr>
+<tr><td>aquarium</td><td>100,000</td></tr>
+<tr><td>attraction</td><td>20,000</td></tr>
+<tr><td>historic</td><td>30,000</td></tr>
+<tr><td>viewpoint, artwork, place_of_worship</td><td>0</td></tr>
+</tbody>
+</table>
+<p><strong>Cumulative cost.</strong> <code>total_cost_vnd = total_fare_vnd + total_ticket_vnd</code>, where <code>total_ticket_vnd</code> is the sum of the tickets of all stops, including the start. In <code>fact_tour_leg</code>, <code>cum_cost_vnd</code> at seq 0 is the start stop's ticket. Each later leg adds its fare plus the ticket of the stop it arrives at. The last <code>cum_cost_vnd</code> equals <code>total_cost_vnd</code>.</p>
+  <h3>Worked example (request 0, ClickHouse, run from this workspace)</h3>
+<p>Query: <code>SELECT … FROM tour.fact_tour_leg WHERE request_id = 0 ORDER BY seq</code>. Request 0 is an hcmc tour with 4 stops and no entry tickets.</p>
+<table>
+<thead><tr><th>seq</th><th>From</th><th>To</th><th>Stop name</th><th>Leg km</th><th>Leg fare (VND)</th><th>Ticket (VND)</th><th>Cum. cost (VND)</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>n11494677859</td><td>n11494677859</td><td>Mohandas Gandhi</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>n11494677859</td><td>w1214284149</td><td>Nhà thờ Tin Lành Bàn Cờ</td><td>1.506</td><td>33,595</td><td>0</td><td>33,595</td></tr>
+<tr><td>2</td><td>w1214284149</td><td>w1154085685</td><td>Dòng Đức Bà - Giáo Xứ Regina Mundi</td><td>1.644</td><td>35,660</td><td>0</td><td>69,255</td></tr>
+<tr><td>3</td><td>w1154085685</td><td>w1308720666</td><td>Chùa Kỳ Quang 2</td><td>6.630</td><td>110,448</td><td>0</td><td>179,703</td></tr>
+</tbody>
+</table>
+<p>Total: 9.780 km, fare 179,703 VND, tickets 0, <strong>total 179,703 VND</strong>. Check: 33,595 + 35,660 + 110,448 = 179,703.</p>
+</section>
+<section id="big-data-processing-optimization">
+  <h2>6. Big Data processing optimization</h2>
+<p>This section compares two implementations of the same solver, selected by <code>set_mode()</code>. <code>NAIVE_CONF</code> and <code>OPTIMIZED_CONF</code> in <code>job.py</code> hold the Spark settings.</p>
+<table>
+<thead><tr><th>Technique</th><th>Naive</th><th>Optimized</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td>Per-request solve</td><td>Python row UDF <code>F.udf(naive_plan)</code></td><td><code>mapInPandas(solve_batches)</code> with numpy haversine on each batch</td><td>The UDF pickles and calls Python once per row; the batch version runs vectorised numpy per batch.</td></tr>
+<tr><td>Distance source</td><td>Shuffle join of request edges to <code>dist_matrix</code> parquet</td><td>Coordinates broadcast with <code>sc.broadcast(coords)</code>; distances computed locally</td><td>Removes a shuffle of about 1.75M pair rows per run.</td></tr>
+<tr><td>Request building</td><td>Shuffle joins on city and idx</td><td><code>F.broadcast(city_n)</code> and <code>F.broadcast(stop_lm)</code></td><td>Small lookup tables are sent to each executor instead of shuffled.</td></tr>
+<tr><td>Adaptive execution</td><td>AQE off, <code>spark.sql.shuffle.partitions=200</code></td><td>AQE on, coalesce partitions, 8 shuffle partitions</td><td>Small partitions are merged, so the optimized run does not start 200 tiny tasks.</td></tr>
+<tr><td>Data transfer to Python</td><td>Row-at-a-time pickle</td><td>Arrow batches (<code>spark.sql.execution.arrow.pyspark.enabled=true</code>)</td><td>Arrow moves whole columns between the JVM and Python with no per-row serialization.</td></tr>
+<tr><td>Distance matrix build</td><td>Not part of the per-request path; built once in the warm-up</td><td>Native Catalyst expressions (<code>F.sin</code>, <code>F.asin</code>, …) over the 1.75M-pair join</td><td>Codegen runs the arithmetic in the JVM with no Python round trip.</td></tr>
+<tr><td>ClickHouse writes</td><td>Not used by the benchmark</td><td><code>foreachPartition</code> posts 20,000-row <code>JSONEachRow</code> batches from each executor</td><td>Inserts run in parallel from executors; the driver does not collect the 1.75M rows.</td></tr>
+<tr><td>Scheduling</td><td>Default</td><td><code>spark.scheduler.mode=FAIR</code></td><td>Stream micro-batches and benchmark jobs share the session without one blocking the other.</td></tr>
+<tr><td>Request generation</td><td>Deterministic hash on <code>request_id</code>, <code>seed</code> and index</td><td>Same</td><td>Both modes see identical requests, so timings and outputs compare fairly.</td></tr>
+</tbody>
+</table>
+  <h3>Measured results</h3>
+<p>Run: 20,000 requests, executor 1 core and 512 MB, Spark 4.0 standalone. Source: <code>tour.v_latest_run</code>.</p>
+<table>
+<thead><tr><th>Stage</th><th>Naive (s)</th><th>Optimized (s)</th><th>Rows</th></tr></thead>
+<tbody>
+<tr><td>requests</td><td>14.514</td><td>1.100</td><td>20,000</td></tr>
+<tr><td>solve</td><td>50.155</td><td>2.520</td><td>20,000</td></tr>
+<tr><td><strong>total</strong></td><td><strong>64.669</strong></td><td><strong>3.620</strong></td><td>20,000</td></tr>
+</tbody>
+</table>
+<p>Speedup: 64.669 / 3.620 ≈ <strong>17.9×</strong>.</p>
+<p>Warm-up (optimized only):</p>
+<table>
+<thead><tr><th>Stage</th><th>Seconds</th><th>Rows</th></tr></thead>
+<tbody>
+<tr><td>landmarks</td><td>5.926</td><td>1,954</td></tr>
+<tr><td>dist_matrix</td><td>4.010</td><td>1,746,644</td></tr>
+<tr><td>sink_clickhouse</td><td>21.107</td><td>1,748,598 (landmarks plus matrix)</td></tr>
+</tbody>
+</table>
+<p>Reproduce with <code>BR1_BENCH_REQUESTS=20000 make demo-br BR=1</code>. The timings also appear in Grafana panel "Speedup (naive / optimized, total)" and "Thời gian từng stage: naive vs optimized (giây)" on the BR1 dashboard.</p>
+</section>
+<section id="clickhouse-schema">
+  <h2>7. ClickHouse schema</h2>
+<p>Source: <code>sql/clickhouse/ddl_br1.sql</code>. Database <code>tour</code>.</p>
+<p><strong><code>tour.dim_landmark</code></strong> (MergeTree, <code>ORDER BY (city, osm_id)</code>): one row per landmark. <code>osm_id</code> (OSM element id, <code>n…</code>/<code>w…</code>/<code>r…</code>), <code>name</code>, <code>category</code>, <code>city</code> (<code>hcmc</code>, <code>hanoi</code>, <code>danang</code>), <code>lat</code>, <code>lon</code>, <code>ticket_vnd</code>.</p>
+<p><strong><code>tour.dist_matrix</code></strong> (MergeTree, <code>ORDER BY (city, from_id, to_id)</code>): all ordered pairs within a city. <code>dist_km</code> is <code>Float32</code>, so values are rounded to about 7 significant digits. <code>fare_vnd</code> is the leg fare.</p>
+<p><strong><code>tour.fact_tour</code></strong> (ReplacingMergeTree, <code>ORDER BY (city, n_stops, total_cost_vnd, request_id)</code>): one row per solved request. The stream is at-least-once, so a redelivered micro-batch can insert a request twice; the engine collapses duplicates on the sort key during merges. Use <code>FINAL</code> for exact counts, for example <code>SELECT count() FROM tour.fact_tour FINAL</code>. <code>stop_ids</code>, <code>stop_names</code>, <code>lats</code> and <code>lons</code> are stored in visiting order; <code>total_km</code>, <code>total_fare_vnd</code>, <code>total_ticket_vnd</code>, <code>total_cost_vnd</code>.</p>
+<p><strong><code>tour.fact_tour_leg</code></strong> (ReplacingMergeTree, <code>ORDER BY (request_id, seq)</code>): one row per leg, including seq 0 (the start). Duplicates from redelivery collapse the same way; use <code>FINAL</code> for exact counts. <code>from_id</code>, <code>to_id</code>, <code>to_name</code>, <code>leg_km</code>, <code>leg_fare_vnd</code>, <code>ticket_vnd</code> (of the arrival stop), <code>cum_cost_vnd</code>.</p>
+<p><strong><code>tour.job_run</code></strong> (MergeTree, <code>ORDER BY (ran_at, run_mode, stage)</code>): one row per benchmark stage with <code>run_mode</code>, <code>stage</code>, <code>seconds</code>, <code>rows</code>, <code>requests</code>, <code>ran_at</code>.</p>
+<p><strong>View <code>tour.v_latest_run</code>:</strong> all stages for the latest <code>ran_at</code> of each <code>run_mode</code>. This is what Grafana reads.</p>
+<p>Star-schema note: the only true dimension is <code>dim_landmark</code>. <code>fact_tour</code> stores its stops as arrays for direct display, so joins to the dimension are rarely needed.</p>
+</section>
+<section id="data-sources">
+  <h2>8. Data sources</h2>
+<p><strong>OpenStreetMap via Overpass API.</strong> The query asks for <code>tourism</code> in {attraction, museum, gallery, zoo, theme_park, aquarium, viewpoint, artwork}, any <code>historic</code> element, and <code>amenity=place_of_worship</code> with a <code>name</code>. Endpoints are <code>overpass-api.de</code> and <code>overpass.kumi.systems</code>, each tried twice. Bounding boxes:</p>
+<table>
+<thead><tr><th>City</th><th>Bounding box (south, west, north, east)</th><th>Rows kept</th></tr></thead>
+<tbody>
+<tr><td>hcmc</td><td>10.65, 106.55, 10.90, 106.85</td><td>1,129</td></tr>
+<tr><td>hanoi</td><td>20.95, 105.75, 21.10, 105.90</td><td>671</td></tr>
+<tr><td>danang</td><td>15.95, 108.10, 16.15, 108.30</td><td>154</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td><strong>1,954</strong></td></tr>
+</tbody>
+</table>
+<p>Category counts in <code>landmarks.csv</code>: place_of_worship 1,412; historic 167; attraction 151; artwork 121; museum 68; gallery 16; viewpoint 8; theme_park 5; zoo 3; aquarium 2; information 1.</p>
+<p><strong>Licence:</strong> OpenStreetMap data is © OpenStreetMap contributors, licensed under ODbL. Attribution is required when the data is shown publicly.</p>
+<p><strong>Ticket estimate caveat:</strong> ticket prices are not official. They come from OSM tags where present and otherwise from the flat category defaults above. They are estimates for demonstration, not current prices.</p>
+<p><strong>Synthetic tourist requests.</strong> No public dataset of tour requests exists. The producer generates them with a fixed seed (<code>BR1_SEED</code>, default 42), choosing a city at random and sampling 4 to 8 landmarks from it. Seeding makes runs reproducible.</p>
+</section>
+<section id="runbook">
+  <h2>9. Runbook</h2>
+  <h3>Prerequisites</h3>
+<ul><li>Docker Desktop running.</li><li><code>.env</code> in the repo root with <code>CLICKHOUSE_PASSWORD</code> set (copy from <code>.env.example</code>).</li><li><code>data/br1/landmarks.csv</code> present. It is committed; to refresh it, run <code>python3 scripts/fetch_osm_landmarks.py</code>. The script always fetches all three cities.</li></ul>
+  <h3>Run</h3>
+<pre><code>make demo-br BR=1</code></pre>
+<p><code>scripts/start.py</code> does the following, in order:</p>
+<ol><li>Builds the <code>spark-local</code> image and starts <code>clickhouse</code>, <code>kafka</code>, <code>tour-map</code>, <code>spark-local</code>, <code>grafana</code>, <code>prometheus</code>, <code>spark-master</code> and <code>spark-worker</code>. Waits for the ClickHouse and Kafka healthchecks.</li><li>Runs <code>scripts/topics.py --reset</code>, which recreates the topics, including <code>tour.requests</code>.</li><li>Applies <code>sql/clickhouse/ddl_br1.sql</code> and truncates the <code>fact_*</code> tables.</li><li>Submits <code>jobs/br1_tour_route/job.py</code> to the Spark master. Driver and executor memory are 512 MB (<code>SPARK_DRIVER_MEMORY</code>, <code>SPARK_EXECUTOR_MEMORY</code>), <code>spark.cores.max=1</code>, and <code>spark.sql.shuffle.partitions=4</code> by default. <code>start.py</code> waits up to <code>SPARK_READY_TIMEOUT</code> (default 180 s) for the stream to start.</li><li>Starts <code>ingestion/producers/produce_br1.py</code> with <code>PRODUCER_INTERVAL</code> and optional <code>PRODUCER_LIMIT</code>.</li></ol>
+<p>Logs: <code>logs/demo/br1-spark.log</code> and <code>logs/demo/br1-producer.log</code>. Ctrl+C stops the producer; see Stopping below to stop the Spark job.</p>
+  <h3>Environment knobs</h3>
+<table>
+<thead><tr><th>Variable</th><th>Read by</th><th>Default</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>BR1_BENCH_REQUESTS</code></td><td>job</td><td><code>20000</code></td><td>Requests in the benchmark. <code>0</code> skips it.</td></tr>
+<tr><td><code>BR1_SEED</code></td><td>job, producer</td><td><code>42</code></td><td>Seed for requests and stop sampling.</td></tr>
+<tr><td><code>BR1_LANDMARKS</code></td><td>job, producer</td><td><code>/opt/data/br1/landmarks.csv</code></td><td>Landmark CSV path inside the container.</td></tr>
+<tr><td><code>BR1_LAKE</code></td><td>job</td><td><code>/opt/data/br1/lake</code></td><td>Lake and checkpoint root.</td></tr>
+<tr><td><code>BR1_MAX_LANDMARKS_PER_CITY</code></td><td>job</td><td><code>0</code> (all)</td><td>Limit landmarks per city for quick runs.</td></tr>
+<tr><td><code>BR1_MAX_OFFSETS</code></td><td>job</td><td><code>2000</code></td><td>Kafka records per 5-second micro-batch.</td></tr>
+<tr><td><code>SPARK_READY_TIMEOUT</code></td><td><code>start.py</code></td><td><code>180</code></td><td>Seconds to wait for the stream.</td></tr>
+<tr><td><code>PRODUCER_LIMIT</code> (make var)</td><td>producer <code>--events</code></td><td>unset (20,000)</td><td>Number of requests to publish.</td></tr>
+<tr><td><code>PRODUCER_INTERVAL</code> (make var)</td><td>producer <code>--interval</code></td><td><code>0</code></td><td>Seconds between requests.</td></tr>
+</tbody>
+</table>
+<p><code>start.py</code> forwards any variable beginning with <code>BR&lt;n&gt;_</code> into the containers, so <code>BR1_*</code> set on the host takes effect.</p>
+  <h3>Verify</h3>
+<pre><code>-- Row counts
+SELECT count() FROM tour.dim_landmark;      -- 1954
+SELECT count() FROM tour.dist_matrix;       -- 1746644
+SELECT count() FROM tour.fact_tour FINAL;
+
+-- Benchmark timings
+SELECT * FROM tour.v_latest_run ORDER BY run_mode, stage;
+
+-- One tour's legs
+SELECT seq, to_name, leg_km, leg_fare_vnd, ticket_vnd, cum_cost_vnd
+FROM tour.fact_tour_leg WHERE request_id = 0 ORDER BY seq;</code></pre>
+<p>Run them with:</p>
+<pre><code>docker exec clickhouse clickhouse-client --password "${CLICKHOUSE_PASSWORD:-clickhouse}" --query "SELECT count() FROM tour.fact_tour FINAL"</code></pre>
+  <h3>Reset and replay</h3>
+<p><code>start.py</code> truncates the <code>fact_*</code> tables, and the job itself truncates <code>dim_landmark</code>, <code>dist_matrix</code>, <code>fact_tour</code> and <code>fact_tour_leg</code> and deletes <code>lake/checkpoints/tour_requests</code> at start. No manual cleanup is needed for a fresh run.</p>
+<p><strong>Stale Kafka volume.</strong> If <code>kafka</code> exits with <code>Invalid cluster.id in: /var/lib/kafka/data/meta.properties</code>, run <code>docker compose down</code>, then <code>docker volume rm co5173-data-engineering_kafka-data</code>. If Grafana provisioning fails, also remove <code>co5173-data-engineering_grafana-data</code>.</p>
+<p><strong>Stopping:</strong> Ctrl+C in <code>make demo-br</code> stops the producer but the Spark driver keeps running inside <code>spark-local</code> (the <code>docker exec</code> client is what receives the signal). Run <code>docker exec spark-local pkill -f job.py</code> to stop the job, then <code>make down</code> to stop the stack.</p>
+</section>
+<section id="serving">
+  <h2>10. Serving</h2>
+<p><strong>Tourist map:</strong> http://localhost:8090 (nginx <code>tour-map</code> serving <code>serving/</code>, read-only). The page uses Leaflet 1.9.4 and queries ClickHouse over HTTP on port 8123.</p>
+<p>Two modes:</p>
+<ul><li><strong>A. Suggested tours:</strong> choose a city, optionally a number of stops and a maximum budget. The page runs <code>SELECT … FROM tour.fact_tour WHERE city = … ORDER BY total_cost_vnd LIMIT 20</code>. Selecting a tour loads its stops from <code>fact_tour</code> and its legs from <code>fact_tour_leg</code>.</li><li><strong>B. Custom tour:</strong> search landmarks in the chosen city, pick up to 8 (the first is the start), then press "Tối ưu lộ trình". The page reads <code>tour.dist_matrix</code> for the selected pairs and brute-forces the shortest open path in the browser.</li></ul>
+<p>The info box shows total km, total fare, total tickets, total cost, and each leg with its cumulative cost.</p>
+<p>Connection settings come from URL parameters: <code>?ch=</code> (ClickHouse HTTP URL, default <code>http://localhost:8123</code>), <code>?user=</code> (default <code>default</code>), <code>?pw=</code> (default <code>clickhouse</code>).</p>
+<p><strong>Grafana:</strong> http://localhost:3000/d/br1-tour (login <code>admin</code> / <code>admin</code>). Dashboard "BR1 Tour Route Optimization" panels:</p>
+<ol><li>Speedup, naive / optimized total (stat).</li><li>Distance pairs in <code>dist_matrix</code> (stat).</li><li>Optimized tours in <code>fact_tour</code> (stat).</li><li>Stage time, naive vs optimized (bar chart).</li><li>Average tour cost by city and number of stops (bar chart).</li><li>Landmark map from <code>dim_landmark</code> (geomap).</li></ol>
+<p><strong>Security note:</strong> the tourist page queries ClickHouse directly with the default user and its password, which are visible to anyone who opens the page. This is acceptable for a local demo only. For anything public, put a read-only ClickHouse user or an API proxy in front of the data.</p>
+  <h3>Metrics: Grafana + Prometheus</h3>
+<p>Grafana reads two metric sources:</p>
+<ul><li><strong>ClickHouse (business and benchmark metrics):</strong> <code>tour.v_latest_run</code>, <code>tour.fact_tour</code>, <code>tour.dist_matrix</code>, <code>tour.dim_landmark</code>. These are the tour counts, costs and naive vs optimized timings.</li><li><strong>Prometheus (runtime and streaming metrics):</strong> Spark's streaming query metrics (input rate, processing rate, batch latency, state rows) and executor memory, GC time and completed tasks.</li></ul>
+<p>Scrape chain: <code>start.py</code> passes <code>spark.ui.prometheus.enabled=true</code>, <code>spark.sql.streaming.metricsEnabled=true</code>, <code>spark.metrics.namespace=br&lt;N&gt;</code> and the PrometheusServlet sink to every BR driver, so each driver serves <code>/metrics/prometheus</code> on its UI port. Prometheus scrapes the <code>spark-driver</code> job (<code>/metrics/prometheus/</code>) and the <code>spark-executors</code> job (<code>/metrics/executors/prometheus/</code>) on <code>spark-local:4040</code>–<code>4043</code>, one port per running BR. Unused ports show as down in Prometheus, which is expected. The BR1 and BR2 dashboards read these series through the <code>prometheus</code> datasource.</p>
+<p>Metric names come from the query name, <code>tour_requests</code> for BR1. For example, <code>metrics_br1_driver_spark_streaming_tour_requests_latency_Value</code>. The dashboards have a row "Spark streaming (Prometheus)" with these panels:</p>
+<table>
+<thead><tr><th>Panel</th><th>Source</th><th>Query</th></tr></thead>
+<tbody>
+<tr><td>Input rows/s</td><td>Prometheus</td><td><code>metrics_br1_driver_spark_streaming_tour_requests_inputRate_total_Value</code></td></tr>
+<tr><td>Processed rows/s</td><td>Prometheus</td><td><code>metrics_br1_driver_spark_streaming_tour_requests_processingRate_total_Value</code></td></tr>
+<tr><td>Batch latency (ms)</td><td>Prometheus</td><td><code>metrics_br1_driver_spark_streaming_tour_requests_latency_Value</code></td></tr>
+<tr><td>Executor memory used</td><td>Prometheus</td><td><code>metrics_executor_memoryUsed_bytes{application_name="br1-tour-route"}</code></td></tr>
+<tr><td>Speedup (naive / optimized, total)</td><td>ClickHouse</td><td><code>SELECT maxIf(seconds, run_mode='naive') / maxIf(seconds, run_mode='optimized') FROM tour.v_latest_run WHERE stage = 'total'</code></td></tr>
+<tr><td>Average tour cost by city and stops</td><td>ClickHouse</td><td><code>SELECT city, n_stops, round(avg(total_cost_vnd)) AS avg_cost_vnd FROM tour.fact_tour GROUP BY city, n_stops</code></td></tr>
+</tbody>
+</table>
+<p>Raw endpoints: Prometheus UI http://localhost:9090 (try <code>metrics_br1_driver_spark_streaming_tour_requests_latency_Value</code>), target health http://localhost:9090/api/v1/targets.</p>
+</section>
+<section id="assumptions-and-limitations">
+  <h2>11. Assumptions and limitations</h2>
+<ul><li><strong>Straight-line distance.</strong> Haversine ignores roads, so routes are shorter than real travel. No road network or OSRM is used.</li><li><strong>Flat taxi tariff.</strong> The fare is 11,000 VND flag fall plus 15,000 VND per km, with no city or time variation.</li><li><strong>Ticket estimates.</strong> Tickets come from OSM tags or category defaults. They are not official prices.</li><li><strong>Synthetic demand.</strong> Requests are generated, not observed.</li><li><strong>Single-node benchmark.</strong> Timings come from one Spark worker with 1 core and 512 MB executors. They show relative differences, not production throughput.</li><li><strong>Heuristic solver.</strong> Nearest neighbour plus 2-opt is not optimal for more than about 8 stops. The browser's brute force is exact but only feasible for 8 stops or fewer.</li><li><strong>Shared worker.</strong> If BR1 and BR2 run together (<code>make demo-br BR=1,2</code>), both apps share one 2-core, 2 GB worker, each with <code>spark.cores.max=1</code>. The BR1 benchmark and its stream then share one core, so timings are slower than in a solo run.</li><li><strong>Float32 rounding.</strong> <code>dist_km</code> and <code>leg_km</code> are <code>Float32</code> in ClickHouse, so tiny differences from the Spark double values are expected.</li></ul>
+<p><strong>Generated:</strong> 2026-10-10 | <strong>Audience:</strong> CO5173 team and lecturer</p>
+</section>
+
+</main>
+
+<footer>
+  <p>Source: docs/br1/tour-route.md, docs/br1/architecture.svg, jobs/br1_tour_route/job.py, ingestion/producers/produce_br1.py, sql/clickhouse/ddl_br1.sql, sql/bigquery/br1_tour_distance.sql, scripts/fetch_osm_landmarks.py, serving/index.html, grafana/dashboards/br1-tour-route.json. Generated 2026-10-10.</p>
+</footer>
+
+</body>
+</html>

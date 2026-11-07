@@ -42,6 +42,12 @@ configs:
   #         <background_pool_size>4</background_pool_size>
   #     </clickhouse>
 
+  clickhouse-mysql-xml:
+    content: |
+      <clickhouse>
+          <mysql_port>9004</mysql_port>
+      </clickhouse>
+
   spark-metrics-properties:
     content: |
       *.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet
@@ -79,6 +85,16 @@ configs:
           scrape_interval: 5s
           static_configs:
             - targets: ["docker-stats:9417"]
+
+        - job_name: spark-driver
+          metrics_path: /metrics/prometheus/
+          static_configs:
+            - targets: ["spark-local:4040", "spark-local:4041", "spark-local:4042", "spark-local:4043"]
+
+        - job_name: spark-executors
+          metrics_path: /metrics/executors/prometheus/
+          static_configs:
+            - targets: ["spark-local:4040", "spark-local:4041", "spark-local:4042", "spark-local:4043"]
 
   grafana-datasource-yml:
     content: |
@@ -141,7 +157,6 @@ configs:
             path: /var/lib/grafana/dashboards-br6
 
 services:
-
   # ------------------------------------------------------------------
   # ClickHouse
   # ------------------------------------------------------------------
@@ -156,13 +171,15 @@ services:
         soft: 262144
         hard: 262144
     ports:
-      - "8123:8123"   # HTTP interface
-      - "9000:9000"   # native TCP interface
-      - "9363:9363"   # Prometheus metrics endpoint
+      - "8123:8123" # HTTP interface
+      - "9000:9000" # native TCP interface
+      - "9363:9363" # Prometheus metrics endpoint
+      - "9004:9004" # MySQL protocol (Looker Studio via tunnel)
     environment:
       CLICKHOUSE_DB: default
       CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1" # lets default create the read-only looker user
     volumes:
       - clickhouse-data:/var/lib/clickhouse
     configs:
@@ -172,6 +189,8 @@ services:
         target: /etc/clickhouse-server/config.d/system-logs.xml
       # - source: clickhouse-server-xml
       #   target: /etc/clickhouse-server/config.d/server-tuning.xml
+      - source: clickhouse-mysql-xml
+        target: /etc/clickhouse-server/config.d/mysql.xml
     networks:
       - data-net
     healthcheck:
@@ -179,6 +198,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Public TCP tunnel for the BR2 Looker Studio connection (on demand).
+  tunnel:
+    image: ekzhang/bore:latest
+    container_name: tunnel
+    profiles: ["tunnel"]
+    init: true
+    command: ["local", "9004", "--local-host", "clickhouse", "--to", "bore.pub"]
+    depends_on:
+      - clickhouse
+    networks:
+      - data-net
 
   # ------------------------------------------------------------------
   # Kafka (KRaft mode, no Zookeeper needed)
@@ -189,8 +220,8 @@ services:
     mem_limit: 1g
     cpus: 1.0
     ports:
-      - "9092:9092"       # host access
-      - "29092:29092"     # inter-container access
+      - "9092:9092" # host access
+      - "29092:29092" # inter-container access
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -209,10 +240,40 @@ services:
     networks:
       - data-net
     healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      test:
+        [
+          "CMD",
+          "kafka-topics",
+          "--bootstrap-server",
+          "localhost:9092",
+          "--list",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    profiles: ["ui"]
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - data-net
+
+  # Static server for the BR1 tourist map (serving/ on the host).
+  tour-map:
+    image: nginx:1.27-alpine
+    container_name: tour-map
+    ports: ["8090:80"]
+    volumes:
+      - ./serving:/usr/share/nginx/html:ro
+    networks: [data-net]
 
   # ------------------------------------------------------------------
   # Spark
@@ -234,8 +295,8 @@ services:
       - source: spark-metrics-properties
         target: /opt/bitnami/spark/conf/metrics.properties
     ports:
-      - "7077:7077"   # Spark master port
-      - "8082:8080"   # Spark master Web UI
+      - "7077:7077" # Spark master port
+      - "8082:8080" # Spark master Web UI
       # Prometheus-format metrics: http://localhost:8082/metrics/master/prometheus/
     networks:
       - data-net
@@ -268,7 +329,7 @@ services:
       - ./data:/opt/data
       - ./logs:/opt/logs
     ports:
-      - "8083:8081"   # Spark worker Web UI / metrics: /metrics/prometheus/
+      - "8083:8081" # Spark worker Web UI / metrics: /metrics/prometheus/
     networks:
       - data-net
 

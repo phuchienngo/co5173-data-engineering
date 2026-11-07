@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+@AGENTS.md
+
+Follow AGENTS.md for BR1–BR4 and anything not covered below.
+
+**BR5 and BR6 follow the rules in this file instead** (where they differ from AGENTS.md, for example the per-type docs layout `docs/<type>/brN/`, batch jobs with `MODE = "batch"`, and the `unittest` tests in `tests/brN/`).
+
 ## Project context
 
 - Course project for CO5173 Data Engineering (HCMUT). Domain: **Tourism**. Presentation topic, which is also the focus of the implementation: **Big Data Processing Optimization**.
