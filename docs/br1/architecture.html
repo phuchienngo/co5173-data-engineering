@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BR1 Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f5f5; color: #2d3142; padding: 24px 16px; overflow-x: auto; }
+    svg { display: block; width: 1400px; max-width: none; height: auto; }
+  </style>
+</head>
+<body>
+<svg viewBox="0 0 1400 840" width="1400" height="840" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="br1-architecture-title br1-architecture-desc">
+<title id="br1-architecture-title">BR1 Tour Route Optimization — Architecture</title>
+<desc id="br1-architecture-desc">Layered data-flow diagram of the BR1 tour route pipeline, contrasting a Spark data lake of Parquet files with a ClickHouse data warehouse that serves the tourist map and Grafana.</desc>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+<marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+<marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+</defs>
+<rect width="1400" height="840" fill="#f5f5f5"/>
+<text x="24" y="28" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">CO5173 · DATA ENGINEERING · ARCHITECTURE</text>
+<text x="24" y="64" fill="#2d3142" font-size="28" font-family="'Instrument Serif', serif">BR1 Tour Route Optimization — Architecture</text>
+<text x="24" y="90" fill="#4f5d75" font-size="16" font-family="'Geist', sans-serif">Data Lake (files, schema-on-read, Spark) vs Data Warehouse (ClickHouse, schema-on-write, serving)</text>
+<text x="24" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">1 · SOURCES</text>
+<text x="208" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">2 · INGESTION</text>
+<text x="416" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">3 · DATA LAKE</text>
+<text x="672" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">4 · PROCESSING — SPARK</text>
+<text x="948" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">5 · DATA WAREHOUSE</text>
+<text x="1192" y="124" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">6 · SERVING</text>
+<line x1="24" y1="134" x2="1376" y2="134" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+<rect x="416" y="148" width="196" height="552" rx="8" fill="rgba(46,90,168,0.06)" stroke="rgba(46,90,168,0.35)" stroke-width="0.8"/>
+<rect x="948" y="148" width="184" height="552" rx="8" fill="rgba(45,49,66,0.06)" stroke="rgba(45,49,66,0.35)" stroke-width="0.8"/>
+<text x="428" y="168" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.12em">ZONE · FILES</text>
+<text x="960" y="168" fill="#2d3142" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.12em">ZONE · DATABASE</text>
+<line x1="176" y1="256" x2="208" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="376" y1="232" x2="428" y2="232" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="176" y1="376" x2="208" y2="376" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="376" y1="360" x2="672" y2="360" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="600" y1="216" x2="672" y2="216" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="672" y1="292" x2="600" y2="292" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="600" y1="324" x2="960" y2="324" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<path d="M672,532 H644 Q636,532 636,524 V508 Q636,500 628,500 H600" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M500,200 V192 Q500,184 508,184 H1032 Q1040,184 1040,192 V200" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="1120" y1="300" x2="1192" y2="300" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<line x1="888" y1="380" x2="960" y2="380" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="888" y1="556" x2="960" y2="556" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M1120,380 H1232 Q1240,380 1240,372 V340" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M1120,552 H1148 Q1156,552 1156,544 V488 Q1156,480 1164,480 H1192" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="388" y="214" width="28" height="12" rx="2" fill="#f5f5f5"/>
+<text x="402" y="223" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">CSV</text>
+<rect x="378" y="328" width="36" height="24" rx="2" fill="#f5f5f5"/>
+<text x="396" y="338" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">KAFKA</text>
+<text x="396" y="348" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">JSON</text>
+<rect x="618" y="199" width="32" height="11" rx="2" fill="#f5f5f5"/>
+<text x="634" y="208" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">READ</text>
+<rect x="614" y="256" width="44" height="30" rx="2" fill="#f5f5f5"/>
+<text x="636" y="268" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">PARQUET</text>
+<text x="636" y="280" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">WRITE</text>
+<rect x="708" y="304" width="140" height="12" rx="2" fill="#f5f5f5"/>
+<text x="778" y="313" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">HTTP INSERT · JSONEachRow</text>
+<rect x="904" y="362" width="40" height="11" rx="2" fill="#f5f5f5"/>
+<text x="924" y="370" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">INSERT</text>
+<rect x="904" y="538" width="40" height="11" rx="2" fill="#f5f5f5"/>
+<text x="924" y="546" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">INSERT</text>
+<rect x="1124" y="264" width="64" height="26" rx="2" fill="#f5f5f5"/>
+<text x="1156" y="274" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">HTTP query</text>
+<text x="1156" y="284" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">(CORS)</text>
+<rect x="24" y="200" width="152" height="112" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="34" y="208" width="26" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="47.0" y="218" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+<text x="34" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">OSM Overpass API</text>
+<text x="34" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">landmarks · name</text>
+<text x="34" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">lat/lon · tourism</text>
+<text x="34" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">historic tags · fee</text>
+<rect x="24" y="336" width="152" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="34" y="344" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="49.5" y="354" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+<text x="34" y="370" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Tour requests</text>
+<text x="34" y="385" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">synthetic producer</text>
+<text x="34" y="398" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">4–8 stops per request</text>
+<rect x="208" y="208" width="168" height="96" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="218" y="216" width="40" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="238.0" y="226" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SCRIPT</text>
+<text x="218" y="242" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fetch_osm_landmarks</text>
+<text x="218" y="257" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ data/br1/landmarks.csv</text>
+<text x="218" y="270" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">1,954 landmarks:</text>
+<text x="218" y="283" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">HCMC · Hà Nội · Đà Nẵng</text>
+<rect x="208" y="336" width="168" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="218" y="344" width="50" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="243.0" y="354" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PRODUCER</text>
+<text x="218" y="370" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">produce_br1.py</text>
+<text x="218" y="385" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ Kafka topic</text>
+<text x="218" y="398" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">tour.requests</text>
+<rect x="428" y="200" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="208" width="26" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="451.0" y="218" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CSV</text>
+<text x="438" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">landmarks.csv</text>
+<text x="438" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">raw / bronze</text>
+<rect x="428" y="284" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="292" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="302" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="318" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/dist_matrix/</text>
+<text x="438" y="333" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">~1.75M rows · km + fare</text>
+<rect x="428" y="368" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="376" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="386" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/tour_requests/</text>
+<text x="438" y="417" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mode=naive | optimized</text>
+<rect x="428" y="452" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="460" width="45" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="460.5" y="470" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PARQUET</text>
+<text x="438" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">lake/fact_tour/</text>
+<text x="438" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mode=naive | optimized</text>
+<rect x="428" y="536" width="172" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="438" y="544" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="456.0" y="554" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STATE</text>
+<text x="438" y="570" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">checkpoints/</text>
+<text x="438" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">stream offsets</text>
+<text x="428" y="628" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Raw + processed files on disk.</text>
+<text x="428" y="644" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Parquet by city / mode: cheap,</text>
+<text x="428" y="660" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">append-only, read by Spark.</text>
+<text x="428" y="676" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Schema-on-read.</text>
+<rect x="672" y="200" width="216" height="100" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="208" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="700.0" y="218" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SPARK</text>
+<text x="682" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Stage 1 · distance matrix</text>
+<text x="682" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">jobs/br1_tour_route/job.py</text>
+<text x="682" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">native haversine ≈ ST_DISTANCE</text>
+<text x="682" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">city-partitioned self-join</text>
+<rect x="672" y="340" width="216" height="64" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="348" width="40" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="702.0" y="358" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STREAM</text>
+<text x="682" y="374" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Structured Streaming</text>
+<text x="682" y="389" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Kafka tour.requests → foreachBatch</text>
+<text x="682" y="402" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">5 s trigger</text>
+<rect x="672" y="428" width="216" height="80" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="436" width="40" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="702.0" y="446" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SOLVER</text>
+<text x="682" y="462" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Stage 2 · route solver</text>
+<text x="682" y="477" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">nearest-neighbour + 2-opt</text>
+<text x="682" y="490" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">mapInPandas + broadcast coords</text>
+<text x="682" y="503" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">cost = taxi fare + tickets</text>
+<rect x="672" y="520" width="216" height="92" rx="6" fill="#ffffff" stroke="rgba(46,90,168,0.55)" stroke-width="1"/>
+<rect x="682" y="528" width="36" height="14" rx="2" fill="none" stroke="#2e5aa8" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="700.0" y="538" fill="#2e5aa8" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">BENCH</text>
+<text x="682" y="554" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Benchmark run</text>
+<text x="682" y="569" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">naive: row UDF, 200 partitions</text>
+<text x="682" y="582" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">optimized: Arrow, broadcast, AQE</text>
+<text x="682" y="595" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">→ job_run timings</text>
+<rect x="960" y="200" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="208" width="26" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="983.0" y="218" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DIM</text>
+<text x="970" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">dim_landmark</text>
+<text x="970" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · star dim</text>
+<rect x="960" y="284" width="160" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="970" y="292" width="45" height="14" rx="2" fill="none" stroke="#eb6c36" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="992.5" y="302" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SERVING</text>
+<text x="970" y="318" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">dist_matrix</text>
+<text x="970" y="333" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">serving copy · MergeTree</text>
+<rect x="960" y="368" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="376" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="386" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FACT</text>
+<text x="970" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fact_tour</text>
+<text x="970" y="417" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · per run</text>
+<rect x="960" y="452" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="460" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="470" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FACT</text>
+<text x="970" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">fact_tour_leg</text>
+<text x="970" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">MergeTree · per leg</text>
+<rect x="960" y="536" width="160" height="64" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.55)" stroke-width="1"/>
+<rect x="970" y="544" width="31" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="985.5" y="554" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">META</text>
+<text x="970" y="570" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">job_run</text>
+<text x="970" y="585" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">+ v_latest_run view</text>
+<text x="960" y="628" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Columnar MergeTree tables.</text>
+<text x="960" y="644" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Star schema: dim + fact.</text>
+<text x="960" y="660" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Sub-second queries for apps.</text>
+<text x="960" y="676" fill="#4f5d75" font-size="12" font-style="italic" font-family="'Instrument Serif', serif">Schema-on-write.</text>
+<rect x="1192" y="200" width="184" height="140" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+<rect x="1202" y="208" width="26" height="14" rx="2" fill="none" stroke="#eb6c36" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1215.0" y="218" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+<text x="1202" y="234" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Tourist map</text>
+<text x="1202" y="249" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Leaflet + nginx :8090</text>
+<text x="1202" y="262" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">route polyline + cost box</text>
+<text x="1202" y="275" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">custom tour via dist_matrix</text>
+<rect x="1192" y="452" width="184" height="80" rx="6" fill="#ffffff" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<rect x="1202" y="460" width="55" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1229.5" y="470" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">DASHBOARD</text>
+<text x="1202" y="486" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Grafana :3000</text>
+<text x="1202" y="501" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">naive vs optimized timings</text>
+<text x="1202" y="514" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">speedup · row counts</text>
+<rect x="1192" y="616" width="184" height="60" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="1202" y="624" width="50" height="14" rx="2" fill="none" stroke="#4f5d75" stroke-opacity="0.45" stroke-width="0.8"/>
+<text x="1227.0" y="634" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OPTIONAL</text>
+<text x="1202" y="650" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Looker Studio</text>
+<text x="1202" y="665" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">via MySQL :9004</text>
+<line x1="24" y1="724" x2="1376" y2="724" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="24" y="744" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="180" y="734" width="20" height="12" rx="2" fill="rgba(46,90,168,0.06)" stroke="rgba(46,90,168,0.35)"/>
+<text x="208" y="744" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Data Lake zone colour = files / Spark</text>
+<rect x="780" y="734" width="20" height="12" rx="2" fill="rgba(45,49,66,0.06)" stroke="rgba(45,49,66,0.35)"/>
+<text x="808" y="744" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Data Warehouse zone colour = database / queries</text>
+<text x="24" y="768" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Storage</text>
+<text x="180" y="768" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Files on disk (Parquet): cheap, append-only</text>
+<text x="780" y="768" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Columnar tables (ClickHouse MergeTree): indexed</text>
+<text x="24" y="790" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Schema</text>
+<text x="180" y="790" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Schema-on-read: Spark interprets at query time</text>
+<text x="780" y="790" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Schema-on-write: fixed star schema (dim + fact)</text>
+<text x="24" y="812" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Consumer</text>
+<text x="180" y="812" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Spark jobs: batch, streaming, benchmark</text>
+<text x="780" y="812" fill="#4f5d75" font-size="12" font-family="'Geist', sans-serif">Dashboards (Grafana) and the tourist app</text>
+</svg>
+</body>
+</html>
