@@ -134,6 +134,26 @@ configs:
           updateIntervalSeconds: 30
           options:
             path: /var/lib/grafana/dashboards
+        # BR3 dashboards, in their own folder and directory.
+        - name: BR3
+          orgId: 1
+          folder: BR3
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br3
+        # BR4 dashboards, in their own folder and directory.
+        - name: BR4
+          orgId: 1
+          folder: BR4
+          type: file
+          disableDeletion: false
+          allowUiUpdates: true
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards-br4
         # BR5 dashboards, in their own folder and directory (the provider above
         # reads its directory recursively).
         - name: BR5
@@ -501,6 +521,8 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/dashboards-br3:/var/lib/grafana/dashboards-br3:ro
+      - ./grafana/dashboards-br4:/var/lib/grafana/dashboards-br4:ro
       - ./grafana/dashboards-br5:/var/lib/grafana/dashboards-br5:ro
       - ./grafana/dashboards-br6:/var/lib/grafana/dashboards-br6:ro
     ports:

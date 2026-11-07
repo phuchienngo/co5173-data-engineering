@@ -24,7 +24,7 @@ Lưu ý công bằng: Spark làm thêm phần VADER, ClickHouse chỉ làm phầ
 | Đúng dữ liệu | nối 2 output theo `review_id`: số dòng `keywords` giống hệt; số dòng cùng quyết định tiếng Anh |
 | Hiệu năng - xả backlog | 200.000 message có sẵn trong Kafka: thời gian từ lúc khởi động đến khi đủ dòng; rows/s; RAM đỉnh; CPU trung bình (`docker stats`) |
 | Hiệu năng - chạy liên tục | 1.000 msg/s trong 60 s: độ trễ từng dòng = `ingested_at` − `event_time` (timestamp Kafka), p50/p95/p99 |
-| Hiệu quả khai thác | cả hai ghi vào ClickHouse, cùng dashboard Grafana `co5173-demo` |
+| Hiệu quả khai thác | cả hai ghi vào ClickHouse, dashboard Grafana `br3-data-result` |
 
 Mỗi phép đo lặp 3 lần, báo median [min - max].
 

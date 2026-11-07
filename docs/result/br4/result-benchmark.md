@@ -23,7 +23,7 @@ BR4 làm lại được 100% bằng SQL nên đây là phép so sánh tương đ
 | Đúng dữ liệu | nối 2 output theo `booking_id`: số dòng có `revenue` (sai số < 1e-6) và `revenue_bucket` giống hệt; số dòng mỗi bên |
 | Hiệu năng - xả backlog | 50.000 message có sẵn trong Kafka: thời gian đến khi đủ dòng (sau inner join); rows/s; RAM đỉnh; CPU trung bình |
 | Hiệu năng - chạy liên tục | 1.000 msg/s trong 60 s: độ trễ `ingested_at` − `event_time`, p50/p95/p99 |
-| Hiệu quả khai thác | cả hai ghi vào ClickHouse, cùng dashboard Grafana `co5173-demo` |
+| Hiệu quả khai thác | cả hai ghi vào ClickHouse, dashboard Grafana `br4-data-result` |
 
 Mỗi phép đo lặp 3 lần, báo median [min - max].
 
