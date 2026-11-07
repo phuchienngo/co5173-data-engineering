@@ -1,5 +1,6 @@
 import argparse
 import csv
+import gzip
 import sys
 import time
 import warnings
@@ -7,7 +8,9 @@ from pathlib import Path
 
 from kafka_io import get_producer
 
-SAMPLE_PATH = Path(__file__).resolve().parents[2] / "data" / "br3" / "listings.csv"
+# Real Inside Airbnb reviews (Bangkok, snapshot 2026-06-29), gzipped to keep the
+# LFS object small; the producer streams it without unpacking to disk.
+SAMPLE_PATH = Path(__file__).resolve().parents[2] / "data" / "br3" / "reviews.csv.gz"
 TOPIC = "reviews"
 
 parser = argparse.ArgumentParser()
@@ -20,17 +23,16 @@ warnings.filterwarnings("ignore", message=".*value_serializer.*", category=Depre
 
 def review_rows():
     if not SAMPLE_PATH.exists():
-        sys.exit(f"{SAMPLE_PATH} not found — see README \"Preparing data\"")
+        sys.exit(f"{SAMPLE_PATH} not found — run git lfs pull")
 
-    with SAMPLE_PATH.open(newline="", encoding="utf-8") as f:
+    with gzip.open(SAMPLE_PATH, "rt", newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            listing_id = row.get("id")
-            if not listing_id:
+            if not row.get("listing_id") or not row.get("id"):
                 continue
             yield {
-                "listing_id": listing_id,
-                "id": f"demo-review-{listing_id}",
-                "comments": row.get("description") or row.get("name") or "Nice stay",
+                "listing_id": row["listing_id"],
+                "id": row["id"],
+                "comments": row.get("comments") or "",
             }
 
 

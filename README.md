@@ -8,8 +8,8 @@ Course project for CO5173 Data Engineering (HCMUT). The domain is **tourism**, a
 
 | BR | What it does | Mode | Serving |
 |---|---|---|---|
-| BR3 Customer sentiment | Classifies review texts as positive or negative (VADER) and computes satisfaction per location | Stream (Kafka topic `reviews`) | Grafana dashboard "Overview" |
-| BR4 Cancellation monitoring | Counts cancellations by how close they come to pickup time, to flag risk | Stream (Kafka topic `bookings`) | Grafana dashboard "Overview" |
+| BR3 Customer sentiment | Classifies review texts as positive, neutral, negative or non-English (VADER) and computes satisfaction per location | Stream (Kafka topic `reviews`) | Grafana dashboard "BR3 Data and Results" |
+| BR4 Revenue monitoring | Computes revenue per booking, splits bookings into low / medium / high, and shows revenue by location and room type | Stream (Kafka topic `bookings`) | Grafana dashboard "BR4 Data and Results" |
 | BR5 Promotion in the low season | From 119,390 hotel bookings: finds each hotel's low-season months and ranks the room type × guest country pairs worth a promotion | Batch | **Promotion Finder** app + Grafana dashboards "BR5 Run performance", "BR5 Resource use", "BR5 Data and result" |
 | BR6 Route suggestions | From 2.63 million check-ins in 15 cities (Massive-STEPS): suggests stops along a route from A to B, ranked by popularity, the visitor's taste and the detour | Batch | **Route Finder** app + Grafana dashboards "BR6 Run performance", "BR6 Resource use", "BR6 Data and result" |
 
@@ -75,7 +75,7 @@ All are in the CO5173 folder. BR5 and BR6 each have the same three dashboards:
 
 | Dashboard | Shows |
 |---|---|
-| **Overview** (BR3, BR4) | Processed reviews, positive rate and sentiment distribution (BR3); bookings, revenue and active properties (BR4) |
+| **BR3 / BR4 Data and Results** | Processed reviews, positive rate and sentiment distribution (BR3); bookings, revenue and active properties (BR4) |
 | **BRn Run performance** | Imports and runs: count, median, fastest and slowest run time, run time over time, the median per value of a chosen setting, and each step of the latest runs |
 | **BRn Resource use** | CPU and memory of `spark-worker` (executors), `br5-app` (app and Spark driver) and `clickhouse`, with each run marked; the cores and memory Spark gave to runs; ClickHouse's running queries and memory; CPU seconds and peak memory per container |
 | **BRn Data and result** | What is stored: import status and time, multiplier, rows per table (BR6: check-ins per city), rows excluded by the cleaning rules, and the result of the latest run |
