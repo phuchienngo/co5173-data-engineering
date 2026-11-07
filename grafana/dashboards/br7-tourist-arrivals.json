@@ -1,0 +1,542 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Số khu × giờ đã xử lý",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() AS v FROM v_br7_zone_hourly",
+          "refId": "A"
+        }
+      ],
+      "description": "Số giờ (tính riêng từng khu) mà Spark đã đếm xong và ghi vào ClickHouse.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Tổng lượt taxi đến",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT sum(observed_arrivals) AS v FROM v_br7_zone_hourly",
+          "refId": "A"
+        }
+      ],
+      "description": "Tổng số chuyến taxi vàng thả khách vào 10 khu du lịch, sau khi làm sạch dữ liệu.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Số giờ có cảnh báo",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 10,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(alert_level = 'warning') AS v FROM v_br7_zone_hourly",
+          "refId": "A"
+        }
+      ],
+      "description": "Số giờ mà hệ thống dự báo giờ tiếp theo sẽ đông bất thường (vượt mức p90 thường lệ và từ 50 lượt trở lên).",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Sai số dự báo trung bình",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 14,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS v FROM v_br7_forecast_check WHERE actual_arrivals >= 20",
+          "refId": "A"
+        }
+      ],
+      "description": "Dự báo lệch trung bình bao nhiêu % so với số lượt thực tế của giờ sau (MAPE). Chỉ tính các giờ có ít nhất 20 lượt để giờ đêm vắng không làm méo số.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "title": "Tỷ lệ cảnh báo đúng",
+      "type": "stat",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT round(100 * countIf(actual_above_threshold = 1) / greatest(count(), 1), 1) AS v FROM v_br7_forecast_check WHERE alert_level = 'warning'",
+          "refId": "A"
+        }
+      ],
+      "description": "Trong các cảnh báo, bao nhiêu % thật sự vượt ngưỡng ở giờ sau.",
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Dự báo giờ tới so với thực tế — ${zone}",
+      "type": "timeseries",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 0,
+          "queryType": "timeSeries",
+          "rawSql": "SELECT target_hour AS time, actual_arrivals AS \"Thực tế\", predicted_arrivals AS \"Dự báo\", warning_threshold AS \"Ngưỡng cảnh báo\" FROM v_br7_forecast_check WHERE zone_name = '${zone}' AND $__timeFilter(target_hour) ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "description": "Đường Thực tế là số chuyến taxi thật sự đến trong giờ. Đường Dự báo là con số hệ thống đoán từ giờ trước đó. Đường đỏ nét đứt là ngưỡng đông bất thường (mức p90 của khu này vào cùng thứ, cùng giờ). Dự báo vượt đường đỏ thì có cảnh báo.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ngưỡng cảnh báo"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    10,
+                    10
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Lượt taxi đến theo giờ của từng khu",
+      "type": "timeseries",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 0,
+          "queryType": "timeSeries",
+          "rawSql": "SELECT observed_hour AS time, zone_name, observed_arrivals AS \"Lượt đến\" FROM v_br7_zone_hourly WHERE $__timeFilter(observed_hour) ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "description": "So sánh mức độ đông của 10 khu theo từng giờ (giờ New York).",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "right"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Tình hình mới nhất theo khu",
+      "type": "table",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT zone_name AS \"Khu\", landmark AS \"Địa danh tiêu biểu\", argMax(observed_hour_local, observed_hour) AS \"Giờ gần nhất (NY)\", argMax(observed_arrivals, observed_hour) AS \"Lượt đến giờ đó\", argMax(predicted_arrivals, observed_hour) AS \"Dự báo giờ tới\", argMax(warning_threshold, observed_hour) AS \"Ngưỡng cảnh báo\", argMax(multiIf(alert_level = 'warning', 'Cảnh báo', alert_level = 'normal', 'Bình thường', 'Chưa có mức chuẩn'), observed_hour) AS \"Trạng thái\" FROM v_br7_zone_hourly GROUP BY zone_name, landmark ORDER BY \"Dự báo giờ tới\" DESC",
+          "refId": "A"
+        }
+      ],
+      "description": "Giờ gần nhất của từng khu và dự báo cho giờ tiếp theo.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trạng thái"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Cảnh báo": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Bình thường": {
+                        "color": "green",
+                        "index": 1
+                      },
+                      "Chưa có mức chuẩn": {
+                        "color": "gray",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 9,
+      "title": "Chất lượng dự báo theo khu",
+      "type": "table",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT zone_name AS \"Khu\", count() AS \"Số dự báo\", round(100 * avg(abs_error / greatest(actual_arrivals, 1)), 1) AS \"Sai số TB (%)\", countIf(alert_level = 'warning') AS \"Số cảnh báo\", countIf(alert_level = 'warning' AND actual_above_threshold = 1) AS \"Cảnh báo đúng\", countIf(actual_above_threshold = 1) AS \"Giờ thực tế vượt ngưỡng\" FROM v_br7_forecast_check WHERE actual_arrivals >= 20 GROUP BY zone_name ORDER BY \"Số cảnh báo\" DESC",
+          "refId": "A"
+        }
+      ],
+      "description": "Sai số chỉ tính các giờ có ít nhất 20 lượt thực tế. \"Cảnh báo đúng\" là cảnh báo mà giờ sau thật sự vượt ngưỡng.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "title": "Các giờ bị cảnh báo gần đây",
+      "type": "table",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT zone_name AS \"Khu\", toTimeZone(target_hour, 'America/New_York') AS \"Giờ được cảnh báo (NY)\", observed_arrivals AS \"Lượt đến giờ trước\", round(usual_arrivals, 1) AS \"Mức thường lệ giờ trước\", predicted_arrivals AS \"Dự báo\", warning_threshold AS \"Ngưỡng cảnh báo\" FROM v_br7_zone_hourly WHERE alert_level = 'warning' AND $__timeFilter(target_hour) ORDER BY target_hour DESC LIMIT 200",
+          "refId": "A"
+        }
+      ],
+      "description": "Mỗi dòng: giờ trước đó đông hơn thường lệ, nên dự báo giờ được cảnh báo sẽ vượt ngưỡng.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": [
+    "co5173",
+    "br7",
+    "tourism",
+    "nyc-tlc"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "zone",
+        "label": "Khu",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT zone_name FROM dim_br7_zones ORDER BY zone_id",
+        "definition": "SELECT zone_name FROM dim_br7_zones ORDER BY zone_id",
+        "refresh": 1,
+        "current": {
+          "text": "Times Sq/Theatre District",
+          "value": "Times Sq/Theatre District"
+        },
+        "includeAll": false,
+        "multi": false,
+        "sort": 0
+      }
+    ]
+  },
+  "time": {
+    "from": "2026-09-01T04:00:00.000Z",
+    "to": "2026-10-01T05:00:00.000Z"
+  },
+  "timezone": "America/New_York",
+  "title": "BR7 — Cảnh báo khu du lịch đông bất thường (taxi NYC)",
+  "uid": "co5173-br7-tourist-arrivals",
+  "version": 3,
+  "description": "Dự báo lượng taxi đến 10 khu du lịch New York trong giờ tới và cảnh báo khi đông bất thường. Phát lại dữ liệu TLC tháng 09/2026; mức thường lệ tính từ 09/2025 – 08/2026."
+}
