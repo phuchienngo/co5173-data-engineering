@@ -1,4 +1,5 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test br6-check-dashboards br6-bench br6-bench-screens br8-up br8-import br8-run br8-status br8-settings br8-test br8-bench-presets br8-bench br8-bench-check br8-bench-screens br8-bench-restore br7-up br7-import br7-run br7-status br7-settings br7-test br7-bench-presets br7-bench br7-bench-check br7-bench-screens br7-bench-restore prepare test logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br3-bench br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test br6-check-dashboards br6-bench br6-bench-screens br8-up br8-import br8-run br8-status br8-settings br8-test br8-bench-presets br8-bench br8-bench-check br8-bench-screens br8-bench-restore br7-up br7-import br7-run br7-status br7-settings br7-test br7-bench-presets br7-bench br7-bench-check br7-bench-screens br7-bench-restore prepare test logs ps down clean
+
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -31,6 +32,7 @@ help:
 	@echo "  make br5-status       BR5: show what data is stored"
 	@echo "  make br5-test         BR5: unit tests (rules, settings, monitoring helpers)"
 	@echo "  make br5-check-dashboards  BR5: run every Grafana panel query, report errors"
+	@echo "  make br3-bench REPS=3       BR3 and BR4 benchmark: Spark vs ClickHouse MV (about 40 min)"
 	@echo "  make br5-bench BLOCK=S2     BR5 benchmark: run a block (S1, S2, S3); options: CELLS=I3-L3 ARGS=--clickhouse"
 	@echo "  make br5-bench-screens BLOCK=S2  BR5 benchmark: screenshots of a block (needs Playwright)"
 	@echo "  make br6-up           BR6: start the stack and the shared app (stored data kept)"
@@ -96,6 +98,9 @@ br5-check-dashboards:
 	python3 tests/br5/check_dashboards.py
 
 BR5_CELLS_ARGS = $(if $(CELLS), --cells $(CELLS),)
+
+br3-bench:
+	python3 tests/br3/benchmark.py $(REPS)
 
 br5-bench:
 	python3 tests/br5/benchmark.py block $(BLOCK)$(BR5_CELLS_ARGS) $(ARGS)

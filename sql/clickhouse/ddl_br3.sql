@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS fact_reviews
     review_id        String,
     listing_id        String,
     sentiment_label  String,
-    ingested_at       DateTime DEFAULT now()
+    keywords         Array(String),
+    event_time       DateTime64(3),  -- Kafka message timestamp
+    ingested_at      DateTime64(3) DEFAULT now64(3)
 )
 ENGINE = MergeTree
 ORDER BY (listing_id, ingested_at);

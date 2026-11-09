@@ -1,5 +1,5 @@
-## BR4 - Cancellation Monitoring
+## BR4 - Revenue Monitoring
 
-- **Input:** Nhật ký cập nhật trạng thái đơn đặt (trip_id, status_change, minutes_before_pickup).
-- **DE Pipeline:** PySpark phân loại và đếm số lượng đơn hủy theo các mốc thời gian sát giờ nhận dịch vụ để gắn cờ rủi ro.
-- **Serving:** Thẻ chỉ số Scorecard cảnh báo tỷ lệ hủy sát giờ trên Looker Studio để kích hoạt ưu đãi điều phối lại xe/phòng.
+- **Input:** Dữ liệu đặt phòng Airbnb dạng luồng (booking_id, listing_id, revenue, nights_booked) và bảng thuộc tính phòng (vị trí, loại phòng, giá mỗi đêm).
+- **DE Pipeline:** PySpark Structured Streaming ghép từng đặt phòng với thuộc tính phòng, tính doanh thu (lấy từ sự kiện, nếu thiếu thì giá mỗi đêm × số đêm) và phân nhóm doanh thu thấp / trung bình / cao.
+- **Serving:** Dashboard Grafana `br4-data-result`: số đặt phòng, tổng và trung bình doanh thu, số phòng hoạt động, phân bố nhóm doanh thu, doanh thu theo loại phòng và vị trí, theo thời gian.

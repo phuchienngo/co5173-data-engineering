@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS fact_bookings
     listing_id        String,
     revenue           Float64,
     revenue_bucket   String,  -- 'low' | 'medium' | 'high'
-    ingested_at       DateTime DEFAULT now()
+    event_time       DateTime64(3),  -- Kafka message timestamp
+    ingested_at      DateTime64(3) DEFAULT now64(3)
 )
 ENGINE = MergeTree
 ORDER BY (listing_id, ingested_at);
