@@ -21,9 +21,11 @@ def read_topic(path):
     return None
 
 
-def discover_topics():
+def discover_topics(selected=None):
     topics = []
     for path in sorted(PRODUCER_DIR.glob("produce_br*.py")):
+        if selected is not None and path.stem.removeprefix("produce_br") not in selected:
+            continue
         topic = read_topic(path)
         if topic:
             topics.append(topic)
@@ -86,9 +88,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true", help="Print discovered topics without creating them")
     parser.add_argument("--reset", action="store_true", help="Delete discovered topics before creating them")
+    parser.add_argument("--br", nargs="+", help="Only operate on these BR numbers")
     args = parser.parse_args()
 
-    topics = discover_topics()
+    topics = discover_topics(args.br)
     if not topics:
         sys.exit("No TOPIC constants found in ingestion/producers/produce_br*.py")
 

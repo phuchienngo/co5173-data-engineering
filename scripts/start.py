@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -22,13 +23,11 @@ def run(cmd):
 
 
 def popen(cmd, log_file):
-    log = log_file.open("w")
-    return subprocess.Popen(
-        [str(part) for part in cmd],
-        cwd=REPO_ROOT,
-        stdout=log,
-        stderr=subprocess.STDOUT,
-    )
+    with log_file.open("w") as log:
+        return subprocess.Popen(
+            [str(part) for part in cmd], cwd=REPO_ROOT,
+            stdout=log, stderr=subprocess.STDOUT,
+        )
 
 
 def container_health(name):
@@ -126,8 +125,9 @@ def start_stack():
     run(["docker", "compose", "--profile", "full", "--profile", "monitoring", "up", "-d", *services])
 
 
-def create_topics():
-    run(["python3", "scripts/topics.py", "--reset"])
+def create_topics(selected):
+    # Only the selected BRs' topics are reset, so other BRs keep their data.
+    run([sys.executable, "scripts/topics.py", "--reset", "--br", *selected])
 
 
 def fact_tables_in(ddl):
@@ -169,6 +169,12 @@ def create_clickhouse_tables(br, truncate=True):
         return
     for table in fact_tables_in(ddl):
         clickhouse_query(f"TRUNCATE TABLE IF EXISTS {table}")
+
+
+def prepare_data(br):
+    preparation = REPO_ROOT / "scripts" / f"prepare_br{br}.py"
+    if preparation.exists():
+        run([sys.executable, preparation])
 
 
 def job_path(br):
@@ -234,6 +240,9 @@ def spark_submit_cmd(br, spark_master, job_args=(), packages=SPARK_KAFKA_PACKAGE
         "docker",
         "exec",
         "-i",
+        "-e",
+        # A fresh checkpoint per run: topics and fact tables are reset every run.
+        f"BR{br}_CHECKPOINT_DIR=/opt/data/br{br}/checkpoints/demo-{uuid.uuid4().hex}",
         *passthrough_env(),
         "spark-local",
         "spark-submit",
@@ -300,7 +309,9 @@ def wait_for_spark_ready(name, proc, log_file, timeout=int(os.environ.get("SPARK
         if proc.poll() is not None:
             report_exited([(name, proc, log_file)], "Spark job")
             return False
-        if "ResolveWriteToStream" in tail_file(log_file, lines=80):
+        tail = tail_file(log_file, lines=80)
+        # Jobs print "BR<n>_STREAM_READY"; jobs without a checkpoint log ResolveWriteToStream.
+        if f"{name}_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
             print(f"{name} Spark job is ready.")
             return True
         time.sleep(1)
@@ -311,20 +322,14 @@ def wait_for_spark_ready(name, proc, log_file, timeout=int(os.environ.get("SPARK
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 3 4, 3,4, or all")
+    parser.add_argument("brs", nargs="*", help="BR numbers to run, e.g. 7, 3,7 or all")
     parser.add_argument("--events", type=int, help="Events to produce per BR; omit to send the full CSV once")
     parser.add_argument("--interval", type=float, default=0, help="Seconds between producer events")
     parser.add_argument("--loop-producers", action="store_true", help="Keep producers running forever")
     args = parser.parse_args()
+    if args.interval < 0 or (args.events is not None and args.events < 1):
+        parser.error("interval must be nonnegative and events must be positive")
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-    print("=== 1. Bringing up infra and monitoring ===")
-    build_image()
-    start_stack()
-    wait_healthy(["clickhouse", "kafka"])
-
-    print("\n=== 2. Creating Kafka topics ===")
-    create_topics()
 
     brs = discover_brs()
     if not brs:
@@ -338,11 +343,24 @@ def main():
         sys.exit(f"Unknown BR: {', '.join(unknown)} (available: {', '.join(brs)})")
 
     if not selected:
-        print("\nNo BR selected — infra is ready, stopping here.")
+        print("\nNo BR selected.")
         return
+
+    selected = list(dict.fromkeys(selected))
+    print("=== 1. Bringing up infra and monitoring ===")
+    build_image()
+    start_stack()
+    wait_healthy(["clickhouse", "kafka"])
+
+    print("\n=== Preparing selected BR datasets (scripts/prepare_br<n>.py) ===")
+    for n in selected:
+        prepare_data(n)
 
     batch_brs = [n for n in selected if job_mode(n) == "batch"]
     stream_brs = [n for n in selected if n not in batch_brs]
+    if stream_brs:
+        print("\n=== 2. Creating Kafka topics for the selected streaming BRs ===")
+        create_topics(stream_brs)
 
     print(f"\n=== 3. Creating ClickHouse tables for {', '.join('BR' + n for n in selected)} ===")
     for n in selected:

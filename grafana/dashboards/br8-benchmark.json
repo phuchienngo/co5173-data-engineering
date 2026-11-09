@@ -1,0 +1,1307 @@
+{
+  "uid": "br8-benchmark",
+  "title": "BR8 · Benchmark",
+  "description": "BR8 benchmark (docs/plan/br7/plan-benchmark.md): status, latest runs, Spark against ClickHouse, every cell, where the time goes, work done.",
+  "tags": [
+    "br8",
+    "benchmark"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "timezone": "utc",
+  "links": [
+    {
+      "title": "One run",
+      "type": "link",
+      "url": "/d/br8-benchmark-run",
+      "icon": "dashboard"
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Status",
+      "id": 1,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Runs",
+      "description": "Benchmark and manual runs in the time range (imports not counted).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Succeeded",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(status = 'succeeded') FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Failed",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(status = 'failed') FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Running now",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(status = 'running') FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "blue",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Correct results",
+      "description": "Same rows as prepare_br8.py: the run's result fingerprint equals the expected one for its input.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(correct = '✓ correct') FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 6,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Wrong results",
+      "description": "Must stay 0: a faster run with a different answer does not count.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(correct = '✗ WRONG') FROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at)",
+          "refId": "A"
+        }
+      ],
+      "id": 7,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "row",
+      "title": "Latest runs · click a run (What) to open it",
+      "id": 8,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Latest runs",
+      "description": "Newest first, manual runs included. Click the What cell to open the run with its time range.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT formatDateTime(started_at, '%m-%d %H:%i:%S') AS `Started (UTC)`, what AS `What`, input_name AS `Input`,\n       variant AS `Settings`, hardware AS `Hardware`, status AS `Status`, round(duration_s, 1) AS `Time (s)`,\n       correct AS `Correct?`, visits AS `Visits`, places AS `Places`, toString(run_id) AS run_id, toString(run_id) AS ref_id, toUnixTimestamp64Milli(started_at) - 5000 AS from_ms, toUnixTimestamp64Milli(ifNull(finished_at, now64(3))) + 5000 AS to_ms\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) ORDER BY started_at DESC LIMIT 25",
+          "refId": "A"
+        }
+      ],
+      "id": 9,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "run_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ref_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "from_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "to_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "succeeded": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correct?"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "✓ correct": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "✗ WRONG": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "not checked": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 3
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "What"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open this run",
+                    "url": "/d/br8-benchmark-run?var-run=${__data.fields.run_id}&var-ref=${__data.fields.ref_id}&from=${__data.fields.from_ms}&to=${__data.fields.to_ms}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "What"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 230
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Settings"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 290
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Started (UTC)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Spark against ClickHouse · median run time of the measured runs",
+      "id": 10,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "All destinations · 2.76 M check-ins",
+      "description": "Spark: Spark worker with 1/2/4 cores (blocks S1–S3). ClickHouse: 1/2/4 CPUs (blocks H1–H3). No bars yet: those blocks have not run.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(toString(toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))), ' cores / CPUs') AS size,\n       quantileExactIf(0.5)(duration_s, cell = 'I1-L1') AS `Spark baseline`,\n       quantileExactIf(0.5)(duration_s, cell = 'I1-L2') AS `Spark optimized`,\n       quantileExactIf(0.5)(duration_s, cell = 'I1-L3') AS `Spark 4 read slices`,\n       quantileExactIf(0.5)(duration_s, cell = 'I1-HL1') AS `ClickHouse`,\n       quantileExactIf(0.5)(duration_s, cell = 'I1-HL2') AS `ClickHouse all threads`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded' AND block IN ('S1','S2','S3','H1','H2','H3')\nGROUP BY size, toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0)) ORDER BY toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))",
+          "refId": "A"
+        }
+      ],
+      "id": 11,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "groupWidth": 0.8,
+        "barWidth": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Tokyo · 165 k check-ins",
+      "description": "Spark: Spark worker with 1/2/4 cores (blocks S1–S3). ClickHouse: 1/2/4 CPUs (blocks H1–H3). No bars yet: those blocks have not run.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(toString(toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))), ' cores / CPUs') AS size,\n       quantileExactIf(0.5)(duration_s, cell = 'I2-L1') AS `Spark baseline`,\n       quantileExactIf(0.5)(duration_s, cell = 'I2-L2') AS `Spark optimized`,\n       quantileExactIf(0.5)(duration_s, cell = 'I2-L3') AS `Spark 4 read slices`,\n       quantileExactIf(0.5)(duration_s, cell = 'I2-HL1') AS `ClickHouse`,\n       quantileExactIf(0.5)(duration_s, cell = 'I2-HL2') AS `ClickHouse all threads`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded' AND block IN ('S1','S2','S3','H1','H2','H3')\nGROUP BY size, toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0)) ORDER BY toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))",
+          "refId": "A"
+        }
+      ],
+      "id": 12,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "groupWidth": 0.8,
+        "barWidth": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Kuala Lumpur · 27.5 k check-ins",
+      "description": "Spark: Spark worker with 1/2/4 cores (blocks S1–S3). ClickHouse: 1/2/4 CPUs (blocks H1–H3). No bars yet: those blocks have not run.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(toString(toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))), ' cores / CPUs') AS size,\n       quantileExactIf(0.5)(duration_s, cell = 'I3-L1') AS `Spark baseline`,\n       quantileExactIf(0.5)(duration_s, cell = 'I3-L2') AS `Spark optimized`,\n       quantileExactIf(0.5)(duration_s, cell = 'I3-L3') AS `Spark 4 read slices`,\n       quantileExactIf(0.5)(duration_s, cell = 'I3-HL1') AS `ClickHouse`,\n       quantileExactIf(0.5)(duration_s, cell = 'I3-HL2') AS `ClickHouse all threads`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded' AND block IN ('S1','S2','S3','H1','H2','H3')\nGROUP BY size, toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0)) ORDER BY toUInt8(transform(block, ['S1','S2','S3','H1','H2','H3'], [1,2,4,1,2,4], 0))",
+          "refId": "A"
+        }
+      ],
+      "id": 13,
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 17
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "xTickLabelRotation": 0,
+        "showValue": "always",
+        "groupWidth": 0.8,
+        "barWidth": 0.9,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Every cell of the matrix",
+      "id": 14,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Cells",
+      "description": "Spread above 15% (orange) gets a third run. Correct? is ✗ if any run of the cell gave another answer.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT block AS `Block`, any(hardware) AS `Hardware`, cell AS `Cell`, any(input_name) AS `Input`,\n       any(variant) AS `Settings`, countIf(status = 'succeeded') AS `OK runs`, countIf(status = 'failed') AS `Failed`,\n       round(quantileExact(0.5)(duration_s), 1) AS `Median (s)`, round(min(duration_s), 1) AS `Fastest (s)`,\n       round(max(duration_s), 1) AS `Slowest (s)`,\n       round(100 * (max(duration_s) / nullIf(min(duration_s), 0) - 1)) AS `Spread (%)`,\n       multiIf(countIf(correct = '✗ WRONG') > 0, '✗ WRONG', countIf(correct = '✓ correct') > 0, '✓ correct', '')\n           AS `Correct?`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup'\nGROUP BY block, cell ORDER BY block, cell",
+          "refId": "A"
+        }
+      ],
+      "id": 15,
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correct?"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "✓ correct": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "✗ WRONG": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "not checked": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 3
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Settings"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 290
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spread (%)"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 15
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Where the time goes · median seconds per step",
+      "id": 16,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Steps per cell",
+      "description": "Start-up: Spark session and executors, or the ClickHouse job's Python start.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(block, ' ', cell) AS cell_name,\n       round(quantileExact(0.5)(outside_steps_s), 1) AS `Start-up (outside steps)`,\n       round(quantileExact(0.5)(step_durations['read']) / 1000, 1) AS `Read`,\n       round(quantileExact(0.5)(step_durations['clean']) / 1000, 1) AS `Clean`,\n       round(quantileExact(0.5)(step_durations['match']) / 1000, 1) AS `Match attractions`,\n       round(quantileExact(0.5)(step_durations['aggregate']) / 1000, 1) AS `Aggregate visits`,\n       round(quantileExact(0.5)(step_durations['write']) / 1000, 1) AS `Write`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded'\nGROUP BY block, cell ORDER BY block, cell",
+          "refId": "A"
+        }
+      ],
+      "id": 17,
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Work done · median per cell",
+      "id": 18,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Spark",
+      "description": "From Spark's own REST API at the end of each run.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(block, ' ', cell) AS `Cell`, any(variant) AS `Settings`,\n       round(quantileExact(0.5)(resources['spark.cpu_ms']) / 1000, 1) AS `CPU (s)`,\n       round(quantileExact(0.5)(resources['spark.gc_ms']) / 1000, 1) AS `GC (s)`,\n       toUInt32(quantileExact(0.5)(resources['spark.tasks'])) AS `Tasks`,\n       round(quantileExact(0.5)(resources['spark.shuffle_write_bytes']) / 1048576) AS `Shuffle (MB)`,\n       round(quantileExact(0.5)(resources['spark.spill_disk_bytes']) / 1048576) AS `Spill (MB)`,\n       round(quantileExact(0.5)(resources['spark.executor_peak_heap_bytes']) / 1048576) AS `Executor heap (MB)`,\n       round(quantileExact(0.5)(resources['spark.driver_peak_heap_bytes']) / 1048576) AS `Driver heap (MB)`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded' AND engine = 'spark'\nGROUP BY block, cell ORDER BY block, cell",
+          "refId": "A"
+        }
+      ],
+      "id": 19,
+      "gridPos": {
+        "h": 11,
+        "w": 14,
+        "x": 0,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Settings"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "ClickHouse",
+      "description": "system.query_log, queries tagged with the run id. For Spark cells: its reads from ClickHouse.",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT concat(block, ' ', cell) AS `Cell`,\n       round(quantileExact(0.5)(resources['clickhouse.query_ms']) / 1000, 2) AS `Query time (s)`,\n       round(quantileExact(0.5)(resources['clickhouse.cpu_ms']) / 1000, 2) AS `CPU (s)`,\n       toUInt32(max(resources['clickhouse.peak_threads'])) AS `Peak threads`,\n       round(quantileExact(0.5)(resources['clickhouse.peak_memory_bytes']) / 1048576) AS `Peak memory (MB)`,\n       toUInt64(quantileExact(0.5)(resources['clickhouse.read_rows'])) AS `Rows read`\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) AND block != '' AND repeat != 'warmup' AND status = 'succeeded'\nGROUP BY block, cell ORDER BY block, cell",
+          "refId": "A"
+        }
+      ],
+      "id": 20,
+      "gridPos": {
+        "h": 11,
+        "w": 10,
+        "x": 14,
+        "y": 53
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "All runs",
+      "id": 21,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Every run in the time range",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT formatDateTime(started_at, '%m-%d %H:%i:%S') AS `Started (UTC)`, what AS `What`, input_name AS `Input`,\n       variant AS `Settings`, hardware AS `Hardware`, status AS `Status`, round(duration_s, 1) AS `Time (s)`,\n       correct AS `Correct?`, rows_read AS `Rows read`, visits AS `Visits`, places AS `Places`,\n       spark_app_id AS `Spark app`, error AS `Error`, toString(run_id) AS run_id, toString(run_id) AS ref_id, toUnixTimestamp64Milli(started_at) - 5000 AS from_ms, toUnixTimestamp64Milli(ifNull(finished_at, now64(3))) + 5000 AS to_ms\nFROM br8.run_history WHERE run_type = 'run' AND $__timeFilter(started_at) ORDER BY started_at DESC LIMIT 1000",
+          "refId": "A"
+        }
+      ],
+      "id": 22,
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 65
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "run_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ref_id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "from_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "to_ms"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "succeeded": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correct?"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "✓ correct": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "✗ WRONG": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "not checked": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 3
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "What"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open this run",
+                    "url": "/d/br8-benchmark-run?var-run=${__data.fields.run_id}&var-ref=${__data.fields.ref_id}&from=${__data.fields.from_ms}&to=${__data.fields.to_ms}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "What"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 230
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Settings"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 290
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    }
+  ]
+}
