@@ -1,0 +1,891 @@
+{
+  "uid": "br7-benchmark-run",
+  "title": "BR7 · Benchmark run",
+  "description": "One BR7 run against another: pick both in the drop-downs (newest first), or click a run on the overview.",
+  "tags": [
+    "br7",
+    "benchmark"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "10s",
+  "timezone": "utc",
+  "links": [
+    {
+      "title": "Overview",
+      "type": "link",
+      "url": "/d/br7-benchmark",
+      "icon": "dashboard"
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "run",
+        "label": "Run",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT toString(run_id) AS __value, label AS __text FROM br7.run_history WHERE run_type = 'run' ORDER BY started_at DESC LIMIT 300",
+        "definition": "SELECT toString(run_id) AS __value, label AS __text FROM br7.run_history WHERE run_type = 'run' ORDER BY started_at DESC LIMIT 300",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {}
+      },
+      {
+        "name": "ref",
+        "label": "Compare with",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": "SELECT toString(run_id) AS __value, label AS __text FROM br7.run_history WHERE run_type = 'run' ORDER BY started_at DESC LIMIT 300",
+        "definition": "SELECT toString(run_id) AS __value, label AS __text FROM br7.run_history WHERE run_type = 'run' ORDER BY started_at DESC LIMIT 300",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "sort": 0,
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "This run",
+      "id": 1,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Status",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT status FROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}'))",
+          "refId": "A"
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "succeeded": {
+                  "color": "green",
+                  "index": 0
+                },
+                "failed": {
+                  "color": "red",
+                  "index": 1
+                },
+                "running": {
+                  "color": "blue",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Run time",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT duration_s FROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}'))",
+          "refId": "A"
+        }
+      ],
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Correct result?",
+      "description": "Same rows as prepare.py (the expected fingerprint of the input).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT if(correct = '', status, correct) FROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}'))",
+          "refId": "A"
+        }
+      ],
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "✓ correct": {
+                  "color": "green",
+                  "index": 0
+                },
+                "✗ WRONG": {
+                  "color": "red",
+                  "index": 1
+                },
+                "not checked": {
+                  "color": "orange",
+                  "index": 2
+                },
+                "running": {
+                  "color": "blue",
+                  "index": 3
+                },
+                "failed": {
+                  "color": "red",
+                  "index": 4
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Against the compared run",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT multiIf(a.run_id = r.run_id, 'same run · pick another in Compare with',\n               a.duration_s IS NULL OR r.duration_s IS NULL, '—',\n               a.duration_s <= r.duration_s, concat(toString(round(r.duration_s / a.duration_s, 1)), '× faster'),\n               concat(toString(round(a.duration_s / r.duration_s, 1)), '× slower'))\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r",
+          "refId": "A"
+        }
+      ],
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 12,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/"
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Compared run time",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT duration_s FROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}'))",
+          "refId": "A"
+        }
+      ],
+      "id": 6,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "type": "table",
+      "title": "The two runs",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT * FROM (\nSELECT 'This run' AS `Run`, what AS `What`, input_name AS `Input`, variant AS `Settings`, hardware AS `Hardware`,\n       status AS `Status`, round(duration_s, 1) AS `Time (s)`, correct AS `Correct?`, rows_read AS `Rows read`,\n       rows_used AS `Trips used`, baseline_cells AS `Baseline cells`, replay_events AS `Replay events`,\n       spark_app_id AS `Spark app`,\n       error AS `Error`\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}'))\nUNION ALL\nSELECT 'Compared run', what, input_name, variant, hardware, status, round(duration_s, 1), correct, rows_read,\n       rows_used, baseline_cells, replay_events, spark_app_id, error\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}'))) ORDER BY `Run` = 'Compared run'",
+          "refId": "A"
+        }
+      ],
+      "id": 7,
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "succeeded": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correct?"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "✓ correct": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "✗ WRONG": {
+                        "color": "red",
+                        "index": 1
+                      },
+                      "not checked": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "running": {
+                        "color": "blue",
+                        "index": 3
+                      },
+                      "failed": {
+                        "color": "red",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Settings"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 280
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "What"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Where the time goes",
+      "id": 8,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Seconds per step",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT step AS `Step`, round(a.step_durations[key] / 1000, 1) AS `This run`,\n       round(r.step_durations[key] / 1000, 1) AS `Compared run`\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r\nARRAY JOIN ['quality', 'clean', 'baseline', 'replay', 'write'] AS key,\n           ['Read + quality labels', 'Clean + duplicates', 'Baseline', 'Replay', 'Write'] AS step\nUNION ALL\nSELECT 'Start-up (outside steps)', round(a.outside_steps_s, 1), round(r.outside_steps_s, 1)\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r",
+          "refId": "A"
+        }
+      ],
+      "id": 9,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Settings that differ",
+      "description": "Empty: both runs used the same settings (pick another run in Compare with).",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT key AS `Setting`, a.settings[key] AS `This run`, r.settings[key] AS `Compared run`\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r\nARRAY JOIN arrayDistinct(arrayConcat(mapKeys(a.settings), mapKeys(r.settings))) AS key\nWHERE a.settings[key] != r.settings[key] AND NOT startsWith(key, 'effective.') AND key != 'launch.settings_from'\nORDER BY startsWith(key, 'cluster.'), key",
+          "refId": "A"
+        }
+      ],
+      "id": 10,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Work done",
+      "id": 11,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Figures",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT name AS `Figure`, round(a.resources[key] / div, 1) AS `This run`,\n       round(r.resources[key] / div, 1) AS `Compared run`\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r\nARRAY JOIN\n  ['spark.cpu_ms', 'spark.run_ms', 'spark.gc_ms', 'spark.tasks', 'spark.shuffle_write_bytes', 'spark.spill_disk_bytes',\n   'spark.executor_peak_heap_bytes', 'spark.driver_peak_heap_bytes', 'clickhouse.queries', 'clickhouse.query_ms',\n   'clickhouse.cpu_ms', 'clickhouse.peak_threads', 'clickhouse.peak_memory_bytes', 'clickhouse.read_rows'] AS key,\n  ['Spark CPU (s)', 'Spark task time (s)', 'Spark GC (s)', 'Spark tasks', 'Shuffle written (MB)', 'Spilled to disk (MB)',\n   'Executor peak heap (MB)', 'Driver peak heap (MB)', 'ClickHouse queries', 'ClickHouse query time (s)',\n   'ClickHouse CPU (s)', 'ClickHouse peak threads', 'ClickHouse peak memory (MB)', 'ClickHouse rows read'] AS name,\n  [1000, 1000, 1000, 1, 1048576, 1048576, 1048576, 1048576, 1, 1000, 1000, 1, 1048576, 1] AS div\nWHERE a.resources[key] != 0 OR r.resources[key] != 0",
+          "refId": "A"
+        }
+      ],
+      "id": 12,
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 22
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Rows the run excluded",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT reason AS `Reason`, a.rows_excluded[key] AS `This run`, r.rows_excluded[key] AS `Compared run`\nFROM (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${run}')) AS a CROSS JOIN (SELECT * FROM br7.run_history WHERE run_id = toUUIDOrZero('${ref}')) AS r\nARRAY JOIN ['missing_field', 'dropoff_outside_file_month', 'dropoff_not_after_pickup', 'trip_longer_than_6h',\n            'invalid_distance', 'nonpositive_amount', 'outside_tourist_zones', 'duplicate'] AS key,\n           ['Field missing', 'Drop-off outside the file month', 'Drop-off not after pick-up', 'Trip longer than 6 h',\n            'Invalid distance', 'Amount not positive', 'Not dropped off in a tourist zone', 'Duplicate trip'] AS reason",
+          "refId": "A"
+        }
+      ],
+      "id": 13,
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 22
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Result: arrivals in the tourist zones",
+      "id": 14,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "Replay month per zone",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT zone_name AS `Zone`, borough AS `Borough`, landmark AS `Landmark`, replay_events AS `Replay drop-offs`\nFROM br7.run_zone WHERE run_id = toUUIDOrZero('${run}') ORDER BY replay_events DESC",
+          "refId": "A"
+        }
+      ],
+      "id": 15,
+      "gridPos": {
+        "h": 10,
+        "w": 10,
+        "x": 0,
+        "y": 34
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Landmark"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Busiest usual hours (baseline, New York time)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT z.zone_name AS `Zone`,\n       concat(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][intDiv(b.hour_of_week, 24) + 1], ' ',\n              leftPad(toString(b.hour_of_week % 24), 2, '0'), ':00') AS `Hour`,\n       b.mean_arrivals AS `Usual drop-offs`, b.p90_arrivals AS `Warning level (p90)`, b.training_hours AS `Hours seen`\nFROM br7.run_baseline AS b\nLEFT JOIN (SELECT zone_id, zone_name FROM br7.run_zone WHERE run_id = toUUIDOrZero('${run}')) AS z\n    ON z.zone_id = b.zone_id\nWHERE b.run_id = toUUIDOrZero('${run}')\nORDER BY b.mean_arrivals DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "id": 16,
+      "gridPos": {
+        "h": 10,
+        "w": 14,
+        "x": 10,
+        "y": 34
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "CPU and memory during the run · open the run from the overview to get its time range",
+      "id": 17,
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU (cores in use)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "rate(container_cpu_usage_seconds_total{name=~\"spark-worker|spark-local|clickhouse\"}[15s])",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "range": true,
+          "instant": false,
+          "editorMode": "code"
+        }
+      ],
+      "id": 18,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory (working set)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "container_memory_working_set_bytes{name=~\"spark-worker|spark-local|clickhouse\"}",
+          "legendFormat": "{{name}}",
+          "refId": "A",
+          "range": true,
+          "instant": false,
+          "editorMode": "code"
+        }
+      ],
+      "id": 19,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}
