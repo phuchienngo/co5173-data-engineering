@@ -7,6 +7,8 @@ value its own query returns. Run from the host with the stack up:
 
     python tests/br5/check_dashboards.py [--from now-30d]   (default: each dashboard's time range)
     python tests/br5/check_dashboards.py --br 6               (BR6's dashboards, docs/plan/br6/plan-monitoring.md H7)
+    python tests/br5/check_dashboards.py --br 1                (BR1 dashboards; --br 2 for BR2)
+    GRAFANA_AUTH=user:password python tests/br5/check_dashboards.py   (default admin:admin)
 
 Exit code 1 when a query fails. Empty results are listed but don't fail:
 some panels are only filled after certain runs (for example a failed run).
@@ -15,14 +17,15 @@ some panels are only filled after certain runs (for example a failed run).
 import argparse
 import base64
 import json
+import os
 import re
 import sys
 import urllib.request
 
 GRAFANA = "http://localhost:3000"
-AUTH = "Basic " + base64.b64encode(b"admin:admin").decode()
+AUTH = "Basic " + base64.b64encode(os.environ.get("GRAFANA_AUTH", "admin:admin").encode()).decode()  # user:password
 DASHBOARDS = ["br5-run-performance", "br5-resource-use", "br5-data-result"]
-BR_DASHBOARDS = {"5": DASHBOARDS, "6": ["br6-run-performance", "br6-resource-use", "br6-data-result"]}
+BR_DASHBOARDS = {"1": ["br1-tour", "br1-finder"], "2": ["br2-pricing", "br2-advisor"], "5": DASHBOARDS, "6": ["br6-run-performance", "br6-resource-use", "br6-data-result"]}
 
 
 def call(path, body=None):
@@ -60,6 +63,8 @@ def interpolate(text, values):
         if name not in values:
             return match.group(0)
         vals = values[name]
+        if isinstance(vals, str):
+            return vals
         if fmt == "singlequote":
             return ",".join("'" + v.replace("'", "\\'") + "'" for v in vals)
         if fmt == "regex" or len(vals) > 1:
@@ -74,6 +79,8 @@ def variable_values(var, values, time_from):
     current = current if isinstance(current, list) else [current]
     if current != ["$__all"]:
         return [str(v) for v in current]
+    if var.get("allValue"):
+        return var["allValue"]  # a str: Grafana inserts a custom all value raw, unformatted
     if var["type"] == "custom":
         return [o["value"] for o in var["options"]]
     found, error = query({"datasource": var["datasource"], "editorType": "sql", "format": 1, "queryType": "table",

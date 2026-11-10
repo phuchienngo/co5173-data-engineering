@@ -125,3 +125,9 @@ logs/
 # Claude
 CLAUDE.local.md
 docs/result/br3/benchmark/logs/
+
+# Local pipeline data (AGENTS.md: never commit raw, lake, checkpoints or logs under data/)
+data/*/raw/
+data/*/lake/
+data/*/checkpoints/
+data/*/*.log

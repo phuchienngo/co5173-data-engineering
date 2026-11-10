@@ -190,6 +190,46 @@ The dashboard displays a fixed time range of **July 2026** (the replay month), w
 
 No tunnel is needed—the dashboard queries ClickHouse directly inside the `data-net` Docker network.
 
+#### Business queries: BR2 Pricing advisor
+
+The business queries run in Grafana: http://localhost:3000/d/br2-advisor (`grafana/dashboards/br2-pricing-advisor.json`, uid `br2-advisor`). The dashboard variables are the inputs. The panels query `pricing.v_demand_ratio`.
+
+**Inputs:**
+
+- Landmark (multi-select).
+- Data: Live replay (source `stream`) or History (source `batch`).
+- Days: all, weekdays or weekends.
+- Surge threshold (% of capacity: 60, 70, 80, 90, 100; default 80).
+- Price uplift (%: 5 to 30; default 15).
+- Time range (default 2025-07-01 to 2026-08-01: history plus the July 2026 replay).
+
+**Panels:**
+
+- Stats: Surge zone-hours, Share of hours in surge, Average demand ratio, and Extra fare revenue if uplift applied (assumes demand does not drop after the price rise).
+- "Price suggestion per landmark (latest hour in range)", with the chosen threshold and uplift.
+- "Demand ratio by hour of day": landmark by hour, green below 60, yellow from 60 to 80, red from 80.
+- "Best hours to raise prices": landmark-hours that surge at least half the time, ranked by extra revenue.
+- "Bookings vs capacity".
+
+**Questions it answers:**
+
+- How many zone-hours surge at 80% of capacity, and what does a 15% uplift add?
+- Which landmarks and hours should raise prices at weekends?
+- Is the live replay surging more than the history?
+
+**Measured** (2026-11-08, with the BR2 replay at 2026-07-11, so counts change per run):
+
+- Defaults (80%, +15%, all days, both sources): 30,541 surge zone-hours, 22.5% of hours, about $12.1M extra fare revenue, average ratio 61.7%.
+- Threshold 60%, +25%, weekends, history only: 20,775 surge zone-hours, 53.6% of hours, about $10.3M.
+- Both surge counts equal a direct `countIf` in ClickHouse.
+- "Best hours to raise prices" returns 2 rows at 80% (Statue of Liberty ferry, 01:00 and 02:00) and 30 rows at 60% (top: Times Square & Broadway at 13:00, surging 83.7% of the time).
+
+**Query time:** median 14 ms, max 48 ms, at most 135,543 rows read.
+
+**Fixes made while building it:** the monitoring dashboard `br2-pricing` pointed at datasource uid `clickhouse-pricing`, which is not provisioned, so its ClickHouse panels failed. It now uses `clickhouse`, and its landmark filter is quoted (`${landmark:singlequote}`) because names contain `&` and `/`. The dashboard is pinned to the July 2026 replay month, so its 4 Spark Prometheus panels are empty until you switch the time picker to "Last 1 hour" while the stream runs. Also, `scripts/start.py` now looks for `ResolveWriteToStream` anywhere in the Spark log, not only in its last 80 lines. BR2 logs at INFO level and pushed the line out of that window, so the producers never started.
+
+**Check:** `python3 tests/br5/check_dashboards.py --br 2` runs each panel query through Grafana's API with the default inputs. Result on 2026-11-08: 16 queries, 0 failed. The 4 Prometheus panels are empty in the check, because the checker uses the dashboard time range, not the panel's last-hour override.
+
 ### Tuning Knobs
 
 | Setting | Read by | Default | Effect |

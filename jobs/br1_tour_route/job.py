@@ -1,4 +1,7 @@
-"""BR1 tour route: landmark distance matrix, streaming tour solver, and a naive-vs-optimized benchmark."""
+"""BR1 tour route: landmark distance matrix, streaming tour solver, and a naive-vs-optimized benchmark.
+
+--bench-only: no fact-table truncation, no stream; run warm-up and benchmark, log to tour.job_run, then exit.
+"""
 
 import argparse
 import json
@@ -13,8 +16,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from functools import partial
 
-FARE_FLAG_VND = 11000
-FARE_PER_KM_VND = 15000  # ponytail: flat tariff, swap for per-city tariff table when needed
+FARE_FLAG_VND = 11_000
+FARE_PER_KM_VND = 15_000 
 EARTH_KM = 6371.0088
 NAIVE_CONF = {
     "spark.sql.adaptive.enabled": "false",
@@ -116,6 +119,7 @@ def parse_args():
     p.add_argument("--landmarks", default=env("BR1_LANDMARKS", "/opt/data/br1/landmarks.csv"))
     p.add_argument("--lake", default=env("BR1_LAKE", "/opt/data/br1/lake"))
     p.add_argument("--max-landmarks-per-city", type=int, default=int(env("BR1_MAX_LANDMARKS_PER_CITY", "0")))
+    p.add_argument("--bench-only", action="store_true")
     p.add_argument("--self-test", action="store_true")
     return p.parse_args()
 
@@ -229,9 +233,10 @@ def main():
     cities = sorted(coords)
 
     # Stream prep: clear fact tables and the stream checkpoint before the query starts.
-    for table in ("tour.fact_tour", "tour.fact_tour_leg"):
-        ch_post(ch, f"TRUNCATE TABLE {table}")
-    shutil.rmtree(f"{lake}/checkpoints/tour_requests", ignore_errors=True)
+    if not args.bench_only:
+        for table in ("tour.fact_tour", "tour.fact_tour_leg"):
+            ch_post(ch, f"TRUNCATE TABLE {table}")
+        shutil.rmtree(f"{lake}/checkpoints/tour_requests", ignore_errors=True)
 
     def solve_batches(batches):
         for pdf in batches:
@@ -257,14 +262,15 @@ def main():
                 yield pd.DataFrame(rows)
 
     # Streaming solver: requests from Kafka -> optimized solve -> fact_tour / fact_tour_leg (append only).
-    raw = (spark.readStream.format("kafka")
-           .option("kafka.bootstrap.servers", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"))
-           .option("subscribe", "tour.requests")
-           .option("startingOffsets", "earliest")
-           .option("maxOffsetsPerTrigger", os.environ.get("BR1_MAX_OFFSETS", "2000"))
-           .load())
-    requests_stream = (raw.select(F.from_json(F.col("value").cast("string"), REQUEST_DDL).alias("d"))
-                       .select("d.request_id", "d.city", "d.stop_ids"))
+    if not args.bench_only:
+        raw = (spark.readStream.format("kafka")
+               .option("kafka.bootstrap.servers", os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"))
+               .option("subscribe", "tour.requests")
+               .option("startingOffsets", "earliest")
+               .option("maxOffsetsPerTrigger", os.environ.get("BR1_MAX_OFFSETS", "2000"))
+               .load())
+        requests_stream = (raw.select(F.from_json(F.col("value").cast("string"), REQUEST_DDL).alias("d"))
+                           .select("d.request_id", "d.city", "d.stop_ids"))
 
     def write_batch(batch_df, batch_id):
         valid = batch_df.where(F.col("request_id").isNotNull() & F.col("city").isNotNull()
@@ -278,11 +284,12 @@ def main():
         fact.unpersist()
         print(f"stream batch {batch_id}: {n} requests", flush=True)
 
-    query = (requests_stream.writeStream.queryName("tour_requests").foreachBatch(write_batch)
-             .option("checkpointLocation", f"{lake}/checkpoints/tour_requests")
-             .trigger(processingTime="5 seconds")
-             .start())
-    print("stream started", flush=True)
+    if not args.bench_only:
+        query = (requests_stream.writeStream.queryName("tour_requests").foreachBatch(write_batch)
+                 .option("checkpointLocation", f"{lake}/checkpoints/tour_requests")
+                 .trigger(processingTime="5 seconds")
+                 .start())
+        print("stream started", flush=True)
 
     with timed("dist_matrix", "optimized", timings) as dist_rec:
         a = lm.select("city", F.col("osm_id").alias("from_id"), F.col("lat").alias("lat1"), F.col("lon").alias("lon1"))
@@ -374,6 +381,9 @@ def main():
     for r in timings:
         print(f"{r['run_mode']:<10} {r['stage']:<16} {r['seconds']:>10.3f} {r['rows']:>12}")
 
+    if args.bench_only:
+        spark.stop()
+        return
     query.awaitTermination()
 
 

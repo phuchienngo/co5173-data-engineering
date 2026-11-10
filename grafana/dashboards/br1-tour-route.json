@@ -656,6 +656,204 @@
       ],
       "title": "Executor memory used",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 12,
+      "panels": [],
+      "title": "Benchmark history: naive vs optimized (make br1-bench)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Median naive/optimized total-time ratio over the last 3 benchmark runs.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 31
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT round(median(s), 1) FROM (SELECT maxIf(seconds, run_mode = 'naive' AND stage = 'total') / nullIf(maxIf(seconds, run_mode = 'optimized' AND stage = 'total'), 0) AS s FROM tour.job_run GROUP BY ran_at HAVING s > 0 ORDER BY ran_at DESC LIMIT 3)",
+          "refId": "A"
+        }
+      ],
+      "title": "Median speedup, last 3 runs",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Total pipeline seconds of the naive and optimized variants for each of the latest 10 benchmark runs.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 31
+      },
+      "id": 14,
+      "options": {
+        "orientation": "auto",
+        "xField": "run",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "barWidth": 0.8,
+        "groupWidth": 0.7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT formatDateTime(ran_at, '%m-%d %H:%i') AS run, maxIf(seconds, run_mode = 'naive' AND stage = 'total') AS naive, maxIf(seconds, run_mode = 'optimized' AND stage = 'total') AS optimized FROM tour.job_run GROUP BY ran_at HAVING naive > 0 ORDER BY ran_at DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Total seconds per run",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Per-stage timings, speedup and optimized-only stage times for the latest 10 benchmark runs.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 15,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT ran_at, any(requests) AS requests, maxIf(seconds, run_mode = 'naive' AND stage = 'requests') AS naive_requests_s, maxIf(seconds, run_mode = 'naive' AND stage = 'solve') AS naive_solve_s, maxIf(seconds, run_mode = 'naive' AND stage = 'total') AS naive_total_s, maxIf(seconds, run_mode = 'optimized' AND stage = 'requests') AS opt_requests_s, maxIf(seconds, run_mode = 'optimized' AND stage = 'solve') AS opt_solve_s, maxIf(seconds, run_mode = 'optimized' AND stage = 'total') AS opt_total_s, round(naive_total_s / nullIf(opt_total_s, 0), 1) AS speedup, maxIf(seconds, stage = 'dist_matrix') AS dist_matrix_s, maxIf(seconds, stage = 'sink_clickhouse') AS sink_clickhouse_s FROM tour.job_run GROUP BY ran_at HAVING naive_total_s > 0 ORDER BY ran_at DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Benchmark runs (latest 10)",
+      "type": "table"
     }
   ],
   "refresh": "10s",

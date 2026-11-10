@@ -1,0 +1,941 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "title": "BR2 pipeline monitoring",
+      "type": "link",
+      "url": "/d/br2-pricing",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 9,
+      "options": {
+        "mode": "markdown",
+        "content": "**What this answers:** when demand at each NYC landmark goes above capacity, what price to set, and how much extra fare revenue a price rise would bring (assuming demand holds). Change the threshold and uplift above to test a pricing rule.\n\n**Try:** [Default rule: surge at 80%, raise 15%](/d/br2-advisor) · [Weekends, history only, surge at 60%, raise 25%](/d/br2-advisor?var-threshold=60&var-uplift=25&var-day_type=weekend&var-source=batch) · [Live replay, July 2026 only](/d/br2-advisor?var-source=stream&from=1782864000000&to=1785542400000) · [Pipeline health and benchmark](/d/br2-pricing)"
+      },
+      "title": "Ask the data",
+      "transparent": false,
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "How many landmark-hours would be in surge at the chosen threshold?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 4
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT countIf(demand_ratio_pct > ${threshold}) FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "title": "Surge zone-hours",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "What share of all landmark-hours would be priced as surge at the chosen threshold?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 4
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT round(100 * countIf(demand_ratio_pct > ${threshold}) / greatest(countIf(demand_ratio_pct IS NOT NULL), 1), 1) FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "title": "Share of hours in surge",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "How much extra fare revenue would the uplift bring in surge hours? Assumes demand does not drop after the price rise (no price elasticity), so it is an upper bound.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 4
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT round(sumIf(active_bookings * avg_fare * ${uplift} / 100, demand_ratio_pct > ${threshold})) FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "title": "Extra fare revenue if uplift applied",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "How busy are the selected landmarks on average relative to capacity?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 4
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT round(avg(demand_ratio_pct), 1) FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "title": "Average demand ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Which landmarks should raise their price in the latest hour of the range, and to what fare?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fare_usd"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "suggested_usd"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ratio_pct"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 60
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "/^Raise/",
+                      "result": {
+                        "color": "red",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "Hold": {
+                        "color": "green",
+                        "index": 1,
+                        "text": "Hold"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT landmark,\n       max(window_start) AS latest_hour,\n       argMax(active_bookings, window_start) AS bookings,\n       argMax(capacity, window_start) AS cap,\n       round(argMax(demand_ratio_pct, window_start), 1) AS ratio_pct,\n       round(argMax(avg_fare, window_start), 2) AS fare_usd,\n       round(if(ratio_pct > ${threshold}, fare_usd * (1 + ${uplift} / 100), fare_usd), 2) AS suggested_usd,\n       if(ratio_pct > ${threshold}, 'Raise ${uplift}%', 'Hold') AS action\nFROM pricing.v_demand_ratio\nWHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})\nGROUP BY landmark\nORDER BY ratio_pct DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Price suggestion per landmark (latest hour in range)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "At which hours of the day is each landmark busiest relative to capacity?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "color-background"
+            },
+            "inspect": false,
+            "width": 45
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "landmark"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 6,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT landmark, round(avgIf(demand_ratio_pct, hour_of_day = 0)) AS h00, round(avgIf(demand_ratio_pct, hour_of_day = 1)) AS h01, round(avgIf(demand_ratio_pct, hour_of_day = 2)) AS h02, round(avgIf(demand_ratio_pct, hour_of_day = 3)) AS h03, round(avgIf(demand_ratio_pct, hour_of_day = 4)) AS h04, round(avgIf(demand_ratio_pct, hour_of_day = 5)) AS h05, round(avgIf(demand_ratio_pct, hour_of_day = 6)) AS h06, round(avgIf(demand_ratio_pct, hour_of_day = 7)) AS h07, round(avgIf(demand_ratio_pct, hour_of_day = 8)) AS h08, round(avgIf(demand_ratio_pct, hour_of_day = 9)) AS h09, round(avgIf(demand_ratio_pct, hour_of_day = 10)) AS h10, round(avgIf(demand_ratio_pct, hour_of_day = 11)) AS h11, round(avgIf(demand_ratio_pct, hour_of_day = 12)) AS h12, round(avgIf(demand_ratio_pct, hour_of_day = 13)) AS h13, round(avgIf(demand_ratio_pct, hour_of_day = 14)) AS h14, round(avgIf(demand_ratio_pct, hour_of_day = 15)) AS h15, round(avgIf(demand_ratio_pct, hour_of_day = 16)) AS h16, round(avgIf(demand_ratio_pct, hour_of_day = 17)) AS h17, round(avgIf(demand_ratio_pct, hour_of_day = 18)) AS h18, round(avgIf(demand_ratio_pct, hour_of_day = 19)) AS h19, round(avgIf(demand_ratio_pct, hour_of_day = 20)) AS h20, round(avgIf(demand_ratio_pct, hour_of_day = 21)) AS h21, round(avgIf(demand_ratio_pct, hour_of_day = 22)) AS h22, round(avgIf(demand_ratio_pct, hour_of_day = 23)) AS h23 FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote}) GROUP BY landmark ORDER BY landmark",
+          "refId": "A"
+        }
+      ],
+      "title": "Demand ratio by hour of day (%, average)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Which landmark and hour combinations should raise prices, and how much extra revenue would each bring?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*_usd"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*_pct"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 7,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT landmark,\n       hour_of_day AS hour,\n       count() AS hours_seen,\n       round(100 * countIf(demand_ratio_pct > ${threshold}) / count(), 1) AS surge_share_pct,\n       round(avg(demand_ratio_pct), 1) AS avg_ratio_pct,\n       round(avg(avg_fare), 2) AS fare_usd,\n       round(avg(avg_fare) * (1 + ${uplift} / 100), 2) AS raised_fare_usd,\n       round(sumIf(active_bookings * avg_fare * ${uplift} / 100, demand_ratio_pct > ${threshold})) AS extra_revenue_usd\nFROM pricing.v_demand_ratio\nWHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote})\nGROUP BY landmark, hour_of_day\nHAVING surge_share_pct >= 50\nORDER BY extra_revenue_usd DESC\nLIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "title": "Best hours to raise prices",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Does booking demand approach or exceed capacity over time for the selected landmarks?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT window_start AS time, sum(active_bookings) AS bookings, sum(capacity) AS capacity FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) AND source IN (${source:singlequote}) AND (${day_type:singlequote} = 'all' OR if(toDayOfWeek(window_start) >= 6, 'weekend', 'weekday') = ${day_type:singlequote}) GROUP BY time ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Bookings vs capacity",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 38,
+  "tags": [
+    "co5173",
+    "br2"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "definition": "SELECT DISTINCT landmark FROM pricing.v_demand_ratio ORDER BY landmark",
+        "description": null,
+        "error": null,
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Landmark",
+        "multi": true,
+        "name": "landmark",
+        "options": [],
+        "query": "SELECT DISTINCT landmark FROM pricing.v_demand_ratio ORDER BY landmark",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Data",
+        "multi": true,
+        "name": "source",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "Live replay",
+            "value": "stream"
+          },
+          {
+            "selected": false,
+            "text": "History",
+            "value": "batch"
+          }
+        ],
+        "query": "Live replay : stream, History : batch",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "All days",
+          "value": "all"
+        },
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Days",
+        "multi": false,
+        "name": "day_type",
+        "options": [
+          {
+            "selected": true,
+            "text": "All days",
+            "value": "all"
+          },
+          {
+            "selected": false,
+            "text": "Weekdays",
+            "value": "weekday"
+          },
+          {
+            "selected": false,
+            "text": "Weekends",
+            "value": "weekend"
+          }
+        ],
+        "query": "All days : all, Weekdays : weekday, Weekends : weekend",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {
+          "text": "80",
+          "value": "80"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Surge threshold (% of capacity)",
+        "multi": false,
+        "name": "threshold",
+        "options": [
+          {
+            "selected": false,
+            "text": "60",
+            "value": "60"
+          },
+          {
+            "selected": false,
+            "text": "70",
+            "value": "70"
+          },
+          {
+            "selected": true,
+            "text": "80",
+            "value": "80"
+          },
+          {
+            "selected": false,
+            "text": "90",
+            "value": "90"
+          },
+          {
+            "selected": false,
+            "text": "100",
+            "value": "100"
+          }
+        ],
+        "query": "60,70,80,90,100",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {
+          "text": "15",
+          "value": "15"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Price uplift (%)",
+        "multi": false,
+        "name": "uplift",
+        "options": [
+          {
+            "selected": false,
+            "text": "5",
+            "value": "5"
+          },
+          {
+            "selected": false,
+            "text": "10",
+            "value": "10"
+          },
+          {
+            "selected": true,
+            "text": "15",
+            "value": "15"
+          },
+          {
+            "selected": false,
+            "text": "20",
+            "value": "20"
+          },
+          {
+            "selected": false,
+            "text": "25",
+            "value": "25"
+          },
+          {
+            "selected": false,
+            "text": "30",
+            "value": "30"
+          }
+        ],
+        "query": "5,10,15,20,25,30",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "2025-07-01T00:00:00.000Z",
+    "to": "2026-08-01T00:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "BR2 Pricing advisor",
+  "uid": "br2-advisor",
+  "version": 1,
+  "weekStart": ""
+}
