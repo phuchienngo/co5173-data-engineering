@@ -1,4 +1,4 @@
-.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br1-bench br2-bench br2-bench-stream br3-bench br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test br6-check-dashboards br6-bench br6-bench-screens logs ps down clean
+.PHONY: help demo demo-br br5-up br5-fresh br5-import br5-run br5-status br5-test br5-check-dashboards br1-bench br2-bench br2-bench-stream br2-count br3-bench br5-bench br5-bench-screens br6-up br6-fresh br6-import br6-run br6-status br6-test br6-check-dashboards br6-bench br6-bench-screens logs ps down clean
 
 BR ?= all
 PRODUCER_INTERVAL ?= 0
@@ -32,6 +32,7 @@ help:
 	@echo "  make br2-bench-stream REPS=3  BR2 stream benchmark: Spark Structured Streaming vs ClickHouse Kafka engine + materialized view"
 	@echo "  make br3-bench REPS=3       BR3 and BR4 benchmark: Spark vs ClickHouse MV (about 40 min)"
 	@echo "  make br1-bench REPS=3       BR1 benchmark: naive vs optimized x REPS (default 3) + Tour finder query latency"
+	@echo "  make br2-count              BR2 row accounting: raw -> lake -> hourly input, rows dropped per filter (read-only)"
 	@echo "  make br2-bench REPS=3       BR2 benchmark: capacity baseline from raw files vs partitioned lake x REPS (default 3) + Pricing advisor query latency"
 	@echo "  make br5-bench BLOCK=S2    BR5 benchmark: run a block (S1, S2, S3); options: CELLS=I3-L3 ARGS=--clickhouse"
 	@echo "  make br5-bench-screens BLOCK=S2  BR5 benchmark: screenshots of a block (needs Playwright)"
@@ -90,6 +91,9 @@ br2-bench:
 
 br2-bench-stream:
 	python3 tests/br2/benchmark_stream.py $(REPS)
+
+br2-count:
+	python3 tests/br2/count_rows.py
 
 br5-bench:
 	python3 tests/br5/benchmark.py block $(BLOCK)$(BR5_CELLS_ARGS) $(ARGS)
