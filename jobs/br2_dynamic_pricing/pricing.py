@@ -18,7 +18,7 @@ CHECKPOINT_DIR = f"{DATA_DIR}/checkpoints/demand_ratio"
 
 # Kafka
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
-TOPIC = "tlc.trips"
+TOPIC = os.getenv("BR2_TOPIC", "tlc.trips")
 
 # ClickHouse
 CH_URL = os.getenv("CLICKHOUSE_URL", "http://clickhouse:8123")
@@ -149,7 +149,8 @@ def write_ratios(hourly, capacity, source):
     rows = (with_slot_keys(hourly, "window_start")
             .join(F.broadcast(landmarks_df(hourly.sparkSession)), "location_id")
             .join(F.broadcast(capacity), ["location_id", "day_type", "hour_of_day"], "left"))
-    rows = pricing_columns(rows).select(*CH_COLUMNS, F.lit(source).alias("source"))
+    extra = ["event_time"] if "event_time" in hourly.columns else []  # stream only: newest Kafka timestamp in the window
+    rows = pricing_columns(rows).select(*CH_COLUMNS, *extra, F.lit(source).alias("source"))
     ch_insert(rows.toJSON().toLocalIterator())
 
 

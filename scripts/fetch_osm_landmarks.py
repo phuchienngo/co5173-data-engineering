@@ -102,15 +102,25 @@ def main():
     out_path = REPO_ROOT / args.out
     seen = set()
     rows = []
+    fetched = 0
+    dropped = {"duplicate": 0, "no_name": 0, "no_coords": 0}
     for city in CITIES:
         elements = fetch(build_query(CITIES[city]))
         kept = 0
+        fetched += len(elements)
         for element in elements:
             key = (element["type"], element["id"])
             tags = element.get("tags", {})
             name = clean_name(tags.get("name", ""))
             lat, lon = coords(element)
-            if key in seen or not name or lat is None or lon is None:
+            if key in seen:
+                dropped["duplicate"] += 1
+                continue
+            if not name:
+                dropped["no_name"] += 1
+                continue
+            if lat is None or lon is None:
+                dropped["no_coords"] += 1
                 continue
             seen.add(key)
             category = category_of(tags)
@@ -133,6 +143,7 @@ def main():
         writer.writerow(COLUMNS)
         for row in rows:
             writer.writerow([row[column] for column in COLUMNS])
+    print(f"fetched {fetched}, dropped {dropped}, written {len(rows)}")
     print(f"total: {len(rows)} rows -> {out_path}")
 
 

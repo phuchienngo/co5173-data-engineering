@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BR1 &amp; BR2: ghi chú báo cáo và trình bày</title>
+<style>
+:root{--bg:#fcfcfb;--fg:#0b0b0b;--fg2:#52514e;--grid:#e7e6e2;--base:#eb6834;--opt:#2a78d6;--card:#f4f3ef;--line:#dcdad3}
+@media (prefers-color-scheme:dark){:root{--bg:#1a1a19;--fg:#f0efec;--fg2:#c3c2b7;--grid:#2e2e2c;--base:#d95926;--opt:#3987e5;--card:#232322;--line:#3a3a37}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.8rem;margin:0 0 4px}
+h2{font-size:1.35rem;margin:40px 0 8px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-size:1.05rem;margin:20px 0 6px}
+p,li{max-width:80ch}
+.sub,figcaption,.note{color:var(--fg2);font-size:.9rem}
+a{color:var(--opt)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:20px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:1.9rem;line-height:1.2}
+.kpi span{color:var(--fg2);font-size:.9rem}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--fg2);font-weight:600}
+pre{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px;overflow-x:auto;font-size:.85rem;line-height:1.45}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem;margin:8px 0 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+svg{width:100%;height:auto;display:block;max-width:720px}
+svg text{fill:var(--fg);font:12px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+svg .ax{fill:var(--fg2)}
+svg .gl{stroke:var(--grid);stroke-width:1}
+.b{fill:var(--base)}.o{fill:var(--opt)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card h3{margin-top:0}
+.card .ins{border-left:3px solid var(--opt);padding-left:10px;margin:8px 0}
+figure{margin:10px 0 0}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:4px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.txt th,.txt td{text-align:left;white-space:normal;vertical-align:top}
+nav ul{columns:2 280px;margin:8px 0}
+dt{font-weight:600;margin-top:12px}
+dd{margin:4px 0 0 0;max-width:80ch}
+ul.ck{list-style:none;padding-left:4px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>BR1 &amp; BR2: ghi chú báo cáo và trình bày</h1>
+<p class="sub">2026-11-10. CO5173 Data Engineering, chủ đề Big Data Processing Optimization. Bản HTML của docs/result/br1-br2-report-notes.md và docs/result/br2/result-stream-benchmark.md.</p>
+</header>
+
+<section class="kpis" aria-label="Số liệu chính">
+<div class="kpi"><b>17.0x</b><span>BR1 naive → optimized (52.066 s → 3.064 s)</span></div>
+<div class="kpi"><b>1.90x</b><span>BR2 batch raw → lake (14.08 s → 7.42 s)</span></div>
+<div class="kpi"><b>8.7x</b><span>BR2 stream: ClickHouse MV vs Spark backlog (96.99 s → 11.1 s)</span></div>
+<div class="kpi"><b>684/684</b><span>window giống hệt (độ đúng stream)</span></div>
+</section>
+
+<nav aria-label="Mục lục">
+<h2 id="muc-luc" style="margin-top:0;border-top:0;padding-top:0">Mục lục</h2>
+<ul>
+<li><a href="#bang-1">Bảng 1: hai ô cần điền</a></li>
+<li><a href="#giai-thich">Giải thích thuật ngữ, baseline và nguồn dữ liệu</a>
+<ul>
+<li><a href="#gt-thuat-ngu">Thuật ngữ trong bảng benchmark BR1</a></li>
+<li><a href="#gt-naive-vs-optimized">Naive vs Optimized: vì sao có hai bản</a></li>
+<li><a href="#gt-baseline">Baseline là gì trong từng phép so sánh</a></li>
+<li><a href="#gt-nguon-du-lieu">Nguồn dữ liệu và câu hỏi "stream có real-time không"</a></li>
+</ul></li>
+<li><a href="#br1">BR1 Tour route: nội dung báo cáo</a>
+<ul>
+<li><a href="#br1-muc-tieu">Mục tiêu và người dùng</a></li>
+<li><a href="#br1-pipeline">Pipeline</a></li>
+<li><a href="#br1-giai-phap">Giải pháp chính vs giải pháp so sánh</a></li>
+<li><a href="#br1-cau-hinh">Cấu hình đo</a></li>
+<li><a href="#br1-ket-qua">Kết quả</a></li>
+<li><a href="#br1-dung-dan">Tính đúng đắn</a></li>
+<li><a href="#br1-khai-thac">Khai thác dữ liệu</a></li>
+<li><a href="#br1-nhan-xet">Nhận xét</a></li>
+<li><a href="#br1-han-che">Hạn chế</a></li>
+</ul></li>
+<li><a href="#br2">BR2 Dynamic pricing: nội dung báo cáo</a>
+<ul>
+<li><a href="#br2-muc-tieu">Mục tiêu và người dùng</a></li>
+<li><a href="#br2-pipeline">Pipeline</a></li>
+<li><a href="#br2-giai-phap">Giải pháp chính vs giải pháp so sánh</a></li>
+<li><a href="#br2-cau-hinh">Cấu hình đo</a></li>
+<li><a href="#br2-ket-qua">Kết quả</a></li>
+<li><a href="#br2-dung-dan">Tính đúng đắn</a></li>
+<li><a href="#br2-khai-thac">Khai thác dữ liệu</a></li>
+<li><a href="#br2-nhan-xet">Nhận xét</a></li>
+<li><a href="#br2-han-che">Hạn chế</a></li>
+</ul></li>
+<li><a href="#br2-stream">BR2 so sánh stream: Spark Structured Streaming vs ClickHouse Kafka engine + MV</a>
+<ul>
+<li><a href="#st-so-sanh">So sánh gì</a></li>
+<li><a href="#st-du-lieu">Dữ liệu và cấu hình</a></li>
+<li><a href="#st-tieu-chi">Tiêu chí</a></li>
+<li><a href="#st-chay-lai">Chạy lại</a></li>
+<li><a href="#st-ket-qua">Kết quả</a></li>
+<li><a href="#st-nhan-xet">Nhận xét</a></li>
+<li><a href="#st-nhat-ky">Nhật ký</a></li>
+<li><a href="#st-han-che">Hạn chế</a></li>
+</ul></li>
+<li><a href="#trinh-bay">Trình bày với giảng viên (10 phút)</a>
+<ul>
+<li><a href="#tb-slide">Slide</a></li>
+<li><a href="#tb-demo">Kịch bản demo</a></li>
+<li><a href="#tb-so-lieu">Số liệu cần nói ra miệng</a></li>
+<li><a href="#tb-qa">Câu hỏi giảng viên có thể hỏi</a></li>
+</ul></li>
+<li><a href="#checklist">Checklist trước khi nộp</a></li>
+</ul>
+</nav>
+
+<p class="note">Nguồn số liệu: <code>docs/result/br1/result-benchmark.md</code>, <code>docs/result/br2/result-benchmark.md</code>, <code>docs/result/br1-br2-benchmark-report.html</code>. Số nào chưa đo ghi "(chưa đo)".</p>
+
+<h2 id="bang-1">Bảng 1: hai ô cần điền</h2>
+<div class="wrap txt"><table>
+<tr><th>BR</th><th>Cột</th><th>Nội dung dán vào ô</th></tr>
+<tr><td>BR1</td><td>Chế độ xử lý</td><td><code>Batch + Stream</code></td></tr>
+<tr><td>BR2</td><td>Giải pháp so sánh</td><td><code>Batch: Spark đọc parquet thô vs data lake phân vùng; Stream: Spark Structured Streaming vs ClickHouse Kafka engine + Materialized View</code></td></tr>
+</table></div>
+<ul>
+<li>BR1 là Batch + Stream: batch warm-up dựng <code>dim_landmark</code> và <code>dist_matrix</code> (1,954 landmark, 1,746,644 cặp); benchmark naive vs optimized chạy ở dạng batch. Request tour đi qua Kafka → Spark Structured Streaming (query <code>tour_requests</code>, trigger 5 s) → ClickHouse <code>tour.fact_tour</code>.</li>
+<li>BR2 có hai so sánh. Batch: capacity baseline đọc parquet thô vs lake phân vùng (đã đo, 1.90x). Stream: cùng metric với BR3/BR4 (<code>tests/br2/benchmark_stream.py</code>), đã đo: ClickHouse MV nhanh hơn 8.7x backlog, Spark giữ vai trò batch baseline + watermark.</li>
+<li>BR2 chính là Stream: Kafka <code>tlc.trips</code> → window 1 h, watermark 2 h (query <code>demand_ratio</code>, trigger 10 s) → ClickHouse <code>pricing.demand_ratio_hourly</code>; kèm một baseline batch chạy một lần.</li>
+</ul>
+
+<h2 id="giai-thich">Giải thích thuật ngữ, baseline và nguồn dữ liệu</h2>
+
+<h3 id="gt-thuat-ngu">Thuật ngữ trong bảng benchmark BR1</h3>
+<ul>
+<li><b>Stage</b>: một bước của job được bấm giờ riêng bằng <code>time.perf_counter</code> (hàm <code>timed()</code> trong <code>jobs/br1_tour_route/job.py</code>), đơn vị giây, kèm số dòng. Kết quả ghi vào bảng <code>tour.job_run</code>, sau đó harness <code>tests/br1/benchmark.py</code> đọc lại.</li>
+<li><b>requests</b>: dựng 20,000 yêu cầu tour giả lập ngay trong Spark (<code>spark.range</code>, chọn thành phố xoay vòng, 4-8 điểm dừng chọn bằng hash trên landmark của thành phố), join với bảng landmark để lấy tọa độ và giá vé, rồi ghi parquet <code>data/br1/lake/tour_requests/mode=&lt;naive|optimized&gt;</code>. Naive dùng shuffle join, optimized dùng broadcast join. Số dòng bằng số request.</li>
+<li><b>solve</b>: giải lộ trình cho từng request bằng nearest-neighbour từ điểm đầu, sau đó 2-opt tới khi không còn cải thiện (<code>solve_order</code>); tính km, cước taxi (11,000 + 15,000 × km VND) và tiền vé; ghi <code>lake/fact_tour/mode=&lt;mode&gt;</code> rồi đếm lại. Thuật toán giống nhau ở hai bản, khác ở cách chạy: naive dùng Python row UDF (một lần gọi Python cho mỗi request, khoảng cách lấy từ shuffle join với <code>dist_matrix</code> 1.7 triệu cặp); optimized dùng <code>mapInPandas</code> (một lô nhiều request qua Arrow, tọa độ được broadcast, haversine vector hóa bằng numpy).</li>
+<li><b>total</b>: requests cộng solve. Đây không phải wall-clock: không gồm warm-up và không gồm thời gian khởi động spark-submit (wall-clock mỗi rep khoảng 85.8 s, trong đó total của optimized chỉ 3 s).</li>
+<li><b>Warm-up</b> (chỉ ở optimized, không tính vào total): landmarks (đọc CSV 1,954 điểm, 4.4 s), dist_matrix (1,746,644 cặp khoảng cách, 3.1 s), sink_clickhouse (ghi 1,748,598 dòng vào ClickHouse cho dashboard và bản đồ, 18.1 s). Đây là chi phí dựng data lake một lần, không phải chi phí xử lý request.</li>
+<li><b>Rep</b>: một lần chạy trọn job (naive rồi optimized, cùng input). Benchmark chạy 3 rep, báo median (min-max).</li>
+<li><b>Speedup</b>: cột Speedup = median naive / median optimized. Số headline 17.0x = 52.066 / 3.064. Nếu lấy median của tỷ lệ từng rep (16.75x, 16.62x, 16.99x) thì được 16.75x. Hai cách đều đúng, cần nêu rõ cách tính khi trình bày.</li>
+</ul>
+
+<h3 id="gt-naive-vs-optimized">Naive vs Optimized: vì sao có hai bản</h3>
+<ul>
+<li>Đề tài chấm "DE performance" và yêu cầu ít nhất một giải pháp so sánh cho mỗi BR. Naive là baseline: cách viết PySpark đầu tiên, đúng kết quả, chưa tối ưu. Optimized là giải pháp chính. Hai bản cùng input, cùng thuật toán, cùng output (xem mục Tính đúng đắn), nên chênh lệch thời gian chỉ do kỹ thuật xử lý, đúng chủ đề "Big Data Processing Optimization".</li>
+<li>Naive không cố tình làm chậm; mỗi lựa chọn là mặc định hoặc cách viết tự nhiên. Python UDF là cách dễ nhất để gọi hàm Python từ Spark; <code>spark.sql.shuffle.partitions=200</code> là mặc định của Spark; AQE tắt là mặc định trước Spark 3.2; auto-broadcast bị tắt (<code>autoBroadcastJoinThreshold=-1</code>) để Spark không tự tối ưu hộ và đo được join thuần shuffle.</li>
+</ul>
+<div class="wrap txt"><table>
+<tr><th>Điểm nghẽn ở naive</th><th>Kỹ thuật ở optimized</th><th>Vì sao nhanh hơn</th><th>Stage hưởng lợi</th></tr>
+<tr><td>Python row UDF: mỗi request serialize từ JVM sang Python rồi ngược lại, 20,000 lần gọi Python</td><td><code>mapInPandas</code> + numpy</td><td>Một lô nhiều dòng đi qua Arrow, haversine tính vector hóa, số lần gọi Python giảm từ 20,000 xuống số partition</td><td>solve (17.8x)</td></tr>
+<tr><td>Shuffle join request với landmark và với <code>dist_matrix</code>: băm, ghi đĩa, trao đổi dữ liệu qua 200 partition</td><td>Broadcast bảng nhỏ (1,954 landmark với tọa độ) tới executor, join tại chỗ; tính khoảng cách ngay bằng haversine thay vì tra 1.7 triệu cặp</td><td>Bỏ hẳn bước shuffle và scan <code>dist_matrix</code></td><td>requests (12.5x) và solve</td></tr>
+<tr><td>200 shuffle partitions cho 20,000 dòng: 200 task nhỏ, chi phí lập lịch lớn hơn việc thật</td><td>8 partitions</td><td>Mỗi task đủ việc, ít overhead</td><td>cả hai stage</td></tr>
+<tr><td>AQE tắt: plan cố định từ đầu</td><td>AQE bật (<code>coalescePartitions</code>)</td><td>Spark gộp partition nhỏ và chọn join ở runtime theo kích thước thật</td><td>cả hai stage</td></tr>
+</table></div>
+<ul>
+<li>Cùng ý tưởng cho BR2. Batch: baseline đọc 13 file parquet thô (12 FileScan riêng, không partition pruning) so với lake phân vùng theo <code>service</code>/<code>pickup_month</code> (PartitionFilters + PushedFilters chỉ đọc 16 zone và 5 cột), kết quả 1.90x. Stream: Spark Structured Streaming (giải pháp chính, có watermark/window) so với ClickHouse Kafka engine + Materialized View (giải pháp so sánh, gộp ngay khi insert, không có JVM/Python), kết quả 8.7x backlog và 6.0x RAM.</li>
+</ul>
+
+<h3 id="gt-baseline">Baseline là gì trong từng phép so sánh</h3>
+<div class="wrap txt"><table>
+<tr><th>Phép so sánh</th><th>Baseline (tham chiếu)</th><th>Giải pháp đối chiếu</th><th>Cùng input</th><th>Kiểm tra cùng output</th></tr>
+<tr><td>BR1 batch</td><td>Naive Spark (UDF, shuffle, AQE tắt, 200 partitions)</td><td>Optimized Spark (giải pháp chính)</td><td>20,000 request, 4-8 stop, 1,954 landmark, 3 thành phố</td><td>mục Tính đúng đắn BR1</td></tr>
+<tr><td>BR2 batch</td><td>Raw parquet (13 file, 873 MB)</td><td>Lake phân vùng (26 file, 460 MB)</td><td>48,950,921 trip, 13 tháng</td><td>capacity giống nhau</td></tr>
+<tr><td>BR2 stream</td><td>Spark Structured Streaming (giải pháp chính đang chạy demo)</td><td>ClickHouse Kafka engine + MV</td><td>200,000 trip tháng 2026-07, cùng topic</td><td>684/684 window giống hệt</td></tr>
+</table></div>
+<ul>
+<li>Bối cảnh chung của mọi baseline: một laptop macOS, OrbStack Docker, 8 CPU, 8 GB; Spark 4.0 standalone 1 worker (2 core, 2 GB), job dùng 1 core, driver và executor 512 MB; ClickHouse 26.8 giới hạn 1 GB; không có job khác chạy cùng lúc; 3 lần lặp, báo median (min-max). Khi chạy chung BR1 với BR2 trên cùng worker, BR1 dao động 13.9x đến 23.8x, nên báo cáo dùng số chạy riêng.</li>
+</ul>
+
+<h3 id="gt-nguon-du-lieu">Nguồn dữ liệu và câu hỏi "stream có real-time không"</h3>
+<ul>
+<li><b>BR1 landmarks</b>: OpenStreetMap qua Overpass API (<code>scripts/fetch_osm_landmarks.py</code>, endpoint <code>overpass-api.de</code> và <code>overpass.kumi.systems</code>), 3 thành phố TP.HCM, Hà Nội, Đà Nẵng; lấy tag <code>tourism</code> (attraction, museum, gallery, zoo, theme_park, aquarium, viewpoint, artwork), <code>historic</code>, và <code>amenity=place_of_worship</code> có tên. Script chạy một lần offline, ghi <code>data/br1/landmarks.csv</code> 1,954 dòng (commit trong repo, giấy phép ODbL). Giá vé <code>ticket_vnd</code> ước lượng từ tag <code>fee</code>/<code>charge</code> hoặc mặc định theo loại, không phải giá thật.</li>
+<li><b>BR1 tour requests (stream demo)</b>: giả lập bởi <code>ingestion/producers/produce_br1.py</code> với <code>random.Random(42)</code>: chọn thành phố, 4-8 điểm dừng từ <code>landmarks.csv</code>, <code>requested_at = now()</code> lúc gửi, topic <code>tour.requests</code>, mặc định 20,000 request, <code>--interval 0</code>. Spark đọc <code>startingOffsets=earliest</code>, 2,000 message mỗi trigger, trigger 5 s. Benchmark BR1 không đi qua Kafka: request được dựng bằng <code>spark.range</code> trong job (<code>--bench-only</code>) với cùng tham số 20,000 request, 4-8 stop.</li>
+<li><b>BR2 trips</b>: NYC TLC Yellow Taxi, parquet công khai tải bằng <code>scripts/download_tlc.sh</code> từ <code>https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_YYYY-MM.parquet</code> và <code>misc/taxi_zone_lookup.csv</code>; 13 tháng từ 2025-07 đến 2026-07, 873 MB, nằm ở <code>data/br2/raw/</code> (gitignore, không commit). Batch Spark dựng lake <code>data/br2/lake/fact_trips</code> phân vùng <code>service</code>/<code>pickup_month</code> (460 MB) và <code>dim_capacity</code> (P95 booking theo giờ cho mỗi zone, loại ngày, giờ trên 12 tháng).</li>
+<li><b>BR2 stream không phải real-time theo nghĩa feed trực tiếp</b>: <code>ingestion/producers/produce_br2.py</code> đọc lake tháng <code>BR2_REPLAY_MONTH=2026-07</code>, sort theo <code>pickup_datetime</code>, gửi vào Kafka <code>tlc.trips</code> với timestamp lịch sử (<code>pickup_datetime</code> ISO UTC), nhanh hết cỡ (<code>--interval 0</code>) hoặc theo <code>--interval</code>. Đây là replay: mô phỏng luồng sự kiện thật bằng dữ liệu lịch sử. Spark xử lý theo event time: window 1 h, watermark 2 h trên <code>pickup_datetime</code>, trigger 10 s, 20,000 message mỗi trigger.</li>
+<li><b>Khách sạn và vendor</b>: không có dữ liệu booking thật. "Booking" là chuyến taxi trả khách tại 16 zone có landmark (proxy cho nhu cầu), capacity là P95 lịch sử, không phải số phòng thật.</li>
+<li><b>Cách trả lời giảng viên</b>: "Pipeline real-time về kiến trúc (Kafka, Spark Structured Streaming, event-time window và watermark, độ trễ đo được p50 4-7 s), còn nguồn là replay dữ liệu lịch sử công khai vì không có feed taxi hay booking trực tiếp. Đổi producer sang feed thật thì job và bảng không đổi."</li>
+</ul>
+
+<h2 id="br1">BR1 Tour route: nội dung báo cáo</h2>
+
+<h3 id="br1-muc-tieu">Mục tiêu và người dùng</h3>
+<ul>
+<li>Người dùng: du khách chọn tour theo thành phố, số điểm dừng, ngân sách, điểm bắt buộc ghé.</li>
+<li>Mục tiêu: tìm tour có chi phí thấp nhất cho yêu cầu 4-8 điểm dừng ở 3 thành phố; mỗi câu hỏi trả lời tương tác (dưới 0.1 s).</li>
+<li>Ứng dụng: bản đồ Leaflet (<a href="http://localhost:8090">http://localhost:8090</a>) và dashboard Grafana <code>br1-finder</code>.</li>
+</ul>
+
+<h3 id="br1-pipeline">Pipeline</h3>
+<ul>
+<li><code>scripts/fetch_osm_landmarks.py</code> → <code>data/br1/landmarks.csv</code> (1,954 landmark, 3 thành phố).</li>
+<li><code>produce_br1.py</code> sinh request (seed cố định, 4-8 điểm dừng) → Kafka topic <code>tour.requests</code>.</li>
+<li><code>jobs/br1_tour_route/job.py</code>: nạp landmark, dựng <code>dist_matrix</code> (1,746,644 cặp), nạp vào ClickHouse; stream request, giải bằng nearest neighbour + 2-opt, ghi <code>tour.fact_tour</code> và <code>tour.fact_tour_leg</code>.</li>
+<li>Sau khi stream chạy, job chạy benchmark naive vs optimized, ghi <code>tour.job_run</code>.</li>
+</ul>
+
+<h3 id="br1-giai-phap">Giải pháp chính vs giải pháp so sánh</h3>
+<div class="wrap txt"><table>
+<tr><th></th><th>Naive</th><th>Optimized (giải pháp chính)</th></tr>
+<tr><td>Giải từng request</td><td>Python row UDF</td><td><code>mapInPandas</code> + numpy haversine</td></tr>
+<tr><td>Khoảng cách</td><td>shuffle join với parquet <code>dist_matrix</code></td><td>broadcast tọa độ, tính tại chỗ</td></tr>
+<tr><td>Dựng request</td><td>shuffle join</td><td>broadcast join</td></tr>
+<tr><td>Cấu hình Spark</td><td>AQE tắt, 200 shuffle partitions</td><td>AQE bật, 8 shuffle partitions, Arrow</td></tr>
+</table></div>
+
+<h3 id="br1-cau-hinh">Cấu hình đo</h3>
+<ul>
+<li>2026-11-08, macOS, OrbStack Docker 29.8, 8 CPU, 8 GB.</li>
+<li>Spark 4.0 standalone, 1 worker (2 core, 2 GB); job dùng 1 core, driver 512 MB, executor 512 MB, <code>spark.sql.shuffle.partitions=4</code>.</li>
+<li>ClickHouse 26.8 (1 GB), Grafana 13.2.3. Không có việc khác chạy trên cluster Spark.</li>
+<li>20,000 request (4-8 stop, 3 thành phố), 3 lần lặp, báo median (min-max).</li>
+</ul>
+
+<h3 id="br1-ket-qua">Kết quả</h3>
+<p>Median giây (min-max) của 3 lần:</p>
+<div class="legend"><span><i style="background:var(--base)"></i>naive</span><span><i style="background:var(--opt)"></i>optimized</span></div>
+<svg viewBox="0 0 640 310" role="img" aria-labelledby="c1t">
+<title id="c1t">BR1 median giây theo stage, naive vs optimized</title>
+<line class="gl" x1="50" x2="620" y1="270" y2="270"/><line class="gl" x1="50" x2="620" y1="190" y2="190"/><line class="gl" x1="50" x2="620" y1="110" y2="110"/><line class="gl" x1="50" x2="620" y1="30" y2="30"/>
+<text class="ax" x="44" y="274" text-anchor="end">0</text><text class="ax" x="44" y="194" text-anchor="end">20</text><text class="ax" x="44" y="114" text-anchor="end">40</text><text class="ax" x="44" y="34" text-anchor="end">60</text>
+<text class="ax" x="14" y="150" transform="rotate(-90 14 150)" text-anchor="middle">giây</text>
+<path class="b" d="M85 270V236.37Q85 232.37 89 232.37H141Q145 232.37 145 236.37V270Z"><title>naive · requests: 9.407 s (median của 3)</title></path>
+<path class="o" d="M147 270Q147 267 150 267H204Q207 267 207 270Z"><title>optimized · requests: 0.750 s (median của 3)</title></path>
+<path class="b" d="M275 270V106.34Q275 102.34 279 102.34H331Q335 102.34 335 106.34V270Z"><title>naive · solve: 41.914 s (median của 3)</title></path>
+<path class="o" d="M337 270V264.6Q337 260.6 341 260.6H393Q397 260.6 397 264.6V270Z"><title>optimized · solve: 2.351 s (median của 3)</title></path>
+<path class="b" d="M465 270V65.74Q465 61.74 469 61.74H521Q525 61.74 525 65.74V270Z"><title>naive · total: 52.066 s (median của 3)</title></path>
+<path class="o" d="M527 270V261.74Q527 257.74 531 257.74H583Q587 257.74 587 261.74V270Z"><title>optimized · total: 3.064 s (median của 3)</title></path>
+<g text-anchor="middle">
+<text x="115" y="227.4">9.407</text><text x="177" y="262">0.750</text>
+<text x="305" y="97.3">41.914</text><text x="367" y="255.6">2.351</text>
+<text x="495" y="56.7">52.066</text><text x="557" y="252.7">3.064</text>
+<text class="ax" x="146" y="290">requests</text><text class="ax" x="336" y="290">solve</text><text class="ax" x="526" y="290">total</text>
+</g>
+</svg>
+<div class="wrap"><table>
+<tr><th>Stage</th><th>Naive</th><th>Optimized</th><th>Speedup</th></tr>
+<tr><td>requests</td><td>9.407 (9.286-10.152)</td><td>0.750 (0.683-0.759)</td><td>12.5x</td></tr>
+<tr><td>solve</td><td>41.914 (41.520-43.460)</td><td>2.351 (2.305-2.430)</td><td>17.8x</td></tr>
+<tr><td><b>total</b></td><td><b>52.066</b> (50.806-52.867)</td><td><b>3.064</b> (3.034-3.180)</td><td><b>17.0x</b></td></tr>
+</table></div>
+
+<p>Từng lần (total):</p>
+<div class="wrap"><table>
+<tr><th>Rep</th><th>Naive (s)</th><th>Optimized (s)</th><th>Speedup</th></tr>
+<tr><td>1</td><td>50.806</td><td>3.034</td><td>16.75x</td></tr>
+<tr><td>2</td><td>52.867</td><td>3.180</td><td>16.62x</td></tr>
+<tr><td>3</td><td>52.066</td><td>3.064</td><td>16.99x</td></tr>
+</table></div>
+
+<p>Warm-up chỉ có ở optimized (không nằm trong "total"):</p>
+<div class="wrap"><table>
+<tr><th>Stage</th><th>Giây</th><th>Số dòng</th></tr>
+<tr><td>landmarks</td><td>4.420 (4.078-4.610)</td><td>1,954</td></tr>
+<tr><td>dist_matrix</td><td>3.098 (2.777-3.208)</td><td>1,746,644 pairs</td></tr>
+<tr><td>sink_clickhouse</td><td>18.094 (17.756-18.467)</td><td>1,748,598 written</td></tr>
+</table></div>
+<ul>
+<li>Speedup cột = tỷ lệ median (17.0x = 52.066 / 3.064); median của tỷ lệ từng lần = 16.75x (16.62-16.99x).</li>
+<li>Chạy chung với BR2 trên worker 2 core: naive 79.5 s và 72.2 s, optimized 3.35 s và 5.20 s (23.8x và 13.9x). Chạy riêng: 16.6-17.0x. Báo cáo số chạy riêng.</li>
+</ul>
+
+<h3 id="br1-dung-dan">Tính đúng đắn</h3>
+<ul>
+<li>So từng dòng giữa <code>mode=naive</code> và <code>mode=optimized</code> trong lake: 20,000 tour ở cả hai.</li>
+<li><code>total_cost_vnd</code> bằng nhau trên 20,000 tour; tổng 9,444,273,402 VND ở cả hai.</li>
+<li><code>total_km</code>: sai lệch tuyệt đối lớn nhất 9e-13.</li>
+</ul>
+
+<h3 id="br1-khai-thac">Khai thác dữ liệu</h3>
+<p>Tour finder (Grafana <code>br1-finder</code>) và bản đồ có 9 câu hỏi; p50 từng panel 6-16 ms:</p>
+<div class="wrap"><table>
+<tr><th>Panel</th><th>p50 (ms)</th><th>p95 (ms)</th></tr>
+<tr><td>Matching tours</td><td>9.5</td><td>69.7</td></tr>
+<tr><td>Cheapest tour</td><td>10.9</td><td>12.4</td></tr>
+<tr><td>Tours within budget</td><td>15.7</td><td>52.3</td></tr>
+<tr><td>Leg-by-leg cost</td><td>6.2</td><td>8.1</td></tr>
+<tr><td>Route on the map</td><td>7.4</td><td>11.8</td></tr>
+</table></div>
+<ul>
+<li>Insight (từ báo cáo HTML): Hanoi có giá vào thấp nhất (79,273 VND) và median thấp nhất (368,453); giá tăng theo số điểm dừng ở mọi thành phố; vận chuyển chiếm khoảng 90.5% giá, vé 9.5% (hợp tác vận chuyển tác động giá nhiều hơn gói vé).</li>
+<li>Hanoi, 5 stop, tối đa 500,000 VND: 1,316 lựa chọn, rẻ nhất 118,053 VND, median 314,336 VND, ngắn nhất 3.11 km.</li>
+<li>Must-see Miếu Ngũ Hành (HCMC): 244 tour, rẻ nhất 160,273 VND.</li>
+<li>Screenshot chèn vào báo cáo (<code>docs/result/br1/screenshots/</code>):</li>
+</ul>
+<div class="pair">
+<figure><a href="br1/screenshots/br1-finder-hcmc.jpg"><img src="br1/screenshots/br1-finder-hcmc.jpg" alt="Tour finder, HCMC" loading="lazy"></a><figcaption><code>br1-finder-hcmc.jpg</code> (so sánh thành phố)</figcaption></figure>
+<figure><a href="br1/screenshots/br1-finder-hanoi-5stops-500k.jpg"><img src="br1/screenshots/br1-finder-hanoi-5stops-500k.jpg" alt="Tour finder, Hanoi, 5 stop, 500,000 VND" loading="lazy"></a><figcaption><code>br1-finder-hanoi-5stops-500k.jpg</code> (lọc ngân sách)</figcaption></figure>
+<figure><a href="br1/screenshots/br1-finder-must-visit.jpg"><img src="br1/screenshots/br1-finder-must-visit.jpg" alt="Tour finder, điểm bắt buộc" loading="lazy"></a><figcaption><code>br1-finder-must-visit.jpg</code> (điểm bắt buộc)</figcaption></figure>
+<figure><a href="br1/screenshots/br1-benchmark-panels.jpg"><img src="br1/screenshots/br1-benchmark-panels.jpg" alt="Panel benchmark BR1" loading="lazy"></a><figcaption><code>br1-benchmark-panels.jpg</code> (panel benchmark, <code>/d/br1-tour</code>)</figcaption></figure>
+</div>
+
+<h3 id="br1-nhan-xet">Nhận xét</h3>
+<ul>
+<li>Optimized nhanh hơn 17.0x (tỷ lệ median; từng lần 16.62-16.99x), cùng 20,000 tour. Nguồn gốc: solve 17.8x (UDF từng dòng → vectorized numpy), requests 12.5x (broadcast thay shuffle).</li>
+<li>Sink ClickHouse (18.1 s) gấp khoảng 6 lần toàn bộ compute của optimized (3.06 s). Bước tối ưu tiếp: <code>write_partitions</code> song song hoặc insert native format.</li>
+<li>Streaming demo: đỉnh 2,743 requests/s, độ trễ micro-batch trung bình 399 ms (không phải benchmark có kiểm soát).</li>
+</ul>
+
+<h3 id="br1-han-che">Hạn chế</h3>
+<ul>
+<li>3 lần lặp trên một laptop; p95 từ 10 mẫu.</li>
+<li>"Total" không gồm warm-up của optimized.</li>
+<li>Số streaming lấy từ demo.</li>
+<li>Speedup phụ thuộc việc cô lập cluster.</li>
+<li>Khoảng cách đường chim bay (haversine), cước taxi phẳng 11,000 VND + 15,000 VND/km, nhu cầu là dữ liệu sinh.</li>
+<li>Benchmark nạp lại <code>tour.dim_landmark</code> và <code>tour.dist_matrix</code> khoảng 18 s mỗi lần lặp: bản đồ có thể rỗng, chạy khi không ai dùng dashboard.</li>
+</ul>
+
+<h2 id="br2">BR2 Dynamic pricing: nội dung báo cáo</h2>
+
+<h3 id="br2-muc-tieu">Mục tiêu và người dùng</h3>
+<ul>
+<li>Người dùng: quản lý giá / vận hành taxi (NYC TLC yellow taxi, 16 landmark zone).</li>
+<li>Mục tiêu: tìm khung giờ nhu cầu vượt 80% công suất và gợi ý tăng giá 15%.</li>
+<li>Ứng dụng: Grafana <code>br2-advisor</code> (Pricing advisor) với luật giá chỉnh được.</li>
+</ul>
+
+<h3 id="br2-pipeline">Pipeline</h3>
+<ul>
+<li>Baseline batch (một lần): P95 số booking theo giờ cho mỗi zone, loại ngày, giờ, trên 12 tháng (2025-07 đến 2026-06) = capacity.</li>
+<li>Replay producer đọc lake → Kafka <code>tlc.trips</code>.</li>
+<li>Spark Structured Streaming: window 1 h, watermark 2 h, update mode, trigger 10 s, query <code>demand_ratio</code> → ClickHouse <code>pricing.demand_ratio_hourly</code> (ReplacingMergeTree).</li>
+<li>Demand ratio = booking trong giờ / capacity; vượt ngưỡng (mặc định 80%) thì gợi ý tăng 15%.</li>
+</ul>
+
+<h3 id="br2-giai-phap">Giải pháp chính vs giải pháp so sánh</h3>
+<ul>
+<li>So sánh 1 (batch): parquet thô theo tháng vs lake chuẩn hóa phân vùng <code>service</code> và <code>pickup_month</code>.</li>
+<li>So sánh 2 (stream): Spark Structured Streaming (chính) vs ClickHouse Kafka engine + Materialized View (thay thế), cùng pattern với BR3/BR4.</li>
+</ul>
+<div class="wrap txt"><table>
+<tr><th></th><th>Raw files</th><th>Partitioned lake</th></tr>
+<tr><td>Input</td><td>parquet thô theo tháng</td><td>lake chuẩn hóa, phân vùng <code>service</code> và <code>pickup_month</code></td></tr>
+<tr><td>Code</td><td><code>run_bench</code>, variant <code>raw</code></td><td>variant <code>lake</code></td></tr>
+</table></div>
+
+<h3 id="br2-cau-hinh">Cấu hình đo</h3>
+<ul>
+<li>2026-11-08, macOS, OrbStack Docker 29.8, 8 CPU, 8 GB; Spark 4.0 (1 worker 2 core, 2 GB), job 1 core, 512 MB, <code>spark.sql.shuffle.partitions=4</code>.</li>
+<li>3 lần lặp, median (min-max); thứ tự đổi luân phiên raw,lake / lake,raw / raw,lake để giảm thiên lệch page cache.</li>
+<li>Kết quả ghi <code>pricing.job_run</code>; benchmark không động vào serving data.</li>
+</ul>
+
+<h3 id="br2-ket-qua">Kết quả</h3>
+<h3 id="br2-batch">So sánh batch: raw vs lake</h3>
+<p>Median giây (min-max) của 3 lần:</p>
+<div class="legend"><span><i style="background:var(--base)"></i>raw files</span><span><i style="background:var(--opt)"></i>partitioned lake</span></div>
+<svg viewBox="0 0 640 310" role="img" aria-labelledby="c2t">
+<title id="c2t">BR2 median giây theo stage, raw files vs partitioned lake</title>
+<line class="gl" x1="50" x2="620" y1="270" y2="270"/><line class="gl" x1="50" x2="620" y1="210" y2="210"/><line class="gl" x1="50" x2="620" y1="150" y2="150"/><line class="gl" x1="50" x2="620" y1="90" y2="90"/><line class="gl" x1="50" x2="620" y1="30" y2="30"/>
+<text class="ax" x="44" y="274" text-anchor="end">0</text><text class="ax" x="44" y="214" text-anchor="end">4</text><text class="ax" x="44" y="154" text-anchor="end">8</text><text class="ax" x="44" y="94" text-anchor="end">12</text><text class="ax" x="44" y="34" text-anchor="end">16</text>
+<text class="ax" x="14" y="150" transform="rotate(-90 14 150)" text-anchor="middle">giây</text>
+<path class="b" d="M85 270V69.1Q85 65.1 89 65.1H141Q145 65.1 145 69.1V270Z"><title>raw files · hourly: 13.66 s (median của 3)</title></path>
+<path class="o" d="M147 270V173.35Q147 169.35 151 169.35H203Q207 169.35 207 173.35V270Z"><title>partitioned lake · hourly: 6.71 s (median của 3)</title></path>
+<path class="b" d="M275 270V264.85Q275 260.85 279 260.85H331Q335 260.85 335 264.85V270Z"><title>raw files · capacity: 0.61 s (median của 3)</title></path>
+<path class="o" d="M337 270V268.75Q337 264.75 341 264.75H393Q397 264.75 397 268.75V270Z"><title>partitioned lake · capacity: 0.35 s (median của 3)</title></path>
+<path class="b" d="M465 270V62.8Q465 58.8 469 58.8H521Q525 58.8 525 62.8V270Z"><title>raw files · total: 14.08 s (median của 3)</title></path>
+<path class="o" d="M527 270V162.7Q527 158.7 531 158.7H583Q587 158.7 587 162.7V270Z"><title>partitioned lake · total: 7.42 s (median của 3)</title></path>
+<g text-anchor="middle">
+<text x="115" y="60.1">13.66</text><text x="177" y="164.4">6.71</text>
+<text x="305" y="255.9">0.61</text><text x="367" y="259.8">0.35</text>
+<text x="495" y="53.8">14.08</text><text x="557" y="153.7">7.42</text>
+<text class="ax" x="146" y="290">hourly</text><text class="ax" x="336" y="290">capacity</text><text class="ax" x="526" y="290">total</text>
+</g>
+</svg>
+<div class="wrap"><table>
+<tr><th>Stage</th><th>Raw files</th><th>Lake</th><th>Speedup</th></tr>
+<tr><td>hourly</td><td>13.66 (11.47-14.45)</td><td>6.71 (6.65-7.07)</td><td>2.04x</td></tr>
+<tr><td>capacity</td><td>0.61 (0.42-0.81)</td><td>0.35 (0.27-0.77)</td><td></td></tr>
+<tr><td><b>total</b></td><td><b>14.08</b> (12.08-15.26)</td><td><b>7.42</b> (6.98-7.42)</td><td><b>1.90x</b></td></tr>
+</table></div>
+<div class="wrap"><table>
+<tr><th>Rep</th><th>Raw (s)</th><th>Lake (s)</th><th>Speedup</th></tr>
+<tr><td>1</td><td>12.08</td><td>6.98</td><td>1.73x</td></tr>
+<tr><td>2</td><td>14.08</td><td>7.42</td><td>1.90x</td></tr>
+<tr><td>3</td><td>15.26</td><td>7.42</td><td>2.06x</td></tr>
+</table></div>
+<ul>
+<li>Lake build một lần: 44.53 s, 48,950,921 dòng trip (13 tháng).</li>
+<li>Storage: raw 873 MB (13 file) vs lake 460 MB (26 file parquet, 53% của raw).</li>
+<li>Break-even nếu chỉ dựng lake cho benchmark: 44.53 / (14.08 - 7.42) = khoảng 7 lần rebuild. Pipeline thật vẫn phải ghi lake (replay producer đọc nó) nên không phải chi phí thêm.</li>
+<li>Vì sao lake nhanh (<code>explain()</code>, <code>logs/bench/br2-rep1.log</code>): <code>PartitionFilters</code> theo <code>service</code> và <code>pickup_month</code>; <code>PushedFilters: In(do_location_id, [16 zone ids])</code>; chỉ đọc 5 cột. Raw: 12 FileScan riêng, không partition pruning, filter zone không đẩy xuống.</li>
+</ul>
+
+<h3 id="br2-stream-tom-tat">So sánh stream: Spark vs ClickHouse MV</h3>
+<p>Đo bằng <code>tests/br2/benchmark_stream.py</code> + <code>tests/br2/clickhouse_br2.sql</code>; tiêu chí như BR3/BR4.</p>
+<div class="wrap"><table>
+<tr><th></th><th>Backlog end-to-end (s)</th><th>First row (s)</th><th>rows/s</th><th>Peak RAM (MiB)</th><th>Mean CPU (%)</th><th>Live 1,000 msg/s 60 s: p50 / p95 / p99 (ms)</th><th>Correctness join (location_id, window_start)</th></tr>
+<tr><td>Spark Structured Streaming</td><td>96.99 [92.16 - 101.58]</td><td>17.17 [15.72 - 17.36]</td><td>2,062 [1,969 - 2,170]</td><td>2,078 [2,045 - 2,108]</td><td>88.2 [75.1 - 90.5]</td><td>6,913 / 10,822 / 11,028</td><td>684/684 window giống hệt</td></tr>
+<tr><td>ClickHouse Kafka engine + MV</td><td>11.1 [11.07 - 11.7]</td><td>4.43 [4.43 - 4.49]</td><td>18,023 [17,087 - 18,068]</td><td>345 [303 - 426]</td><td>23.7 [22.4 - 24.1]</td><td>4,300 / 7,591 / 7,746</td><td>684/684 window giống hệt</td></tr>
+</table></div>
+<ul>
+<li>ClickHouse MV nhanh hơn 8.7x (end-to-end 96.99 / 11.1 s; rows/s 18,023 / 2,062), RAM ít hơn 6.0x (2,078 / 345 MiB), live p50 thấp hơn 1.6x (6,913 / 4,300 ms). Số chi tiết: <code>docs/result/br2/result-stream-benchmark.md</code>.</li>
+</ul>
+
+<h3 id="br2-dung-dan">Tính đúng đắn</h3>
+<ul>
+<li>Batch: giống hệt ở cả 6 lần chạy: hourly 134,462 zone-hours, 9,305,304 bookings; capacity 768 slots, checksum 75,940.</li>
+<li>Stream: join hai output theo (location_id, window_start): 684/684 window giống hệt (<code>active_bookings</code>, <code>avg_fare</code>, <code>capacity</code>, <code>suggested_fare</code>, <code>price_action</code>).</li>
+</ul>
+
+<h3 id="br2-khai-thac">Khai thác dữ liệu</h3>
+<p>Query latency (10 lần mỗi panel, p50 16-31 ms):</p>
+<div class="wrap"><table>
+<tr><th>Panel</th><th>p50 (ms)</th><th>p95 (ms)</th></tr>
+<tr><td>Surge zone-hours</td><td>18.8</td><td>20.9</td></tr>
+<tr><td>Price suggestion per landmark</td><td>22.7</td><td>33.3</td></tr>
+<tr><td>Demand ratio by hour of day</td><td>24.2</td><td>26.7</td></tr>
+<tr><td>Best hours to raise prices</td><td>22.6</td><td>24.0</td></tr>
+<tr><td>Bookings vs capacity</td><td>30.5</td><td>35.1</td></tr>
+</table></div>
+<ul>
+<li>Luật mặc định (80% / +15%), 2025-07 đến 2026-07: 32,462 surge zone-hours, 22.2% của 145,996 giờ; extra fare revenue $12,766,917 (giả định nhu cầu không giảm); demand ratio trung bình 61.7%.</li>
+<li>Luật cuối tuần (60% / 25%), chỉ lịch sử: 20,775 / 38,752 giờ surge (53.6%); +$10,293,093.</li>
+<li>Top slot: JFK Airport 14:00 (75.7% số ngày surge, $603,630); Times Square &amp; Broadway 16:00 (89.9%, $570,015).</li>
+<li>Hiện tại (giờ replay cuối 2026-07-31 23:00): 4 landmark trên 80% (Chinatown 93.9%, Central Park 86.8%, Madison Square Garden 85.4%, Brooklyn Bridge / DUMBO 84.2%).</li>
+<li>Screenshot (<code>docs/result/br2/screenshots/</code>):</li>
+</ul>
+<div class="pair">
+<figure><a href="br2/screenshots/br2-advisor-default.jpg"><img src="br2/screenshots/br2-advisor-default.jpg" alt="Pricing advisor, luật mặc định" loading="lazy"></a><figcaption><code>br2-advisor-default.jpg</code> (luật mặc định)</figcaption></figure>
+<figure><a href="br2/screenshots/br2-advisor-weekend-60-25-history.jpg"><img src="br2/screenshots/br2-advisor-weekend-60-25-history.jpg" alt="Pricing advisor, luật cuối tuần 60% / 25%" loading="lazy"></a><figcaption><code>br2-advisor-weekend-60-25-history.jpg</code> (luật cuối tuần)</figcaption></figure>
+<figure><a href="br2/screenshots/br2-benchmark-panels.jpg"><img src="br2/screenshots/br2-benchmark-panels.jpg" alt="Panel benchmark BR2" loading="lazy"></a><figcaption><code>br2-benchmark-panels.jpg</code> (panel benchmark, <code>/d/br2-pricing</code>)</figcaption></figure>
+</div>
+
+<h3 id="br2-nhan-xet">Nhận xét</h3>
+<ul>
+<li>Lake nhanh hơn 1.90x (hourly 2.04x), output giống hệt, ít hơn 47% dung lượng, thời gian ổn định hơn (lake 6.98-7.42 s, raw 12.08-15.26 s).</li>
+<li>Lợi ích đến từ partition pruning, filter push-down, column pruning mà file thô không dùng được.</li>
+<li>Streaming demo: input trung bình 1,496 rows/s (bị producer giới hạn); năng lực xử lý 21,627 rows/s, dư khoảng 14x; độ trễ batch trung bình 530 ms; replay tháng 7/2026 sinh 11,534 dòng zone-hour trên 134,462 dòng lịch sử.</li>
+</ul>
+
+<h3 id="br2-han-che">Hạn chế</h3>
+<ul>
+<li>3 lần lặp trên một laptop; p95 từ 10 mẫu; OS page cache (giảm bằng thứ tự luân phiên).</li>
+<li>Số streaming lấy từ demo, không kiểm soát.</li>
+<li>Capacity là P95 suy ra, không phải số xe thật; "real-time" là replay một tháng đã hoàn tất.</li>
+<li>Revenue what-if giả định không mất nhu cầu sau khi tăng giá.</li>
+<li>Nguyên nhân dao động của raw chưa được cô lập.</li>
+</ul>
+
+<h2 id="br2-stream">BR2 so sánh stream: Spark Structured Streaming vs ClickHouse Kafka engine + MV</h2>
+<p class="note">Benchmark BR2 - Dynamic Pricing (stream). Phần batch (raw vs lake) nằm ở <code>docs/result/br2/result-benchmark.md</code>. Phần này chỉ so sánh stream.</p>
+
+<h3 id="st-so-sanh">So sánh gì</h3>
+<div class="wrap txt"><table>
+<tr><th></th><th>Giải pháp chính</th><th>Giải pháp thay thế</th></tr>
+<tr><td>Kiểu</td><td>ETL: Kafka → Spark Structured Streaming → ClickHouse</td><td>ELT: ClickHouse tự đọc Kafka (<code>ENGINE = Kafka</code>) + Materialized View</td></tr>
+<tr><td>Code</td><td><code>jobs/br2_dynamic_pricing/job.py</code> (<code>run_stream</code>)</td><td><code>tests/br2/clickhouse_br2.sql</code></td></tr>
+<tr><td>Gom nhóm</td><td><code>from_json</code> → lọc 16 landmark zone → window 1 h theo location, watermark 2 h, <code>count</code> + <code>avg(fare)</code></td><td>MV nhóm theo <code>(location_id, toStartOfHour(pickup_datetime))</code> vào <code>AggregatingMergeTree</code> (<code>SimpleAggregateFunction</code> sum/max)</td></tr>
+<tr><td>Join capacity</td><td>broadcast join capacity (P95)</td><td>view <code>v_demand_ratio_ch</code> join <code>dim_capacity_ch</code> (768 slot) và <code>dim_landmark_ch</code> (16)</td></tr>
+<tr><td>Luật giá</td><td><code>demand_ratio_pct = bookings * 100 / capacity</code>; trên 80% thì fare × 1.15</td><td>cùng công thức và cùng ngưỡng trong view</td></tr>
+<tr><td>Ghi</td><td><code>pricing.demand_ratio_hourly</code> (<code>ReplacingMergeTree(updated_at)</code>, <code>outputMode update</code>, trigger 10 s)</td><td><code>pricing.demand_ratio_hourly_ch</code></td></tr>
+</table></div>
+<p>Như BR4, BR2 làm lại được 100% bằng SQL (aggregate + join + luật giá) nên đây là phép so sánh tương đương; khác BR3, không có logic nào ClickHouse không biểu diễn được.</p>
+
+<h3 id="st-du-lieu">Dữ liệu và cấu hình</h3>
+<ul>
+<li>200.000 chuyến yellow taxi đầu tiên của 2026-07 (sắp theo giờ đón) từ <code>data/br2/lake/fact_trips</code>; 44.332 chuyến kết thúc ở một trong 16 landmark zone (topic <code>bench_br2_200000</code>).</li>
+<li>Live: 1.000 chuyến/s trong 60 s (60.000 chuyến); các dòng gửi bắt đầu sau các dòng warm-up ít nhất 3 giờ; mỗi lần có 14.656 chuyến landmark trên 217 window theo giờ.</li>
+<li>Spark submit giống <code>scripts/start.py</code> (driver 512 MB, executor 512 MB, <code>spark.cores.max=1</code>), trigger 10 s; benchmark đặt <code>maxOffsetsPerTrigger=20000</code> (<code>BENCH_MAX_OFFSETS</code>).</li>
+<li>Cluster Spark: 1 worker, 2 core. ClickHouse Kafka engine: <code>kafka_max_block_size = 10000</code>, flush mặc định (<code>stream_flush_interval_ms</code> 7,5 s).</li>
+</ul>
+
+<h3 id="st-tieu-chi">Tiêu chí</h3>
+<div class="wrap txt"><table>
+<tr><th>Tiêu chí (theo đề)</th><th>Đo bằng</th></tr>
+<tr><td>Đúng dữ liệu</td><td>chạy backlog "check" cho mỗi engine, join 2 output theo <code>(location_id, toUnixTimestamp(window_start))</code>: so <code>active_bookings</code>, <code>avg_fare</code>, <code>capacity</code>, <code>suggested_fare</code>, <code>price_action</code>; số window mỗi bên</td></tr>
+<tr><td>Hiệu năng - xả backlog</td><td>200.000 message có sẵn trong Kafka: thời gian đến khi <code>sum(active_bookings)</code> (<code>FINAL</code>) ≥ 44.332; rows/s = 200.000 / end-to-end (số message Kafka đã đọc mỗi giây); RAM đỉnh và CPU trung bình từ <code>docker stats</code> (Spark: spark-local + spark-worker + spark-master + clickhouse; ClickHouse: chỉ clickhouse)</td></tr>
+<tr><td>Hiệu năng - chạy liên tục</td><td>1.000 chuyến/s trong 60 s: độ trễ mỗi window giờ = <code>ingested_at</code> (Spark: <code>updated_at</code>) − timestamp Kafka mới nhất trong window, p50/p95/p99</td></tr>
+<tr><td>Hiệu quả khai thác</td><td>cả hai ghi vào ClickHouse <code>pricing.*</code>, dashboard Grafana <code>br2-advisor</code></td></tr>
+</table></div>
+<p>Mỗi phép đo lặp 3 lần, báo median [min - max].</p>
+
+<h3 id="st-chay-lai">Chạy lại</h3>
+<pre>docker compose --profile full up -d clickhouse kafka spark-master spark-worker spark-local
+python3 -m venv .venv &amp;&amp; .venv/bin/pip install clickhouse-connect==1.8.0 kafka-python==3.0.11 pyarrow==22.0.0
+.venv/bin/python tests/br2/benchmark_stream.py 3</pre>
+<ul>
+<li>Cần lake (<code>data/br2/lake/fact_trips</code>, <code>dim_capacity</code>) dựng sẵn bằng <code>make demo-br BR=2</code> một lần, và dừng demo stream BR2.</li>
+<li>Homebrew Python chặn <code>pip install</code> (PEP 668) nên dùng venv; <code>make br2-bench-stream</code> giả định <code>python3</code> đã có đủ thư viện.</li>
+<li>Biến môi trường: <code>BENCH_TRIPS</code> (200000), <code>BENCH_MONTH</code> (2026-07), <code>BENCH_RATE</code> (1000), <code>BENCH_DURATION</code> (60), <code>BENCH_MAX_OFFSETS</code> (20000).</li>
+<li>Kết quả thô: <code>docs/result/br2/benchmark-stream/benchmark_runs.csv</code>, <code>docs/result/br2/benchmark-stream/summary.md</code>.</li>
+</ul>
+
+<h3 id="st-ket-qua">Kết quả (median [min - max] của 3 lần)</h3>
+<p>Xả backlog 200.000 message (44.332 chuyến landmark, 684 window sau khi gom):</p>
+<div class="legend"><span><i style="background:var(--base)"></i>Spark</span><span><i style="background:var(--opt)"></i>ClickHouse MV</span></div>
+<svg viewBox="0 0 640 310" role="img" aria-labelledby="c3t">
+<title id="c3t">Xả backlog 200.000 message: end-to-end (s), Spark vs ClickHouse MV</title>
+<line class="gl" x1="50" x2="620" y1="270" y2="270"/><line class="gl" x1="50" x2="620" y1="210" y2="210"/><line class="gl" x1="50" x2="620" y1="150" y2="150"/><line class="gl" x1="50" x2="620" y1="90" y2="90"/><line class="gl" x1="50" x2="620" y1="30" y2="30"/>
+<text class="ax" x="44" y="274" text-anchor="end">0</text><text class="ax" x="44" y="214" text-anchor="end">25</text><text class="ax" x="44" y="154" text-anchor="end">50</text><text class="ax" x="44" y="94" text-anchor="end">75</text><text class="ax" x="44" y="34" text-anchor="end">100</text>
+<text class="ax" x="14" y="150" transform="rotate(-90 14 150)" text-anchor="middle">giây</text>
+<path class="b" d="M150 270V41.22Q150 37.22 154 37.22H266Q270 37.22 270 41.22V270Z"><title>Spark: 96.99 s (median của 3)</title></path>
+<path class="o" d="M370 270V247.36Q370 243.36 374 243.36H486Q490 243.36 490 247.36V270Z"><title>ClickHouse MV: 11.1 s (median của 3)</title></path>
+<g text-anchor="middle">
+<text x="210" y="32.2">96.99</text><text x="430" y="238.4">11.1</text>
+<text class="ax" x="210" y="290">Spark</text><text class="ax" x="430" y="290">ClickHouse MV</text>
+</g>
+<text class="ax" x="335" y="305" text-anchor="middle">Xả backlog 200.000 message: end-to-end (s)</text>
+</svg>
+<div class="wrap"><table>
+<tr><th>Engine</th><th>End-to-end (s)</th><th>Dòng đầu tiên (s)</th><th>rows/s</th><th>RAM đỉnh (MiB)</th><th>CPU TB (%)</th></tr>
+<tr><td>Spark</td><td>96.99 [92.16 - 101.58]</td><td>17.17 [15.72 - 17.36]</td><td>2,062 [1,969 - 2,170]</td><td>2,078 [2,045 - 2,108]</td><td>88.2 [75.1 - 90.5]</td></tr>
+<tr><td>ClickHouse MV</td><td>11.1 [11.07 - 11.7]</td><td>4.43 [4.43 - 4.49]</td><td>18,023 [17,087 - 18,068]</td><td>345 [303 - 426]</td><td>23.7 [22.4 - 24.1]</td></tr>
+</table></div>
+
+<p>Chạy liên tục 1.000 chuyến/s trong 60 s (14.656 chuyến landmark, 217 window mỗi lần, cả hai engine, cả 3 lần):</p>
+<div class="legend"><span><i style="background:var(--base)"></i>Spark</span><span><i style="background:var(--opt)"></i>ClickHouse MV</span></div>
+<svg viewBox="0 0 640 310" role="img" aria-labelledby="c4t">
+<title id="c4t">Live 1.000 chuyến/s, 60 s: độ trễ theo window (ms), Spark vs ClickHouse MV</title>
+<line class="gl" x1="50" x2="620" y1="270" y2="270"/><line class="gl" x1="50" x2="620" y1="210" y2="210"/><line class="gl" x1="50" x2="620" y1="150" y2="150"/><line class="gl" x1="50" x2="620" y1="90" y2="90"/><line class="gl" x1="50" x2="620" y1="30" y2="30"/>
+<text class="ax" x="44" y="274" text-anchor="end">0</text><text class="ax" x="44" y="214" text-anchor="end">3,000</text><text class="ax" x="44" y="154" text-anchor="end">6,000</text><text class="ax" x="44" y="94" text-anchor="end">9,000</text><text class="ax" x="44" y="34" text-anchor="end">12,000</text>
+<path class="b" d="M85 270V135.74Q85 131.74 89 131.74H141Q145 131.74 145 135.74V270Z"><title>Spark · p50: 6,913 ms (median của 3)</title></path>
+<path class="o" d="M147 270V188Q147 184 151 184H203Q207 184 207 188V270Z"><title>ClickHouse MV · p50: 4,300 ms (median của 3)</title></path>
+<path class="b" d="M275 270V57.56Q275 53.56 279 53.56H331Q335 53.56 335 57.56V270Z"><title>Spark · p95: 10,822 ms (median của 3)</title></path>
+<path class="o" d="M337 270V122.18Q337 118.18 341 118.18H393Q397 118.18 397 122.18V270Z"><title>ClickHouse MV · p95: 7,591 ms (median của 3)</title></path>
+<path class="b" d="M465 270V53.44Q465 49.44 469 49.44H521Q525 49.44 525 53.44V270Z"><title>Spark · p99: 11,028 ms (median của 3)</title></path>
+<path class="o" d="M527 270V119.08Q527 115.08 531 115.08H583Q587 115.08 587 119.08V270Z"><title>ClickHouse MV · p99: 7,746 ms (median của 3)</title></path>
+<g text-anchor="middle">
+<text x="115" y="127.1">6,913</text><text x="177" y="179.4">4,300</text>
+<text x="305" y="49">10,822</text><text x="367" y="113.6">7,591</text>
+<text x="495" y="44.8">11,028</text><text x="557" y="110.5">7,746</text>
+<text class="ax" x="146" y="290">p50</text><text class="ax" x="336" y="290">p95</text><text class="ax" x="526" y="290">p99</text>
+</g>
+<text class="ax" x="335" y="305" text-anchor="middle">Live 1.000 chuyến/s, 60 s: độ trễ theo window (ms)</text>
+</svg>
+<div class="wrap"><table>
+<tr><th>Engine</th><th>p50 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>RAM đỉnh (MiB)</th><th>CPU TB (%)</th></tr>
+<tr><td>Spark</td><td>6,913 [5,835 - 6,922]</td><td>10,822 [10,000 - 11,139]</td><td>11,028 [10,311 - 11,355]</td><td>2,217 [1,965 - 2,257]</td><td>49.2 [33.6 - 51.8]</td></tr>
+<tr><td>ClickHouse MV</td><td>4,300 [4,174 - 4,395]</td><td>7,591 [7,544 - 7,618]</td><td>7,746 [7,746 - 7,801]</td><td>374 [329 - 424]</td><td>13.0 [12.8 - 19.2]</td></tr>
+</table></div>
+<p>Độ đúng: 684/684 window giống hệt ở cả 5 cột (<code>active_bookings</code>, <code>avg_fare</code>, <code>capacity</code>, <code>suggested_fare</code>, <code>price_action</code>); mỗi bên 684 window.</p>
+
+<h3 id="st-nhan-xet">Nhận xét</h3>
+<ul>
+<li>Kết quả giống nhau 100%: aggregate theo giờ + join capacity + luật 80% / +15% chuyển sang SQL của ClickHouse không mất gì.</li>
+<li>Xả backlog: ClickHouse MV nhanh hơn 8.7x (end-to-end 96.99 / 11.1 s; rows/s 18,023 / 2,062 = 8.7x), dùng RAM ít hơn 6.0x (2,078 / 345 MiB) và CPU ít hơn khoảng 3.7x (88.2 / 23.7). Dòng đầu tiên: 4.43 s so với 17.17 s (3.9x).</li>
+<li>Chạy liên tục: ClickHouse cũng thấp hơn ở mọi phân vị: p50 4,300 so với 6,913 ms (1.6x), p95 1.4x, p99 1.4x. Khác BR4, ở đây Spark không thắng độ trễ.</li>
+<li>Hai độ trễ đều chứa chu kỳ cấu hình mặc định, chưa chỉnh: p50 của Spark gồm trigger 10 s, p50 của ClickHouse gồm <code>stream_flush_interval_ms</code> 7,5 s. Dùng đúng mặc định như BR3/BR4.</li>
+<li>RAM của Spark tính cả 3 container JVM (spark-local, spark-worker, spark-master) cộng ClickHouse; RAM của ClickHouse chỉ tính một container.</li>
+<li>Đánh đổi: với phép biến đổi thuần SQL như BR2, ClickHouse MV nhanh và rẻ hơn rõ rệt. Spark vẫn có chỗ đứng ở: baseline batch capacity một lần trên 48,950,921 dòng (so raw vs lake ở <code>docs/result/br2/result-benchmark.md</code>), ngữ nghĩa watermark / dữ liệu đến muộn, và một codebase chung cho batch và stream.</li>
+</ul>
+
+<h3 id="st-nhat-ky">Nhật ký</h3>
+<div class="wrap txt"><table>
+<tr><th>Lần</th><th>Vấn đề</th><th>Xử lý</th></tr>
+<tr><td>Smoke (<code>BENCH_TRIPS=40000</code>, <code>BENCH_DURATION=10</code>, 1 lần lặp)</td><td>Không lỗi. Spark 21.33 s so với ClickHouse 7.32 s, 205/205 window giống hệt</td><td>Chạy đủ cấu hình</td></tr>
+<tr><td>1</td><td>Lần chạy chết cùng phiên Claude sau Spark rep 0 (94.32 s)</td><td>Chạy lại từ đầu</td></tr>
+<tr><td>2</td><td>Va chạm với một instance harness còn sót, instance đó xóa <code>pricing.demand_ratio_hourly_ch</code> giữa lúc poll: <code>Code: 60 ... Unknown table expression identifier 'pricing.demand_ratio_hourly_ch'</code></td><td>Kill process còn sót và job Spark của nó (<code>docker exec spark-local pkill -f jobs/br2_</code>), chạy lại</td></tr>
+<tr><td>3</td><td>Chạy đủ 3 lần lặp, EXIT 0</td><td>Dùng số liệu lần này</td></tr>
+</table></div>
+
+<h3 id="st-han-che">Hạn chế</h3>
+<ul>
+<li>Một máy; cluster Spark chỉ 1 worker 2 core; kết quả phụ thuộc giới hạn RAM/CPU Docker.</li>
+<li>3 lần lặp chưa đủ để kiểm định thống kê; khoảng min-max không chồng nhau ở end-to-end, rows/s và RAM.</li>
+<li>Không đo CPU/RAM của Kafka broker; RAM của ClickHouse không gồm chi phí phía broker của consumer thread.</li>
+<li>Độ trễ live tính theo window giờ (217 window mỗi lần), không phải từng chuyến.</li>
+<li>Chỉ dùng dữ liệu 2026-07.</li>
+</ul>
+
+<h2 id="trinh-bay">Trình bày với giảng viên (10 phút)</h2>
+<p>Ba tiêu chí chấm: (A) đúng dữ liệu, (B) hiệu năng giải pháp DE, (C) hiệu quả khai thác dữ liệu. Có ít nhất một giải pháp thay thế; hơn 3 ví dụ minh họa.</p>
+
+<h3 id="tb-slide">Slide</h3>
+<div class="wrap txt"><table>
+<tr><th>#</th><th>Slide</th><th>Tiêu chí</th><th>Nói gì</th><th>Hình</th></tr>
+<tr><td>1</td><td>Bài toán và hai BR</td><td>tổng quan</td><td>BR1 tour route, BR2 dynamic pricing; Kafka → Spark → ClickHouse → Grafana; chế độ Batch + Stream (BR1), Stream (BR2)</td><td>Bảng 1</td></tr>
+<tr><td>2</td><td>BR1 pipeline</td><td>B</td><td>warm-up batch dựng <code>dist_matrix</code> (1,746,644 cặp); stream <code>tour_requests</code> trigger 5 s; ghi <code>tour.fact_tour</code></td><td>sơ đồ pipeline từ báo cáo HTML</td></tr>
+<tr><td>3</td><td>BR1 naive vs optimized</td><td>B</td><td>naive: Python row UDF, shuffle join, AQE tắt, 200 partitions; optimized: <code>mapInPandas</code> + numpy, broadcast, AQE bật, 8 partitions</td><td>bảng stage (52.066 s vs 3.064 s)</td></tr>
+<tr><td>4</td><td>BR1 đúng dữ liệu và nút cổ chai</td><td>A, B</td><td>20,000 tour giống nhau, tổng 9,444,273,402 VND; sink 18.094 s là bước tiếp theo</td><td>bảng warm-up</td></tr>
+<tr><td>5</td><td>BR1 khai thác</td><td>C</td><td>tour finder: Hanoi 5 stop dưới 500,000 VND có 1,316 lựa chọn; p50 6-16 ms</td><td><code>br1-finder-hanoi-5stops-500k.jpg</code></td></tr>
+<tr><td>6</td><td>BR2 pipeline và capacity</td><td>B</td><td>Kafka <code>tlc.trips</code> → window 1 h, watermark 2 h → ReplacingMergeTree; capacity = P95</td><td>sơ đồ pipeline BR2</td></tr>
+<tr><td>7</td><td>BR2 so sánh batch và stream</td><td>A, B</td><td>raw vs lake 1.90x, 873 MB vs 460 MB; Spark vs ClickHouse MV: backlog 96.99 s vs 11.1 s (8.7x), live p50 6,913 vs 4,300 ms (1.6x), 684/684 window giống hệt</td><td>bảng batch + bảng stream</td></tr>
+<tr><td>8</td><td>BR2 khai thác</td><td>C</td><td>luật 80% / +15%: 22.2% giờ surge; weekend 60% / 25%: 53.6%; JFK 14:00 và Times Square 16:00</td><td><code>br2-advisor-default.jpg</code>, <code>br2-advisor-weekend-60-25-history.jpg</code></td></tr>
+<tr><td>9</td><td>Kết luận và hạn chế</td><td>A, B, C</td><td>số liệu chính, threats to validity, hướng tiếp theo</td><td>bảng tổng hợp</td></tr>
+</table></div>
+
+<h3 id="tb-demo">Kịch bản demo</h3>
+<pre>make demo-br BR=1,2                      # dữ liệu
+make br1-bench                           # tests/br1/benchmark.py, 3 reps
+make br2-bench                           # tests/br2/benchmark.py, REPS=3
+python3 tests/br5/check_dashboards.py --br 1
+python3 tests/br5/check_dashboards.py --br 2</pre>
+<ul>
+<li>BR2 cần tải dữ liệu trước: <code>bash scripts/download_tlc.sh yellow 2025-07 2026-07</code>.</li>
+<li>Mở theo thứ tự: bản đồ <a href="http://localhost:8090">http://localhost:8090</a> → Grafana <a href="http://localhost:3000">http://localhost:3000</a> (<code>/d/br1-finder</code>, <code>/d/br2-advisor</code>) → Spark UI <a href="http://localhost:8082">http://localhost:8082</a> (job đang chạy).</li>
+<li>Benchmark mất thời gian: chuẩn bị sẵn kết quả, chỉ chiếu panel benchmark (<code>/d/br1-tour</code>, <code>/d/br2-pricing</code>, cuối trang).</li>
+<li>Không chạy <code>make br1-bench</code> khi đang demo bản đồ: nó nạp lại <code>dim_landmark</code> khoảng 18 s.</li>
+</ul>
+
+<h3 id="tb-so-lieu">Số liệu cần nói ra miệng</h3>
+<ul>
+<li>BR1: 52.066 s vs 3.064 s, 17.0x (20,000 request, 3 lần lặp).</li>
+<li>BR1: 20,000 tour giống nhau; <code>total_km</code> lệch tối đa 9e-13.</li>
+<li>BR1: sink ClickHouse 18.094 s, khoảng 6 lần compute của optimized.</li>
+<li>BR2: 14.08 s vs 7.42 s, 1.90x; 873 MB vs 460 MB.</li>
+<li>BR2: lake build 44.53 s cho 48,950,921 dòng, break-even khoảng 7 lần rebuild.</li>
+<li>BR2: 134,462 zone-hours, 9,305,304 bookings giống hệt ở 6 lần chạy.</li>
+<li>BR2: input 1,496 rows/s vs năng lực 21,627 rows/s (dư khoảng 14x).</li>
+<li>Query dashboard: p50 6-16 ms (BR1), 16-31 ms (BR2).</li>
+</ul>
+
+<h3 id="tb-qa">Câu hỏi giảng viên có thể hỏi</h3>
+<dl>
+<dt>1. Vì sao 17x, từ đâu ra?</dt>
+<dd>Phần lớn từ stage solve (41.914 s → 2.351 s, 17.8x): Python row UDF phải serialize từng dòng qua Python, còn <code>mapInPandas</code> + numpy haversine xử lý theo lô vectorized. Stage requests (12.5x) nhờ broadcast join thay shuffle join, kèm AQE bật và 8 thay vì 200 shuffle partitions.</dd>
+<dt>2. Nếu ClickHouse MV nhanh hơn, sao vẫn dùng Spark?</dt>
+<dd>Theo pattern BR3/BR4: Spark dành cho logic ClickHouse không làm được bằng SQL (VADER ở BR3, 2-opt ở BR1), cho stateful window + watermark, và gom về một codebase. MV phù hợp phép biến đổi đơn giản; ở BR2 MV thật sự nhanh hơn: backlog 96.99 s so với 11.1 s (8.7x), live p50 6,913 so với 4,300 ms (1.6x), kết quả giống hệt 684/684 window. Spark vẫn cần cho baseline batch capacity (48,950,921 dòng), watermark / dữ liệu đến muộn và một codebase chung batch + stream.</dd>
+<dt>3. Dữ liệu đến muộn xử lý thế nào?</dt>
+<dd>Watermark 2 h giữ trạng thái window 1 h đủ lâu cho dữ liệu muộn; update mode ghi lại dòng đã đổi; ReplacingMergeTree gộp các bản ghi cùng key, đọc bằng <code>FINAL</code> để lấy bản mới nhất.</dd>
+<dt>4. Vì sao partition pruning chỉ cho 1.90x, khi nào đáng dựng lại lake?</dt>
+<dd>Baseline chỉ đọc 16 zone trên 12 tháng nên phần tiết kiệm bị giới hạn (hourly 2.04x, capacity gần như không đổi). Dựng lake mất 44.53 s; nếu chỉ dựng cho benchmark thì hòa vốn sau khoảng 7 lần rebuild. Pipeline thật vẫn ghi lake cho replay producer nên không tốn thêm.</dd>
+<dt>5. Capacity P95 nghĩa là gì, luật 80% / +15% là gì?</dt>
+<dd>Capacity = P95 số booking mỗi giờ theo zone, loại ngày, giờ trên 12 tháng (không có số xe thật nên dùng "công suất thực tế"). Demand ratio = booking / capacity; từ 80% trở lên thì gợi ý tăng 15%; cả hai tham số chỉnh được trên dashboard.</dd>
+<dt>6. Bằng chứng đúng dữ liệu?</dt>
+<dd>BR1: 20,000 tour giống nhau, <code>total_cost_vnd</code> bằng nhau, <code>total_km</code> lệch tối đa 9e-13. BR2: hourly 134,462 zone-hours, 9,305,304 bookings, capacity 768 slots, checksum 75,940, giống hệt ở cả 6 lần. Stream: join (location_id, window_start): 684/684 window giống hệt.</dd>
+<dt>7. Số đo có đáng tin không?</dt>
+<dd>Đây là hạn chế đã nêu: một laptop, 3 lần lặp, p95 từ 10 mẫu, số streaming lấy từ demo. Chạy chung BR2 trên worker, BR1 từ 16.6-17.0x thành 23.8x và 13.9x, nên báo số chạy riêng; BR2 đổi thứ tự chạy để giảm thiên lệch page cache.</dd>
+<dt>8. Sẽ tối ưu gì tiếp?</dt>
+<dd>Sink ClickHouse của BR1 (18.094 s, khoảng 6 lần compute): dùng <code>write_partitions</code> song song hoặc insert native format. Sau đó đo lại tổng thời gian từ request đến <code>tour.fact_tour</code>.</dd>
+<dt>9. Dữ liệu stream có real-time không? Lấy từ đâu?</dt>
+<dd>Pipeline real-time về kiến trúc (Kafka, Spark Structured Streaming, event-time window và watermark, độ trễ đo được p50 4-7 s), còn nguồn là replay dữ liệu lịch sử công khai vì không có feed taxi hay booking trực tiếp. Đổi producer sang feed thật thì job và bảng không đổi. BR1 request giả lập có seed, BR2 replay tháng 2026-07 từ NYC TLC.</dd>
+</dl>
+
+<h2 id="checklist">Checklist trước khi nộp</h2>
+<ul class="ck">
+<li>☑ Chạy benchmark stream BR2 (<code>tests/br2/benchmark_stream.py</code>); số liệu ở <code>docs/result/br2/result-stream-benchmark.md</code>, bảng stream đã điền.</li>
+<li>☐ Commit các file chưa theo dõi (người dùng tự <code>git add</code> + <code>git commit</code>):
+<ul>
+<li><code>docs/result/br1/</code></li>
+<li><code>docs/result/br2/</code></li>
+<li><code>docs/result/br1-br2-benchmark-report.html</code></li>
+<li><code>tests/br1/</code></li>
+<li><code>tests/br2/</code></li>
+<li><code>grafana/dashboards/br1-tour-finder.json</code></li>
+<li><code>grafana/dashboards/br2-pricing-advisor.json</code></li>
+</ul></li>
+<li>☐ Cập nhật Bảng 1: BR1 "Chế độ xử lý" = <code>Batch + Stream</code>; BR2 "Giải pháp so sánh" = ô ở trên (sau khi có số stream).</li>
+<li>☐ Chèn screenshot (4 ảnh BR1, 3 ảnh BR2) vào đúng mục "Khai thác dữ liệu".</li>
+<li>☐ Đối chiếu từng số trong báo cáo với <code>result-benchmark.md</code> của BR tương ứng.</li>
+<li>☐ Xuất slide ra PDF.</li>
+</ul>
+
+</main>
+</body>
+</html>

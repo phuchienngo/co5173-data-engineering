@@ -15,10 +15,13 @@ CREATE TABLE IF NOT EXISTS pricing.demand_ratio_hourly
     suggested_fare   Float64,
     price_action     String,
     source           String,  -- 'batch' = history, 'stream' = live replay
-    updated_at       DateTime64(3) DEFAULT now64(3)
+    updated_at       DateTime64(3) DEFAULT now64(3),
+    event_time       DateTime64(3) DEFAULT toDateTime64(0, 3)  -- stream: newest Kafka timestamp in the window
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY (location_id, window_start);
+
+ALTER TABLE pricing.demand_ratio_hourly ADD COLUMN IF NOT EXISTS event_time DateTime64(3) DEFAULT toDateTime64(0, 3);
 
 -- Hourly series for charts; FINAL keeps only the latest version of each zone-hour
 -- (the streaming job re-emits a window every time its count changes).
@@ -49,3 +52,17 @@ WHERE (location_id, window_start) IN
     FROM pricing.v_demand_ratio
     GROUP BY location_id
 );
+
+-- Benchmark timings written by job.py --bench (tests/br2/benchmark.py reads them).
+CREATE TABLE IF NOT EXISTS pricing.job_run
+(
+    run_mode LowCardinality(String),
+    stage    LowCardinality(String),
+    rep      UInt8,
+    seconds  Float32,
+    rows     UInt64,
+    checksum UInt64,
+    ran_at   DateTime
+)
+ENGINE = MergeTree
+ORDER BY (ran_at, run_mode, stage);

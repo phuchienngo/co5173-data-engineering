@@ -183,6 +183,8 @@ Warm-up (optimized only):
 
 Reproduce with `BR1_BENCH_REQUESTS=20000 make demo-br BR=1`. The timings also appear in Grafana panel "Speedup (naive / optimized, total)" and "Thời gian từng stage: naive vs optimized (giây)" on the BR1 dashboard.
 
+The figures above were measured while other work shared the Spark cluster. An isolated benchmark (3 repetitions, nothing else on the cluster) gives a median speedup of 16.75x (naive 52.066 s, optimized 3.064 s, same 20,000 tours). See [../result/br1/result-benchmark.md](../result/br1/result-benchmark.md).
+
 ---
 
 ## 7. ClickHouse schema
@@ -321,6 +323,51 @@ Connection settings come from URL parameters: `?ch=` (ClickHouse HTTP URL, defau
 6. Landmark map from `dim_landmark` (geomap).
 
 **Security note:** the tourist page queries ClickHouse directly with the default user and its password, which are visible to anyone who opens the page. This is acceptable for a local demo only. For anything public, put a read-only ClickHouse user or an API proxy in front of the data.
+
+### Business queries in Grafana: BR1 Tour finder
+
+The business queries run in Grafana: http://localhost:3000/d/br1-finder (`grafana/dashboards/br1-tour-finder.json`, uid `br1-finder`). The dashboard variables are the inputs. The panels query `tour.fact_tour`, `tour.fact_tour_leg` and `tour.dim_landmark`.
+
+**Inputs:**
+
+- City.
+- Stops (4-8, multi-select).
+- Max budget (VND: 300k to 3M, or No limit).
+- Includes a stop of type (landmark category).
+- Must visit (landmark names, multi-select). A tour must contain all of them.
+- Tour # (the matching tours, cheapest first; the default is the cheapest).
+
+**Panels:**
+
+- Stats: Matching tours, Cheapest tour, Median tour cost, Shortest tour.
+- "Tours within budget, cheapest first": click a tour number to select it.
+- "Cheapest tour for each number of stops".
+- "Selected tour": leg-by-leg cost, and the route on the map.
+- Average cost split (transport vs tickets) by number of stops.
+
+**Questions it answers:**
+
+- What is the cheapest 5-stop tour in Hanoi under 500,000 VND?
+- Which tours in Da Nang include a place of worship?
+- Which tours in Ho Chi Minh City pass through Miếu Ngũ Hành?
+
+**Checked against direct SQL** (measured 2026-11-08, with the BR1 stream still filling: 8k of 20k requests, so counts change per run):
+
+- Hanoi, 5 stops, budget 500,000 VND: 1,316 tours in Grafana and in `SELECT count() FROM tour.fact_tour FINAL WHERE city='hanoi' AND n_stops=5 AND total_cost_vnd<=500000`. Cheapest 118,053 VND, median 314,336 VND, shortest 3.11 km.
+- HCMC, must visit "Miếu Ngũ Hành": 244 tours. The cheapest (request 16128) has 4 stops for 160,273 VND, and its leg table's running total ends at that cost.
+- Da Nang, type `place_of_worship`: 6,322 of 6,532 tours.
+- HCMC defaults: 6,730 tours, cheapest 99,530 VND.
+
+**Query time** (ClickHouse `system.query_log`, all dashboard queries): median 7 ms, max 89 ms, at most 40,000 rows read.
+
+**Limits:**
+
+- Requests are random, so two "Must visit" landmarks rarely appear in one tour and usually return nothing.
+- The tour table shows at most 100 rows.
+- `fact_tour` has no request time, so the time picker is hidden.
+- The map's "fit to data" did not zoom in during a headless-browser check. Use the mouse wheel if it opens zoomed out.
+
+**Check:** `python3 tests/br5/check_dashboards.py --br 1` runs each panel query through Grafana's API with the default inputs. Result on 2026-11-08: 19 queries, 0 failed, 0 empty.
 
 ### Metrics: Grafana + Prometheus
 

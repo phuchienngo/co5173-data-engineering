@@ -80,6 +80,8 @@ All are in the CO5173 folder. BR5 and BR6 each have the same three dashboards:
 | **BRn Resource use** | CPU and memory of `spark-worker` (executors), `br5-app` (app and Spark driver) and `clickhouse`, with each run marked; the cores and memory Spark gave to runs; ClickHouse's running queries and memory; CPU seconds and peak memory per container |
 | **BRn Data and result** | What is stored: import status and time, multiplier, rows per table (BR6: check-ins per city), rows excluded by the cleaning rules, and the result of the latest run |
 
+BR1 and BR2 run their business queries in Grafana: **BR1 Tour finder** (`/d/br1-finder`) and **BR2 Pricing advisor** (`/d/br2-advisor`). The inputs are dashboard variables, and the panels query ClickHouse directly. See [BR1 Tour finder](docs/br1/tour-route.md) and [BR2 Pricing advisor](docs/br2/dynamic-pricing.md).
+
 The [monitoring guides](docs/guide/br6/monitoring-guide.md) explain each panel and how to read them.
 
 ## Repository layout

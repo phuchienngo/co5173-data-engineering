@@ -1,0 +1,546 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {"type": "grafana", "uid": "-- Grafana --"},
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "title": "BR1 pipeline monitoring",
+      "type": "link",
+      "url": "/d/br1-tour",
+      "icon": "dashboard",
+      "targetBlank": false,
+      "keepTime": false,
+      "includeVars": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+      "id": 11,
+      "options": {
+        "mode": "markdown",
+        "content": "**What this answers:** the cheapest tours a visitor can take, within a budget, with the places they want. Pick inputs above, then click a tour number in the table to see its legs and map.\n\n**Try:** [Hanoi, 5 stops, at most 500k ₫](/d/br1-finder?var-city=hanoi&var-stops=5&var-budget=500000) · [HCMC tours that visit Miếu Ngũ Hành](/d/br1-finder?var-city=hcmc&var-must_visit=Mi%E1%BA%BFu%20Ng%C5%A9%20H%C3%A0nh) · [Da Nang tours with a place of worship](/d/br1-finder?var-city=danang&var-category=place_of_worship) · [All cities: cheapest tour per stop count](/d/br1-finder?var-city=hcmc) (switch City to compare)"
+      },
+      "title": "Ask the data",
+      "transparent": false,
+      "type": "text"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "How many pre-solved tours fit my city, stop count, budget and must-have places?",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 4},
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT count() FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids))",
+          "refId": "A"
+        }
+      ],
+      "title": "Matching tours",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "What is the lowest price I can pay for a tour that meets my criteria?",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: ₫",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 4},
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT min(total_cost_vnd) FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids))",
+          "refId": "A"
+        }
+      ],
+      "title": "Cheapest tour",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "What does a typical matching tour cost, so I know if a price is a good deal?",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: ₫",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 4},
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT quantileExact(0.5)(total_cost_vnd) FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids))",
+          "refId": "A"
+        }
+      ],
+      "title": "Median tour cost",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "How little walking or driving do I need for a tour that meets my criteria?",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "lengthkm",
+          "decimals": 1,
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 4},
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT min(total_km) FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids))",
+          "refId": "A"
+        }
+      ],
+      "title": "Shortest tour",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "Which tours fit my budget and wishes, and which is cheapest? Click a tour number to inspect it below.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}}
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "tour"},
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show this tour",
+                    "url": "/d/br1-finder?${__all_variables}&var-tour=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "transport_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "tickets_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "total_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "route"},
+            "properties": [
+              {"id": "custom.width", "value": 600},
+              {"id": "custom.cellOptions", "value": {"type": "auto", "wrapText": true}}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 8},
+      "id": 5,
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT request_id AS tour, n_stops AS stops, round(total_km, 1) AS km, total_fare_vnd AS transport_vnd, total_ticket_vnd AS tickets_vnd, total_cost_vnd AS total_vnd, arrayStringConcat(stop_names, ' → ') AS route FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids)) ORDER BY total_cost_vnd, total_km LIMIT 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Tours within budget, cheapest first",
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "For each number of stops, what is the cheapest matching tour and how many options exist?",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}}
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "cheapest_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "route"},
+            "properties": [
+              {"id": "custom.width", "value": 600},
+              {"id": "custom.cellOptions", "value": {"type": "auto", "wrapText": true}}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 18},
+      "id": 6,
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT n_stops AS stops, count() AS tours, min(total_cost_vnd) AS cheapest_vnd, argMin(request_id, total_cost_vnd) AS tour, argMin(arrayStringConcat(stop_names, ' → '), total_cost_vnd) AS route FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids)) GROUP BY n_stops ORDER BY n_stops",
+          "refId": "A"
+        }
+      ],
+      "title": "Cheapest tour for each number of stops",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 24},
+      "id": 7,
+      "panels": [],
+      "title": "Selected tour #${tour}",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "Where does my money go on the selected tour, stop by stop?",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "auto", "cellOptions": {"type": "auto"}}
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "leg_fare_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "ticket_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "running_total_vnd"},
+            "properties": [{"id": "unit", "value": "suffix: ₫"}]
+          }
+        ]
+      },
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 25},
+      "id": 8,
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT seq, to_name AS stop, round(leg_km, 2) AS leg_km, leg_fare_vnd, ticket_vnd, cum_cost_vnd AS running_total_vnd FROM tour.fact_tour_leg FINAL WHERE request_id = toUInt64OrZero(${tour:singlequote}) ORDER BY seq",
+          "refId": "A"
+        }
+      ],
+      "title": "Leg-by-leg cost",
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "Where are the stops of the selected tour and in what order do I visit them?",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 25},
+      "id": 9,
+      "options": {
+        "view": {"id": "fit", "allLayers": true, "lastOnly": false, "lat": 0, "lon": 0, "zoom": 15, "padding": 10},
+        "controls": {"showZoom": true, "mouseWheelZoom": true, "showAttribution": true},
+        "basemap": {"type": "default", "name": "Basemap", "config": {}},
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Stops",
+            "config": {
+              "showLegend": false,
+              "style": {
+                "size": {"fixed": 10, "min": 2, "max": 12},
+                "color": {"fixed": "red"},
+                "opacity": 0.8,
+                "text": {"field": "label", "fixed": "", "mode": "field"},
+                "textConfig": {"fontSize": 12, "offsetX": 0, "offsetY": -12, "textAlign": "center", "textBaseline": "middle"}
+              }
+            },
+            "location": {"mode": "coords", "latitude": "lat", "longitude": "lon"},
+            "tooltip": true
+          }
+        ],
+        "tooltip": {"mode": "details"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT l.seq AS seq, concat(toString(l.seq), '. ', l.to_name) AS label, d.lat AS lat, d.lon AS lon, l.cum_cost_vnd AS running_total_vnd FROM tour.fact_tour_leg AS l FINAL INNER JOIN tour.dim_landmark AS d ON d.osm_id = l.to_id AND d.city = ${city:singlequote} WHERE l.request_id = toUInt64OrZero(${tour:singlequote}) ORDER BY seq",
+          "refId": "A"
+        }
+      ],
+      "title": "Route on the map",
+      "type": "geomap"
+    },
+    {
+      "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+      "description": "For a given number of stops, is the money going to transport or to tickets?",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix: ₫",
+          "color": {"mode": "palette-classic"}
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 35},
+      "id": 10,
+      "options": {
+        "orientation": "auto",
+        "xField": "stops",
+        "showValue": "auto",
+        "legend": {"showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": []},
+        "tooltip": {"mode": "multi", "sort": "none"},
+        "xTickLabelRotation": 0,
+        "stacking": "normal",
+        "barWidth": 0.8,
+        "groupWidth": 0.7
+      },
+      "targets": [
+        {
+          "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT toString(n_stops) AS stops, round(avg(total_fare_vnd)) AS transport_vnd, round(avg(total_ticket_vnd)) AS tickets_vnd FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids)) GROUP BY n_stops ORDER BY n_stops",
+          "refId": "A"
+        }
+      ],
+      "title": "Average cost split by number of stops",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": ["co5173", "br1"],
+  "templating": {
+    "list": [
+      {
+        "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+        "definition": "SELECT DISTINCT city FROM tour.dim_landmark ORDER BY city",
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": false,
+        "label": "City",
+        "multi": false,
+        "name": "city",
+        "options": [],
+        "query": "SELECT DISTINCT city FROM tour.dim_landmark ORDER BY city",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query",
+        "current": {"text": "hcmc", "value": "hcmc"}
+      },
+      {
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Stops",
+        "multi": true,
+        "name": "stops",
+        "options": [
+          {"selected": true, "text": "All", "value": "$__all"},
+          {"selected": false, "text": "4", "value": "4"},
+          {"selected": false, "text": "5", "value": "5"},
+          {"selected": false, "text": "6", "value": "6"},
+          {"selected": false, "text": "7", "value": "7"},
+          {"selected": false, "text": "8", "value": "8"}
+        ],
+        "query": "4,5,6,7,8",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom",
+        "current": {"text": ["All"], "value": ["$__all"]}
+      },
+      {
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Max budget (VND)",
+        "multi": false,
+        "name": "budget",
+        "options": [
+          {"selected": false, "text": "300k", "value": "300000"},
+          {"selected": false, "text": "500k", "value": "500000"},
+          {"selected": false, "text": "750k", "value": "750000"},
+          {"selected": false, "text": "1M", "value": "1000000"},
+          {"selected": false, "text": "1.5M", "value": "1500000"},
+          {"selected": false, "text": "2M", "value": "2000000"},
+          {"selected": false, "text": "3M", "value": "3000000"},
+          {"selected": true, "text": "No limit", "value": "4000000000"}
+        ],
+        "query": "300k : 300000, 500k : 500000, 750k : 750000, 1M : 1000000, 1.5M : 1500000, 2M : 2000000, 3M : 3000000, No limit : 4000000000",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom",
+        "current": {"selected": true, "text": "No limit", "value": "4000000000"}
+      },
+      {
+        "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+        "allValue": "'__any'",
+        "definition": "SELECT DISTINCT categoryFROM tour.dim_landmark WHERE city = ${city:singlequote} ORDER BY category",
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Includes a stop of type",
+        "multi": true,
+        "name": "category",
+        "options": [],
+        "query": "SELECT DISTINCT category FROM tour.dim_landmark WHERE city = ${city:singlequote} ORDER BY category",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query",
+        "current": {"text": ["All"], "value": ["$__all"]}
+      },
+      {
+        "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+        "allValue": "'__any'",
+        "definition": "SELECT DISTINCT nameFROM tour.dim_landmark WHERE city = ${city:singlequote} AND name != '' ORDER BY name",
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Must visit",
+        "multi": true,
+        "name": "must_visit",
+        "options": [],
+        "query": "SELECT DISTINCT name FROM tour.dim_landmark WHERE city = ${city:singlequote} AND name != '' ORDER BY name",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query",
+        "current": {"text": ["All"], "value": ["$__all"]}
+      },
+      {
+        "datasource": {"type": "grafana-clickhouse-datasource", "uid": "clickhouse"},
+        "definition": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT toString(request_id) FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids)) ORDER BY total_cost_vnd, total_km LIMIT 100",
+        "allowCustomValue": false,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Tour #",
+        "multi": false,
+        "name": "tour",
+        "options": [],
+        "query": "WITH (SELECT groupArray(osm_id) FROM tour.dim_landmark WHERE city = ${city:singlequote} AND category IN (${category:singlequote})) AS cat_ids SELECT toString(request_id) FROM tour.fact_tour FINAL WHERE city = ${city:singlequote} AND toString(n_stops) IN (${stops:singlequote}) AND total_cost_vnd <= ${budget} AND ('__any' IN (${must_visit:singlequote}) OR hasAll(stop_names, [${must_visit:singlequote}])) AND ('__any' IN (${category:singlequote}) OR arrayExists(id -> has(cat_ids, id), stop_ids)) ORDER BY total_cost_vnd, total_km LIMIT 100",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query",
+        "current": {}
+      }
+    ]
+  },
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {"hidden": true},
+  "timezone": "browser",
+  "title": "BR1 Tour finder",
+  "uid": "br1-finder",
+  "version": 1,
+  "weekStart": ""
+}

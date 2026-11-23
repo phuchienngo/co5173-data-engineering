@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse-pricing"
+        "uid": "clickhouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -106,11 +106,11 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse-pricing"
+            "uid": "clickhouse"
           },
           "format": 1,
           "queryType": "sql",
-          "rawSql": "SELECT window_start AS time, landmark, demand_ratio_pct FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN ($landmark) ORDER BY time",
+          "rawSql": "SELECT window_start AS time, landmark, demand_ratio_pct FROM pricing.v_demand_ratio WHERE $__timeFilter(window_start) AND landmark IN (${landmark:singlequote}) ORDER BY time",
           "refId": "A"
         }
       ],
@@ -120,7 +120,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse-pricing"
+        "uid": "clickhouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -197,7 +197,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse-pricing"
+            "uid": "clickhouse"
           },
           "format": 2,
           "queryType": "sql",
@@ -211,7 +211,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse-pricing"
+        "uid": "clickhouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -268,7 +268,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse-pricing"
+            "uid": "clickhouse"
           },
           "format": 1,
           "queryType": "sql",
@@ -282,7 +282,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "clickhouse-pricing"
+        "uid": "clickhouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -338,7 +338,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse-pricing"
+            "uid": "clickhouse"
           },
           "format": 2,
           "queryType": "sql",
@@ -577,6 +577,403 @@
       ],
       "title": "Executor memory used",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "id": 10,
+      "panels": [],
+      "title": "Benchmark: capacity baseline from raw files vs partitioned lake (make br2-bench)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Median total seconds of the raw-files run divided by the partitioned-lake run in the latest benchmark session.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "decimals": 1,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 30
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "WITH (SELECT max(ran_at) FROM pricing.job_run WHERE stage = 'lake_build') AS s SELECT round(quantileIf(0.5)(seconds, run_mode = 'raw' AND stage = 'total') / nullIf(quantileIf(0.5)(seconds, run_mode = 'lake' AND stage = 'total'), 0), 1) AS speedup FROM pricing.job_run WHERE ran_at >= s",
+          "refId": "A"
+        }
+      ],
+      "title": "Speedup raw / lake (median total)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Seconds spent building the partitioned lake once, from the most recent benchmark session.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 30
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "SELECT seconds FROM pricing.job_run WHERE stage = 'lake_build' ORDER BY ran_at DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "One-off lake build",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "OK when every hourly run in the latest session produced identical row count and checksum for raw and lake.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "OK": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "OK"
+                },
+                "MISMATCH": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "MISMATCH"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 30
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "WITH (SELECT max(ran_at) FROM pricing.job_run WHERE stage = 'lake_build') AS s SELECT if(uniqExact(rows, checksum) = 1, 'OK', 'MISMATCH') AS result FROM pricing.job_run WHERE ran_at >= s AND stage = 'hourly'",
+          "refId": "A"
+        }
+      ],
+      "title": "Same result (hourly checksum)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Number of distinct benchmark repetitions in the latest session.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 30
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "WITH (SELECT max(ran_at) FROM pricing.job_run WHERE stage = 'lake_build') AS s SELECT uniqExact(rep) FROM pricing.job_run WHERE ran_at >= s",
+          "refId": "A"
+        }
+      ],
+      "title": "Reps in latest session",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Median seconds per stage for raw files vs partitioned lake in the latest benchmark session.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 35
+      },
+      "id": 15,
+      "options": {
+        "orientation": "auto",
+        "xField": "stage",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "barWidth": 0.8,
+        "groupWidth": 0.7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "WITH (SELECT max(ran_at) FROM pricing.job_run WHERE stage = 'lake_build') AS s SELECT stage, round(quantileIf(0.5)(seconds, run_mode = 'raw'), 2) AS raw_files, round(quantileIf(0.5)(seconds, run_mode = 'lake'), 2) AS partitioned_lake FROM pricing.job_run WHERE ran_at >= s AND stage IN ('hourly', 'capacity', 'total') GROUP BY stage ORDER BY indexOf(['hourly', 'capacity', 'total'], stage)",
+          "refId": "A"
+        }
+      ],
+      "title": "Median seconds per stage",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "description": "Every stage timing, row count and checksum of each run in the latest benchmark session.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 35
+      },
+      "id": 16,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "sql",
+          "rawSql": "WITH (SELECT max(ran_at) FROM pricing.job_run WHERE stage = 'lake_build') AS s SELECT rep, ran_at, run_mode, stage, round(seconds, 2) AS seconds, rows, checksum FROM pricing.job_run WHERE ran_at >= s ORDER BY rep, run_mode, indexOf(['lake_build', 'hourly', 'capacity', 'total'], stage)",
+          "refId": "A"
+        }
+      ],
+      "title": "Benchmark runs (latest session)",
+      "type": "table"
     }
   ],
   "refresh": "",
@@ -590,6 +987,7 @@
       {
         "allFormat": "glob",
         "allValue": null,
+        "allowCustomValue": false,
         "current": {
           "text": [
             "All"
@@ -600,7 +998,7 @@
         },
         "datasource": {
           "type": "grafana-clickhouse-datasource",
-          "uid": "clickhouse-pricing"
+          "uid": "clickhouse"
         },
         "definition": "SELECT DISTINCT landmark FROM pricing.v_demand_ratio ORDER BY 1",
         "description": null,

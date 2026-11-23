@@ -309,9 +309,10 @@ def wait_for_spark_ready(name, proc, log_file, timeout=int(os.environ.get("SPARK
         if proc.poll() is not None:
             report_exited([(name, proc, log_file)], "Spark job")
             return False
-        tail = tail_file(log_file, lines=80)
+        log_text = log_file.read_text(errors="replace") if log_file.exists() else ""
         # Jobs print "BR<n>_STREAM_READY"; jobs without a checkpoint log ResolveWriteToStream.
-        if f"{name}_STREAM_READY" in tail or "ResolveWriteToStream" in tail:
+        # Whole log, not the tail: Spark warnings can push the marker past the last 80 lines.
+        if f"{name}_STREAM_READY" in log_text or "ResolveWriteToStream" in log_text:
             print(f"{name} Spark job is ready.")
             return True
         time.sleep(1)
