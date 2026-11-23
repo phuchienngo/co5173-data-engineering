@@ -1,0 +1,2 @@
+block,cell,input,live,preset,repeat,run_id,status,duration_s,started_at,finished_at,spark_app_id,rows_read,baseline_cells,replay_events,fingerprint
+V,I2-V1,I2,V1,bench-python-udf,1,fb165e39-daba-48f4-8e29-cb5e1d06156a,failed,213.425,2026-11-09 03:42:47.125,2026-11-09 03:46:20.550,app-20261109034249-0182,0,0,0,
